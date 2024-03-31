@@ -1,12 +1,17 @@
+#include <assert.h>
 #include <limits.h>
+#include <locale.h>
 #include <ncurses.h>
 #include <stdbool.h>
-
-#define ASCII_MAX 127
-#define ASCII_MIN 0
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <utils.h>
 
 int const height;
 int const width;
+
+void endwin_atexit() { endwin(); }
 
 void ncurses_set_up()
 {
@@ -18,75 +23,117 @@ void ncurses_set_up()
     nonl();
     intrflush(stdscr, false);
     //Add this?
-    //raw()
+    // raw();
     keypad(stdscr, TRUE);
-}
 
-inline bool is_ascii(unsigned int c)
-{
-    return ASCII_MIN <= c && c <= ASCII_MAX;
-}
-
-//! Reads the length in bytes of a UTF-8 unicode code point from the first byte
-
-/*!
- * @param c The first byte of a UTF-8 unicode code point
- * @returns An integer in the range [1, 4] indicating the length in bytes of the
- * unicode code point, or -1 on error
- */
-int get_utf8_len(unsigned int c)
-{
-    if (is_ascii(c)) { return 1; }
-    unsigned const int mask = 0b1100000;
-    if ((c & mask) != mask) { return -1; }
-
-#define check(mask, return_val)                                                \
-    do {                                                                       \
-        if ((c & (mask)) != 0) {                                               \
-            unsigned int const check = ((mask) >> 1U);                         \
-            return ((check & c) != 0) ? -1 : (return_val);                     \
-        }                                                                      \
-    } while (0);
-
-    check(0b00010000U, 4);
-    check(0b00100000U, 3);
-    check(0b01000000U, 2);
-
-#undef check
-}
-
-inline bool is_continuation(unsigned int c)
-{
-#define BIT1 0b10000000U
-#define BIT2 0b01000000U
-
-    return (BIT1 & c) != 0 && (BIT2 & c) == 0;
-}
-
-const char* wget_utf8(WINDOW* win)
-{
-    // A unicode character can be 1-4 bytes + null termination
-    char* res = (char*)malloc(5);
-
-    int c = wgetch(win);
-
-    if (c < 0) {
-        int err = fprintf(
+    int err = atexit(endwin_atexit);
+    if (err != 0) {
+        fprintf(
             stderr,
-            "A character with negative value has been read in wgetch\n");
-        exit(err);
-
-        return
+            "Couldn't register atexit function, quitting program...\n"); //NOLINT
+        endwin();
+        exit(1);
     }
-
-    if (is_ascii(c)) {
-        res[0] = (char)c;
-        res[1] = '\0';
-    }
-
-    int i = 0;
 }
 
-WINDOW* paint_start_menu() { WINDOW* menu_win = newwin(); }
+const char* const menu_choices[] = {"Play", "Options", "Exit"};
 
-int main() { ncurses_set_up(); }
+typedef enum Choices
+{
+    op_play,
+    op_options,
+    op_exit,
+    op_N
+} Choices;
+
+int get_menu_width()
+{
+    int size   = (int)(sizeof(menu_choices) / sizeof(char*));
+    size_t max = 0;
+    for (int i = 0; i < size; ++i) {
+        size_t temp = strlen(menu_choices[i]);
+        if (temp > max) { max = temp; }
+    }
+
+    assert(max < INT_MAX);
+
+    return (int)max;
+}
+
+typedef struct menu
+{
+    const int n_choices;
+    const int height;
+    const int width;
+    const int y;
+    const int x;
+} Menu;
+
+Menu new_menu()
+{
+    const int n_choices = (int)(sizeof(menu_choices) / sizeof(char*));
+    const int width     = get_menu_width() + 4;
+
+    return (Menu){.n_choices = n_choices,
+                  .height    = n_choices + 2,
+                  .width     = width,
+                  .y         = (LINES - n_choices + 2) / 2,
+                  .x         = (COLS - width) / 2};
+}
+
+bool refresh_menu_win(WINDOW* menu_win, const Menu* menu, int highlight)
+{
+    wattroff(menu_win, A_STANDOUT);
+    werase(menu_win);
+    box(menu_win, 0, 0);
+    const int x_align = 1;
+    int y_align       = 1;
+    for (int i = 0; i < menu->n_choices; ++i) {
+        mvwprintw(menu_win, y_align, x_align, "%s", menu_choices[i]);
+        ++y_align;
+    }
+
+    wattron(menu_win, A_STANDOUT);
+    mvwprintw(menu_win, 1 + highlight, x_align, u8"◇ %s",
+              menu_choices[highlight]);
+    wattroff(menu_win, A_STANDOUT);
+
+    wrefresh(menu_win);
+
+    return true;
+}
+
+Choices start_menu()
+{
+    const Menu menu = new_menu();
+
+    WINDOW* menu_win = newwin(menu.height, menu.width, menu.y, menu.x);
+    intrflush(menu_win, false);
+    keypad(menu_win, TRUE);
+
+    box(menu_win, 0, 0);
+
+    int option = 0;
+    refresh_menu_win(menu_win, &menu, option);
+
+    int ch              = 0;
+    const int line_feed = 10;
+    while (true) {
+        ch = wgetch(menu_win);
+        switch (ch) {
+            case KEY_UP   : option = (option + op_N - 1) % op_N; break;
+            case KEY_DOWN : option = (option + 1) % op_N; break;
+            case line_feed: return option;
+            default       :;
+        }
+        refresh_menu_win(menu_win, &menu, option);
+    }
+}
+
+int main()
+{
+    ncurses_set_up();
+    start_menu();
+
+    return 0;
+}

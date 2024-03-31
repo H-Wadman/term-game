@@ -12,7 +12,15 @@ else ()
     add_link_options(-fsanitize=address,undefined)
 endif ()
 
+set(utilsDir ${CMAKE_CURRENT_SOURCE_DIR}/utils)
+
+
 add_executable(run main.c)
+add_library(utils ${utilsDir}/utils.c)
+
+
+target_include_directories(run PRIVATE ${utilsDir})
+target_include_directories(utils PRIVATE ${utilsDir})
 
 find_library(ncursesLib ncurses)
-target_link_libraries(run PRIVATE ncursesLib)
+target_link_libraries(run PRIVATE ${ncursesLib} utils)
