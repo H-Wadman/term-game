@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <ncurses.h>
 #include <stdbool.h>
 
@@ -24,3 +27,5 @@ const char* wget_utf8(WINDOW* win);
 
 //! Reads a UTF8 unicode point from win into buf with at least size 5
 int load_utf8(char* buf, WINDOW* win);
+
+#endif

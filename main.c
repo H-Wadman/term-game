@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <utils.h>
+
+#include "text.h"
+#include "utils.h"
 
 int const height;
 int const width;
@@ -32,7 +34,7 @@ void ncurses_set_up()
             stderr,
             "Couldn't register atexit function, quitting program...\n"); //NOLINT
         endwin();
-        exit(1);
+        exit(1); //NOLINT
     }
 }
 
@@ -71,14 +73,27 @@ typedef struct menu
 
 Menu new_menu()
 {
-    const int n_choices = (int)(sizeof(menu_choices) / sizeof(char*));
-    const int width     = get_menu_width() + 4;
+    static const int n_choices = (int)(sizeof(menu_choices) / sizeof(char*));
+    const int width            = get_menu_width() + 4;
 
     return (Menu){.n_choices = n_choices,
                   .height    = n_choices + 2,
                   .width     = width,
-                  .y         = (LINES - n_choices + 2) / 2,
+                  .y         = (LINES - (n_choices + 2) + title_height) / 2,
                   .x         = (COLS - width) / 2};
+}
+
+WINDOW* add_title(const Menu* menu)
+{
+    WINDOW* title_win = newwin(title_height, title_width,
+                               (LINES - title_height - menu->height) / 2,
+                               (COLS - title_width) / 2);
+    for (int i = 0; i < title_height; ++i) {
+        mvwprintw(title_win, i, 0, "%s", title[i]);
+    }
+
+    wrefresh(title_win);
+    return title_win;
 }
 
 bool refresh_menu_win(WINDOW* menu_win, const Menu* menu, int highlight)
@@ -107,7 +122,8 @@ Choices start_menu()
 {
     const Menu menu = new_menu();
 
-    WINDOW* menu_win = newwin(menu.height, menu.width, menu.y, menu.x);
+    WINDOW* menu_win  = newwin(menu.height, menu.width, menu.y, menu.x);
+    WINDOW* title_win = add_title(&menu);
     intrflush(menu_win, false);
     keypad(menu_win, TRUE);
 
@@ -117,14 +133,17 @@ Choices start_menu()
     refresh_menu_win(menu_win, &menu, option);
 
     int ch              = 0;
-    const int line_feed = 10;
+    const int line_feed = 13;
     while (true) {
         ch = wgetch(menu_win);
         switch (ch) {
-            case KEY_UP   : option = (option + op_N - 1) % op_N; break;
-            case KEY_DOWN : option = (option + 1) % op_N; break;
-            case line_feed: return option;
-            default       :;
+            case KEY_UP  : option = (option + op_N - 1) % op_N; break;
+            case KEY_DOWN: option = (option + 1) % op_N; break;
+            case line_feed:
+                delwin(menu_win);
+                delwin(title_win);
+                return option;
+            default:;
         }
         refresh_menu_win(menu_win, &menu, option);
     }

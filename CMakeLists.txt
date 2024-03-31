@@ -17,10 +17,11 @@ set(utilsDir ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
 add_executable(run main.c)
 add_library(utils ${utilsDir}/utils.c)
+add_library(text ${utilsDir}/text.c)
 
 
 target_include_directories(run PRIVATE ${utilsDir})
 target_include_directories(utils PRIVATE ${utilsDir})
 
 find_library(ncursesLib ncurses)
-target_link_libraries(run PRIVATE ${ncursesLib} utils)
+target_link_libraries(run PRIVATE ${ncursesLib} utils text)
