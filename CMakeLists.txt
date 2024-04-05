@@ -16,12 +16,12 @@ set(utilsDir ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
 
 add_executable(run main.c)
-add_library(utils ${utilsDir}/utils.c)
-add_library(text ${utilsDir}/text.c)
+add_library(utf8 ${utilsDir}/utf8.c)
+add_library(menu ${utilsDir}/menu.c)
 
 
 target_include_directories(run PRIVATE ${utilsDir})
-target_include_directories(utils PRIVATE ${utilsDir})
+target_include_directories(utf8 PRIVATE ${utilsDir})
 
 find_library(ncursesLib ncurses)
-target_link_libraries(run PRIVATE ${ncursesLib} utils text)
+target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu)

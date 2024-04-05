@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <locale.h>
 #include <stdlib.h>
-#include <utils.h>
+#include <utf8.h>
 
 extern bool is_ascii(unsigned int c);        //NOLINT
 extern bool is_continuation(unsigned int c); //NOLINT
