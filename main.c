@@ -1,6 +1,3 @@
-#include <ncurses.h>
-#include <stdbool.h>
-
 #include "menu.h"
 #include "utf8.h"
 

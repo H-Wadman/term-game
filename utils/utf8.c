@@ -1,9 +1,13 @@
 #include <assert.h>
 #include <locale.h>
 #include <stdlib.h>
-#include <utf8.h>
 
-extern bool is_ascii(unsigned int c);        //NOLINT
+#include "utf8.h"
+
+//! Checks if the passed in byte c is an ASCII character
+extern bool is_ascii(unsigned int c); //NOLINT
+
+//! Checks if the passed in byte c is a continuation byte in the UTF-8 format
 extern bool is_continuation(unsigned int c); //NOLINT
 
 //! Reads the length in bytes of a UTF-8 unicode code point from the first byte
@@ -36,6 +40,11 @@ int get_utf8_len(unsigned int c)
 #undef check
 }
 
+/*!
+ * @param buf A character buffer in which the unicode code point will be read
+ * @param win A ncurses window from which the unicode code point will be read
+ * @returns 0 on success -1 on failure
+ */
 int load_utf8(char* buf, WINDOW* win)
 {
     int c = wgetch(win);

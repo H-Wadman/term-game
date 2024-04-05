@@ -1,5 +1,5 @@
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef MENU_H
+#define MENU_H
 
 typedef enum Choices
 {
