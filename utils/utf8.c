@@ -1,8 +1,13 @@
 #include <assert.h>
+#include <locale.h>
 #include <stdlib.h>
-#include <utils.h>
 
-extern bool is_ascii(unsigned int c);        //NOLINT
+#include "utf8.h"
+
+//! Checks if the passed in byte c is an ASCII character
+extern bool is_ascii(unsigned int c); //NOLINT
+
+//! Checks if the passed in byte c is a continuation byte in the UTF-8 format
 extern bool is_continuation(unsigned int c); //NOLINT
 
 //! Reads the length in bytes of a UTF-8 unicode code point from the first byte
@@ -35,6 +40,11 @@ int get_utf8_len(unsigned int c)
 #undef check
 }
 
+/*!
+ * @param buf A character buffer in which the unicode code point will be read
+ * @param win A ncurses window from which the unicode code point will be read
+ * @returns 0 on success -1 on failure
+ */
 int load_utf8(char* buf, WINDOW* win)
 {
     int c = wgetch(win);
@@ -84,4 +94,40 @@ const char* wget_utf8(WINDOW* win)
     }
 
     return res;
+}
+
+void endwin_atexit() { endwin(); }
+
+void ncurses_set_up()
+{
+    setlocale(LC_ALL, ""); //NOLINT
+    initscr();
+    clear();
+    noecho();
+    cbreak();
+    nonl();
+    intrflush(stdscr, false);
+    //Add this?
+    // raw();
+    keypad(stdscr, TRUE);
+
+    int err = atexit(endwin_atexit);
+    if (err != 0) {
+        fprintf( //NOLINT
+            stderr, "Couldn't register atexit function, quitting program...\n");
+        endwin();
+        exit(1); //NOLINT
+    }
+}
+
+int u8_strlen(const char* str)
+{
+    int count = 0;
+    int i     = 0;
+    while (str[i] != '\0') {
+        i += get_utf8_len(str[i]);
+        ++count;
+    }
+
+    return count;
 }

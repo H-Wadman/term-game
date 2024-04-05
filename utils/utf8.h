@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef UTF8_H
+#define UTF8_H
 
 #include <ncurses.h>
 #include <stdbool.h>
@@ -22,10 +22,17 @@ inline bool is_continuation(unsigned int c)
 #undef BIT2
 }
 
-//! Reads a UTF8 unicode point from win and returns a malloced string
+//! Reads a UTF-8 unicode point from win and returns it as a malloced string
 const char* wget_utf8(WINDOW* win);
 
-//! Reads a UTF8 unicode point from win into buf with at least size 5
+//! Reads a UTF8 unicode point from win into buf
 int load_utf8(char* buf, WINDOW* win);
+
+//! \brief Sets the locale, initialises ncurses with common defaults, and
+//! registers endwin to be called on exit
+void ncurses_set_up();
+
+//! Returns the length of a UTF-8 string in unicode code points
+int u8_strlen(const char* str);
 
 #endif
