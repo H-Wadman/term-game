@@ -33,18 +33,17 @@ const int outer_menu_width = 77;
 //Note: This currently only works because the '\0' character knocks off one
 //character and the '◇' counts for two c characters in a string but 1 character
 //on the screen
-const int inner_menu_width = outer_menu_width;
+const int inner_menu_width = outer_menu_width - 2;
 
 Menu new_menu()
 {
     static const int n_choices = (int)(sizeof(menu_choices) / sizeof(char*));
-    const int width            = outer_menu_width;
 
     return (Menu){.n_choices = n_choices,
                   .height    = n_choices + 2,
-                  .width     = width,
+                  .width     = outer_menu_width,
                   .y         = (LINES - (n_choices + 2) + title_height) / 2,
-                  .x         = (COLS - width) / 2};
+                  .x         = (COLS - outer_menu_width) / 2};
 }
 
 WINDOW* add_title(const Menu* menu)
@@ -65,12 +64,14 @@ void print_menu_highlight(WINDOW* menu_win, int highlight, int x_align)
     //Compensate if menus contain non-ascii characters
     int const u8_ascii_diff = (int)strlen(menu_choices[highlight]) -
                               u8_strlen(menu_choices[highlight]);
-    int const total_len = inner_menu_width + u8_ascii_diff;
+    //The + 2 compensates for the '\0'-character and for the ◇ taking up to
+    //C-character but only one character on screen
+    int const total_len = inner_menu_width + u8_ascii_diff + 2;
     char* option        = (char*)malloc(total_len);
 
     int const sz =
         snprintf(option, total_len, u8"◇ %s", menu_choices[highlight]);
-    if (sz > inner_menu_width - 1 || sz == -1) {
+    if (sz > inner_menu_width + 1 || sz == -1) {
         fprintf(stderr, //NOLINT
                 "Option string exceeded inner_menu_width or sprintf had an "
                 "error.\n Aborting...");

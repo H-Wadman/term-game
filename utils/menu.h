@@ -20,13 +20,10 @@ typedef struct menu
 } Menu;
 
 extern const char* const title[7];
-extern const int title_height;
-extern const int title_width;
 
 extern const char* const menu_choices[4];
 extern const int outer_menu_width;
 extern const int inner_menu_width;
-
 
 Choices start_menu();
 #endif
