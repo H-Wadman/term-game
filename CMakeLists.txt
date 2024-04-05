@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3)
 else ()
-    add_compile_options(-Wall -Wextra -Werror -g -fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_compile_options(-Wall -Wextra -Werror -Werror=vla -g -fsanitize=address,undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
 endif ()
 

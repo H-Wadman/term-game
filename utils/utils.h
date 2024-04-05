@@ -28,4 +28,8 @@ const char* wget_utf8(WINDOW* win);
 //! Reads a UTF8 unicode point from win into buf with at least size 5
 int load_utf8(char* buf, WINDOW* win);
 
+void ncurses_set_up();
+
+int u8_strlen(const char* str);
+
 #endif

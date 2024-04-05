@@ -1,6 +1,4 @@
 #include <assert.h>
-#include <limits.h>
-#include <locale.h>
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -13,54 +11,16 @@
 int const height;
 int const width;
 
-void endwin_atexit() { endwin(); }
-
-void ncurses_set_up()
-{
-    setlocale(LC_ALL, "");
-    initscr();
-    clear();
-    noecho();
-    cbreak();
-    nonl();
-    intrflush(stdscr, false);
-    //Add this?
-    // raw();
-    keypad(stdscr, TRUE);
-
-    int err = atexit(endwin_atexit);
-    if (err != 0) {
-        fprintf(
-            stderr,
-            "Couldn't register atexit function, quitting program...\n"); //NOLINT
-        endwin();
-        exit(1); //NOLINT
-    }
-}
-
-const char* const menu_choices[] = {"Play", "Options", "Exit"};
+const char* const menu_choices[] = {"Play", "Options", "Potatisfläsk", "Exit"};
 
 typedef enum Choices
 {
     op_play,
     op_options,
     op_exit,
+    op_potatis,
     op_N
 } Choices;
-
-int get_menu_width()
-{
-    int size   = (int)(sizeof(menu_choices) / sizeof(char*));
-    size_t max = 0;
-    for (int i = 0; i < size; ++i) {
-        size_t temp = strlen(menu_choices[i]);
-        if (temp > max) { max = temp; }
-    }
-
-    assert(max < INT_MAX);
-
-    return (int)max;
-}
 
 typedef struct menu
 {
@@ -74,7 +34,7 @@ typedef struct menu
 Menu new_menu()
 {
     static const int n_choices = (int)(sizeof(menu_choices) / sizeof(char*));
-    const int width            = get_menu_width() + 4;
+    const int width            = outer_menu_width;
 
     return (Menu){.n_choices = n_choices,
                   .height    = n_choices + 2,
@@ -96,8 +56,34 @@ WINDOW* add_title(const Menu* menu)
     return title_win;
 }
 
+void print_menu_highlight(WINDOW* menu_win, int highlight, int x_align)
+{
+    //Compensate if menus contain non-ascii characters
+    int const u8_ascii_diff = (int)strlen(menu_choices[highlight]) -
+                              u8_strlen(menu_choices[highlight]);
+    int const total_len = inner_menu_width + u8_ascii_diff;
+    char* option        = (char*)malloc(total_len);
+
+    int const sz =
+        snprintf(option, total_len, u8"◇ %s", menu_choices[highlight]);
+    if (sz > inner_menu_width - 1 || sz == -1) {
+        fprintf(stderr, //NOLINT
+                "Option string exceeded inner_menu_width or sprintf had an "
+                "error.\n Aborting...");
+        exit(-1); //NOLINT
+    }
+    memset(option + sz, ' ', total_len - sz);
+    option[total_len - 1] = '\0';
+
+    wattron(menu_win, A_STANDOUT);
+    mvwprintw(menu_win, 1 + highlight, x_align, option,
+              menu_choices[highlight]);
+    wattroff(menu_win, A_STANDOUT);
+}
+
 bool refresh_menu_win(WINDOW* menu_win, const Menu* menu, int highlight)
 {
+    //Printing menu box
     wattroff(menu_win, A_STANDOUT);
     werase(menu_win);
     box(menu_win, 0, 0);
@@ -108,11 +94,7 @@ bool refresh_menu_win(WINDOW* menu_win, const Menu* menu, int highlight)
         ++y_align;
     }
 
-    wattron(menu_win, A_STANDOUT);
-    mvwprintw(menu_win, 1 + highlight, x_align, u8"◇ %s",
-              menu_choices[highlight]);
-    wattroff(menu_win, A_STANDOUT);
-
+    print_menu_highlight(menu_win, highlight, x_align);
     wrefresh(menu_win);
 
     return true;

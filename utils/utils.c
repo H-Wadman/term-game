@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <locale.h>
 #include <stdlib.h>
 #include <utils.h>
 
@@ -84,4 +85,40 @@ const char* wget_utf8(WINDOW* win)
     }
 
     return res;
+}
+
+void endwin_atexit() { endwin(); }
+
+void ncurses_set_up()
+{
+    setlocale(LC_ALL, ""); //NOLINT
+    initscr();
+    clear();
+    noecho();
+    cbreak();
+    nonl();
+    intrflush(stdscr, false);
+    //Add this?
+    // raw();
+    keypad(stdscr, TRUE);
+
+    int err = atexit(endwin_atexit);
+    if (err != 0) {
+        fprintf( //NOLINT
+            stderr, "Couldn't register atexit function, quitting program...\n");
+        endwin();
+        exit(1); //NOLINT
+    }
+}
+
+int u8_strlen(const char* str)
+{
+    int count = 0;
+    int i     = 0;
+    while (str[i] != '\0') {
+        i += get_utf8_len(str[i]);
+        ++count;
+    }
+
+    return count;
 }

@@ -18,3 +18,9 @@ const char* const title[7] = {
 
 const int title_height = (int)(sizeof(title) / sizeof(char*));
 const int title_width  = (int)strlen(title[0]);
+
+const int outer_menu_width = 2 * title_width / 3;
+//Note: This currently only works because the '\0' character knocks off one
+//character and the '◇' counts for two c characters in a string but 1 character
+//on the screen
+const int inner_menu_width = outer_menu_width;
