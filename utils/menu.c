@@ -7,7 +7,8 @@
  * functions that will paint menus and handle input. This documentation will
  * refer to banners and options. A banner is most commonly a larger ascii art
  * indicating the name of the current menu, whereas options are just a series of
- * strings that indicate the possible choices in the menu
+ * strings that indicate the possible choices in the menu. As an umbrella term
+ * for these "menu component" will be used
  */
 
 #include <assert.h>
@@ -116,11 +117,11 @@ bool refresh_menu_win(WINDOW* menu_win, const Menu* menu, int highlight)
     return true;
 }
 
-int get_widest_menu_choice()
+int get_menu_width(char const* const* choices, int sz)
 {
     int max = 0;
-    for (int i = 0; i < op_N; ++i) {
-        int temp = utf8_strlen(menu_choices[i]);
+    for (int i = 0; i < sz; ++i) {
+        int temp = utf8_strlen(choices[i]);
         if (temp > max) { max = temp; }
     }
 
@@ -128,12 +129,12 @@ int get_widest_menu_choice()
 }
 
 //Rework with the new window definition
-void verify_screen_size()
-{
-    // Should probably be removed/reworked at a later date
-    assert(COLS >= title_width);
-    assert(COLS >= get_widest_menu_choice());
-}
+// void verify_screen_size()
+// {
+//     // Should probably be removed/reworked at a later date
+//     assert(COLS >= title_width);
+//     assert(COLS >= get_widest_menu_choice());
+// }
 
 Choices start_menu()
 {
