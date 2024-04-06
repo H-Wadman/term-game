@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "menu.h"
+#include "menu_constants.h"
 #include "utf8.h"
 
 void endwin_atexit() { endwin(); }
@@ -31,7 +32,7 @@ void ncurses_set_up()
 int main()
 {
     ncurses_set_up();
-    start_menu();
+    print_menu(&start_menu);
 
     return 0;
 }
