@@ -1,7 +1,14 @@
+/*! \file utf8.c
+ * \brief UTF-8 string handling and io
+ *
+ *  A file containing functions related to UTF-8 string handling and io.
+ */
+
 #include <assert.h>
 #include <locale.h>
 #include <stdlib.h>
 
+#include "gettext_defs.h"
 #include "utf8.h"
 
 //! Checks if the passed in byte c is an ASCII character
@@ -10,11 +17,11 @@ extern bool is_ascii(unsigned int c); //NOLINT
 //! Checks if the passed in byte c is a continuation byte in the UTF-8 format
 extern bool is_continuation(unsigned int c); //NOLINT
 
-//! Reads the length in bytes of a UTF-8 unicode code point from the first byte
-
-/*!
- * @param c The first byte of a UTF-8 unicode code point
- * @returns An integer in the range [1, 4] indicating the length in bytes of the
+/*! \brief Reads the length in bytes of a UTF-8 unicode code point from the
+ * first byte
+ *
+ * \param c The first byte of a UTF-8 unicode code point
+ * \returns An integer in the range [1, 4] indicating the length in bytes of the
  * unicode code point, or -1 on error
  */
 int get_utf8_len(unsigned int c)
@@ -23,6 +30,7 @@ int get_utf8_len(unsigned int c)
     unsigned const int mask = 0b11000000;
     if ((c & mask) != mask) { return -1; }
 
+    // \cond
 #define check(mask, return_val)                                                \
     do {                                                                       \
         if ((c & (mask)) != 0) {                                               \
@@ -38,12 +46,13 @@ int get_utf8_len(unsigned int c)
     return -1;
 
 #undef check
+    // \endcond
 }
 
 /*!
- * @param buf A character buffer in which the unicode code point will be read
- * @param win A ncurses window from which the unicode code point will be read
- * @returns 0 on success -1 on failure
+ * \param buf A character buffer in which the unicode code point will be read
+ * \param win A ncurses window from which the unicode code point will be read
+ * \returns 0 on success -1 on failure
  */
 int load_utf8(char* buf, WINDOW* win)
 {
@@ -84,7 +93,7 @@ int load_utf8(char* buf, WINDOW* win)
 const char* wget_utf8(WINDOW* win)
 {
     // A unicode character can be 1-4 bytes + null termination
-    char* res = (char*)malloc(5);
+    char* res = (char*)malloc(5); //NOLINT
 
     int err = load_utf8(res, win);
 
@@ -96,31 +105,7 @@ const char* wget_utf8(WINDOW* win)
     return res;
 }
 
-void endwin_atexit() { endwin(); }
-
-void ncurses_set_up()
-{
-    setlocale(LC_ALL, ""); //NOLINT
-    initscr();
-    clear();
-    noecho();
-    cbreak();
-    nonl();
-    intrflush(stdscr, false);
-    //Add this?
-    // raw();
-    keypad(stdscr, TRUE);
-
-    int err = atexit(endwin_atexit);
-    if (err != 0) {
-        fprintf( //NOLINT
-            stderr, "Couldn't register atexit function, quitting program...\n");
-        endwin();
-        exit(1); //NOLINT
-    }
-}
-
-int u8_strlen(const char* str)
+int utf8_strlen(const char* str)
 {
     int count = 0;
     int i     = 0;

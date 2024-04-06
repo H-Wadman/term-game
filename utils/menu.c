@@ -1,7 +1,18 @@
+
+/* \file menu.c
+ *
+ * \brief Functions and constants pertaining to printing the main menu
+ *
+ * A file that contains the string constants used for printing to screen,
+ * functions that will paint menus and handle input
+ */
+
+#include <assert.h>
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "gettext_defs.h"
 #include "menu.h"
 #include "utf8.h"
 
@@ -24,8 +35,8 @@ const char* const title[7] = {
 
 const char* const menu_choices[] = {"Play", "Options", "Potatisfläsk", "Exit"};
 
-const int title_height = (int)(sizeof(title) / sizeof(char*));
-const int title_width  = (int)strlen(title[0]);
+static const int title_height = (int)(sizeof(title) / sizeof(char*));
+static const int title_width  = (int)strlen(title[0]);
 
 //const int outer_menu_width = 2 * title_width / 3 + 10;
 const int outer_menu_width = 77;
@@ -35,15 +46,16 @@ const int outer_menu_width = 77;
 //on the screen
 const int inner_menu_width = outer_menu_width - 2;
 
+static const int inner_menu_height =
+    (int)(sizeof(menu_choices) / sizeof(char*));
+
 Menu new_menu()
 {
-    static const int n_choices = (int)(sizeof(menu_choices) / sizeof(char*));
-
-    return (Menu){.n_choices = n_choices,
-                  .height    = n_choices + 2,
+    return (Menu){.n_choices = inner_menu_height,
+                  .height    = inner_menu_height + 2,
                   .width     = outer_menu_width,
-                  .y         = (LINES - (n_choices + 2) + title_height) / 2,
-                  .x         = (COLS - outer_menu_width) / 2};
+                  .y = (LINES - (inner_menu_height + 2) + title_height) / 2,
+                  .x = (COLS - outer_menu_width) / 2};
 }
 
 WINDOW* add_title(const Menu* menu)
@@ -63,7 +75,7 @@ void print_menu_highlight(WINDOW* menu_win, int highlight, int x_align)
 {
     //Compensate if menus contain non-ascii characters
     int const u8_ascii_diff = (int)strlen(menu_choices[highlight]) -
-                              u8_strlen(menu_choices[highlight]);
+                              utf8_strlen(menu_choices[highlight]);
     //The + 2 compensates for the '\0'-character and for the ◇ taking up to
     //C-character but only one character on screen
     int const total_len = inner_menu_width + u8_ascii_diff + 2;
@@ -103,6 +115,24 @@ bool refresh_menu_win(WINDOW* menu_win, const Menu* menu, int highlight)
     wrefresh(menu_win);
 
     return true;
+}
+
+int get_widest_menu_choice()
+{
+    int max = 0;
+    for (int i = 0; i < op_N; ++i) {
+        int temp = utf8_strlen(menu_choices[i]);
+        if (temp > max) { max = temp; }
+    }
+
+    return max;
+}
+
+void verify_screen_size()
+{
+    //Should probably be removed/reworked at a later date
+    assert(COLS >= title_width);
+    assert(COLS >= get_widest_menu_choice());
 }
 
 Choices start_menu()

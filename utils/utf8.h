@@ -33,6 +33,6 @@ int load_utf8(char* buf, WINDOW* win);
 void ncurses_set_up();
 
 //! Returns the length of a UTF-8 string in unicode code points
-int u8_strlen(const char* str);
+int utf8_strlen(const char* str);
 
 #endif
