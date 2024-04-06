@@ -7,3 +7,4 @@
 - Do documentation in general
 - Continue reading up on gettext in order to prepare internationalisation + posibility to turn nerd font on/off
 - Check license for ascii fonts used (should be okay since they're on a site but never hurts to double check)
+- Finish promised menu funcionality (justify + left/right pad)
