@@ -62,7 +62,7 @@ enum Justification
 
 #define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
                           justification, left_pad, right_pad)                  \
-    struct menu implementation_##menu_name##_menu = {                          \
+    static struct menu implementation_##menu_name##_menu = {                   \
         .choices        = (const char**)(menu_name),                           \
         .choices_height = choices_len(menu_name),                              \
         .choices_width  = (min_choice_width),                                  \

@@ -102,6 +102,10 @@ int print_menu(const struct menu* menu)
                 break;
             case KEY_DOWN: option = (option + 1) % menu->choices_height; break;
             case line_feed:
+                werase(menu_win);
+                wrefresh(menu_win);
+                werase(title_win);
+                wrefresh(title_win);
                 delwin(menu_win);
                 delwin(title_win);
                 return option;
