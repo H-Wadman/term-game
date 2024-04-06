@@ -30,11 +30,11 @@ const char* const title[7] = {
 
 const char* const start[] = {"Play", "Options", "Potatisfläsk", "Exit"};
 
-make_menu(start, title, 77);
+make_menu(start, title, 77); //NOLINT
 
 void initialise_menus()
 {
-    implementation_initialise_menu((struct menu*)&start_menu);
+    implementation_initialise_menu(&implementation_start_menu);
 }
 
 // const int outer_menu_width = 2 * title_width / 3 + 10;

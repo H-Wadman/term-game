@@ -9,19 +9,19 @@
  * for declaring
  */
 
-int get_menu_width(char const* const* choices, int sz);
-
 struct menu
 {
-    char const* const* const choices;
-    int const choices_height;
-    int const choices_width;
-    char const* const* const banner;
-    int const banner_height;
-    int const banner_width;
-    int const start_x;
-    int const start_y;
+    char const** choices;
+    int choices_height;
+    int choices_width;
+    char const** banner;
+    int banner_height;
+    int banner_width;
+    int start_x;
+    int start_y;
 };
+
+int get_menu_width(struct menu const* menu);
 
 //! Enum used to specify text justification in menus
 enum Justification
@@ -60,18 +60,22 @@ enum Justification
  * form of a null-terminated string) to use for right padding
  */
 
-#define make_menu_verbose(menu_name, menu_banner, min_width, justification,    \
-                          left_pad, right_pad)                                 \
-    const struct menu menu_name##_menu = {                                     \
+#define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
+                          justification, left_pad, right_pad)                  \
+    struct menu implementation_##menu_name##_menu = {                          \
         .choices        = (const char**)(menu_name),                           \
         .choices_height = choices_len(menu_name),                              \
+        .choices_width  = (min_choice_width),                                  \
         .banner         = (const char**)(menu_banner),                         \
-        .banner_height  = (int)(sizeof(menu_banner) / sizeof(char*))}
+        .banner_height  = (int)(sizeof(menu_banner) / sizeof(char*))};          \
+                                                                               \
+    const struct menu* const menu_name##_menu =                                \
+        &implementation_##menu_name##_menu
 
 #define make_menu(name, banner, min_width)                                     \
     make_menu_verbose(name, banner, min_width, left_just, " ", " ")
 
-#define extern_menu(name) extern const struct menu name##_menu
+#define extern_menu(name) extern const struct menu* const name##_menu
 
 void implementation_initialise_menu(struct menu* menu);
 

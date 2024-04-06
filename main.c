@@ -33,7 +33,7 @@ int main()
 {
     ncurses_set_up();
     initialise_menus();
-    print_menu(&start_menu);
+    print_menu(start_menu);
 
     return 0;
 }

@@ -67,15 +67,15 @@ bool refresh_menu_win(WINDOW* menu_win, const struct menu* menu, int highlight)
     return true;
 }
 
-int get_menu_width(char const* const* choices, int sz)
+int get_menu_width(struct menu const* menu)
 {
     int max = 0;
-    for (int i = 0; i < sz; ++i) {
-        int temp = utf8_strlen(choices[i]);
+    for (int i = 0; i < menu->choices_height; ++i) {
+        int temp = utf8_strlen(menu->choices[i]);
         if (temp > max) { max = temp; }
     }
 
-    return max;
+    return max > menu->choices_width ? max : menu->choices_width;
 }
 
 int print_menu(const struct menu* menu)
@@ -114,11 +114,11 @@ int print_menu(const struct menu* menu)
 void implementation_initialise_menu(struct menu* menu)
 {
     int* choices_width = (int*)&(menu->choices_width);
-    *choices_width     = get_menu_width(menu->choices, menu->choices_height);
+    *choices_width     = get_menu_width(menu);
     assert(*choices_width <= COLS);
 
     int* banner_width = (int*)&menu->banner_width;
-    *banner_width     = get_menu_width(menu->banner, menu->banner_height);
+    *banner_width     = get_menu_width(menu);
     assert(*banner_width <= COLS);
 
     int* x = (int*)&menu->start_x;
