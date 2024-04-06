@@ -32,5 +32,10 @@ const char* const start[] = {"Play", "Options", "Potatisfläsk", "Exit"};
 
 make_menu(start, title, 77);
 
+void initialise_menus()
+{
+    implementation_initialise_menu((struct menu*)&start_menu);
+}
+
 // const int outer_menu_width = 2 * title_width / 3 + 10;
 //const int outer_menu_width = 77;

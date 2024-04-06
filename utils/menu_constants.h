@@ -12,4 +12,6 @@
 
 extern_menu(start);
 
+void initialise_menus();
+
 #endif
