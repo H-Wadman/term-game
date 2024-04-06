@@ -10,7 +10,7 @@ WINDOW* add_banner(const struct menu* menu)
 {
     WINDOW* banner_win =
         newwin(menu->banner_height, menu->banner_width,
-               (LINES - menu->banner_height - menu->choices_height) / 2,
+               (LINES - menu->banner_height - (menu->choices_height + 2)) / 2,
                (COLS - menu->banner_width) / 2);
     for (int i = 0; i < menu->banner_height; ++i) {
         mvwprintw(banner_win, i, 0, "%s", menu->banner[i]);
