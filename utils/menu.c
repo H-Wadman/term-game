@@ -118,7 +118,7 @@ void implementation_initialise_menu(struct menu* menu)
     assert(*choices_width <= COLS);
 
     int* banner_width = (int*)&menu->banner_width;
-    *banner_width     = get_menu_width(menu);
+    *banner_width     = utf8_strlen(menu->banner[0]);
     assert(*banner_width <= COLS);
 
     int* x = (int*)&menu->start_x;
