@@ -12,6 +12,23 @@
 
 extern_menu(start);
 
+enum Start_menu_choices
+{
+    start_play_ch,
+    start_options_ch,
+    start_fläsk_ch,
+    start_exit_ch
+};
+
+extern_menu(encounter);
+
+enum Encounter_menu_choices
+{
+    encounter_no_ch,
+    encounter_scream_ch,
+    encounter_fight_ch
+};
+
 void initialise_menus();
 
 #endif

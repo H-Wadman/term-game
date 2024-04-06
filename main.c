@@ -33,7 +33,8 @@ int main()
 {
     ncurses_set_up();
     initialise_menus();
-    print_menu(start_menu);
+    int op = print_menu(start_menu);
+    if (op == start_play_ch) { print_menu(encounter_menu); }
 
     return 0;
 }
