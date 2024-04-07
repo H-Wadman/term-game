@@ -16,7 +16,7 @@ enum Start_menu_choices
 {
     start_play_ch,
     start_options_ch,
-    start_fläsk_ch,
+    start_potatisflask_ch,
     start_exit_ch
 };
 
