@@ -1,5 +1,6 @@
 # TODO
 - BUG: If min\_width of menu struct is not at least 2 characters larger than largest choice width menu painting will fail, since diamond + space won't fit.
+    - Soon fixed, but initialisation function probably needs to be changed so that it checks for a wider size
 Box drawing around options also goes weird needs investigation
 - Reorganise generalised menu options
     - Check if macros can be moved from menu.h to menu\_constants.h or even menu\_constants.c as that will reduce global macro definitions
@@ -10,3 +11,4 @@ Box drawing around options also goes weird needs investigation
 - Continue reading up on gettext in order to prepare internationalisation + posibility to turn nerd font on/off
 - Check license for ascii fonts used (should be okay since they're on a site but never hurts to double check)
 - Finish promised menu funcionality (justify + left/right pad)
+- Automate static analysis from clang static analyser and cppcheck?

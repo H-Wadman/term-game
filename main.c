@@ -1,4 +1,5 @@
 #include <locale.h>
+#include <ncurses.h>
 #include <stdlib.h>
 
 #include "menu.h"
@@ -23,9 +24,18 @@ void ncurses_set_up()
     int err = atexit(endwin_atexit);
     if (err != 0) {
         fprintf( //NOLINT
-            stderr, "Couldn't register atexit function, quitting program...\n");
+            stderr,
+            "Couldn't register atexit function in ncurses_set_up, quitting "
+            "program...\n");
         endwin();
-        exit(1); //NOLINT
+        exit(1);
+    }
+    err = curs_set(0);
+    if (err == ERR) {
+        fprintf(stderr, //NOLINT
+                "Terminal doesn't support invisible cursor, support to be "
+                "added.\n Aborting...\n");
+        exit(1);
     }
 }
 

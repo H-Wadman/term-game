@@ -1,10 +1,16 @@
 #include "string.h"
 #include <assert.h>
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "menu.h"
 #include "utf8.h"
+
+const char selection_string[] = u8"◇ ";
+//Needs to be changed if selection_string is changed
+int const selection_offset      = 2;
+int const menu_box_width_offset = 2 + selection_offset;
 
 WINDOW* add_banner(const struct menu* menu)
 {
@@ -26,26 +32,38 @@ void print_menu_highlight(WINDOW* menu_win, const struct menu* menu,
     // Compensate if menus contain non-ascii characters
     int const u8_ascii_diff = (int)strlen(menu->choices[highlight]) -
                               utf8_strlen(menu->choices[highlight]);
-    // The + 2 compensates for the '\0'-character and for the ◇ taking up to
-    // C-character but only one character on screen
-    int const total_len = menu->choices_width + u8_ascii_diff + 2;
-    char* option        = (char*)malloc(total_len);
+    // +1 in order to account for '\0'-termination
+    int const total_len =
+        menu->choices_width + u8_ascii_diff + (int)strlen(selection_string) + 1;
 
-    int const sz =
-        snprintf(option, total_len, u8"◇ %s", menu->choices[highlight]);
-    if (sz > menu->choices_width + 1 || sz == -1) {
-        fprintf(stderr, // NOLINT
-                "Option string exceeded inner_menu_width or sprintf had an "
-                "error.\n Aborting...");
-        exit(-1); // NOLINT
+    char* option = (char*)malloc(total_len);
+
+    int const sz = snprintf(option, total_len, u8"%s%s", selection_string,
+                            menu->choices[highlight]);
+    assert(sz == (int)strlen(menu->choices[highlight]) +
+                     (int)strlen(selection_string));
+    if (sz > total_len - 1) {
+        fprintf( //NOLINT
+            stderr,
+            "Option string length exceeded total_len in "
+            "print_menu_highlight (%d and %d respectively).\n Aborting...\n",
+            sz + 1, total_len);
+        exit(-1);
     }
+    if (sz == -1) {
+        fprintf(stderr, // NOLINT
+                "sprintf encountered an error in print_menu_highlight.\n"
+                "Aborting...");
+        exit(-1);
+    }
+
     memset(option + sz, ' ', total_len - sz);
     option[total_len - 1] = '\0';
 
     wattron(menu_win, A_STANDOUT);
-    mvwprintw(menu_win, 1 + highlight, x_align, option,
-              menu->choices[highlight]);
+    mvwaddstr(menu_win, 1 + highlight, x_align, option);
     wattroff(menu_win, A_STANDOUT);
+    free(option);
 }
 
 bool refresh_menu_win(WINDOW* menu_win, const struct menu* menu, int highlight)
@@ -80,8 +98,10 @@ int get_menu_width(struct menu const* menu)
 
 int print_menu(const struct menu* menu)
 {
-    WINDOW* menu_win = newwin(menu->choices_height + 2, menu->choices_width + 2,
-                              menu->start_y, menu->start_x);
+    WINDOW* menu_win =
+        newwin(menu->choices_height + 2,
+               menu->choices_width + 2 + utf8_strlen(selection_string),
+               menu->start_y, menu->start_x);
     WINDOW* title_win = add_banner(menu);
     intrflush(menu_win, false);
     keypad(menu_win, TRUE);
@@ -104,9 +124,10 @@ int print_menu(const struct menu* menu)
             case line_feed:
                 werase(menu_win);
                 wrefresh(menu_win);
+                delwin(menu_win);
+
                 werase(title_win);
                 wrefresh(title_win);
-                delwin(menu_win);
                 delwin(title_win);
                 return option;
             default:;

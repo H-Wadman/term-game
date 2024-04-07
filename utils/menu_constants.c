@@ -46,7 +46,7 @@ const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
 
 make_menu(start, title, 77); //NOLINT
 
-make_menu(encounter, run, 60); //NOLINT
+make_menu(encounter, run, 0); //NOLINT
 
 void initialise_menus()
 {
