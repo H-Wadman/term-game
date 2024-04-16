@@ -23,5 +23,5 @@ add_library(menu_constants ${utilsDir}/menu_constants.c)
 
 target_include_directories(run PRIVATE ${utilsDir})
 
-find_library(ncursesLib ncurses)
+find_library(ncursesLib ncursesw)
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants)
