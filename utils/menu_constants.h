@@ -26,7 +26,8 @@ enum Encounter_menu_choices
 {
     encounter_no_ch,
     encounter_scream_ch,
-    encounter_fight_ch
+    encounter_fight_ch,
+    encounter_debug_ch,
 };
 
 void initialise_menus();

@@ -14,6 +14,8 @@ int const menu_box_width_offset = 2 + selection_offset;
 
 WINDOW* add_banner(const struct menu* menu)
 {
+    if (!menu->banner) { return NULL; }
+
     WINDOW* banner_win =
         newwin(menu->banner_height, menu->banner_width,
                (LINES - menu->banner_height - (menu->choices_height + 2)) / 2,
@@ -96,7 +98,7 @@ int get_menu_width(struct menu const* menu)
     return max > menu->choices_width ? max : menu->choices_width;
 }
 
-int print_menu(const struct menu* menu)
+int print_central_menu(const struct menu* menu)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
@@ -146,8 +148,11 @@ void implementation_initialise_menu(struct menu* menu)
     *banner_width     = utf8_strlen(menu->banner[0]);
     assert(*banner_width <= COLS);
 
-    int* x = (int*)&menu->start_x;
-    *x     = (COLS - (menu->choices_width + 2)) / 2;
-    int* y = (int*)&menu->start_y;
-    *y     = (LINES - (menu->choices_height + 2) + menu->banner_height) / 2;
+    if (menu->start_x < 0) {
+        menu->start_x = (COLS - (menu->choices_width + 2)) / 2;
+    }
+    if (menu->start_y < 0) {
+        menu->start_y =
+            (LINES - (menu->choices_height + 2) + menu->banner_height) / 2;
+    }
 }

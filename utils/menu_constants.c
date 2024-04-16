@@ -40,13 +40,16 @@ const char* const run[9] = {
 // clang-format on
 
 
-const char* const start[]     = {"Play", "Options", "Potatisfläsk", "Exit"};
+const char* const start[] = {"Play", "Options", "Potatisfläsk", "Exit"};
+// const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
+//                                  "󰞇 Time to fight", " Time to debug!"};
 const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
-                                 "󰞇 Time to fight"};
+                                 "󰞇 Time to fight",
+                                 "󰞇 Time to fight"}; //AHA!
 
-make_menu(start, title, 77); //NOLINT
+make_menu(start, title, 77, -1, -1); //NOLINT
 
-make_menu(encounter, run, 0); //NOLINT
+make_menu(encounter, run, 0, 15, -1); //NOLINT
 
 void initialise_menus()
 {
