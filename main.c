@@ -16,7 +16,6 @@ void ncurses_set_up()
         fprintf(stderr, "Error setting locale, aborting.../\n"); //NOLINT
         exit(1);
     }
-    fprintf(stderr, "Locale: %s\n", locale); //TEMP //NOLINT
     initscr();
     clear();
     noecho();
