@@ -48,8 +48,8 @@ int main()
 {
     ncurses_set_up();
     initialise_menus();
-    int op = print_central_menu(start_menu);
-    if (op == start_play_ch) { print_central_menu(encounter_menu); }
+    int op = print_menu(start_menu);
+    if (op == start_play_ch) { print_menu(encounter_menu); }
 
     return 0;
 }

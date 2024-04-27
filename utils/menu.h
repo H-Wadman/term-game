@@ -89,7 +89,7 @@ enum Justification
 
 void implementation_initialise_menu(struct menu* menu);
 
-int print_central_menu(const struct menu* menu);
+int print_menu(const struct menu* menu);
 
 #undef string_arr_len
 #endif

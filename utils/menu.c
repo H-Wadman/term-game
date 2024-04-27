@@ -98,7 +98,7 @@ int get_menu_width(struct menu const* menu)
     return max > menu->choices_width ? max : menu->choices_width;
 }
 
-int print_central_menu(const struct menu* menu)
+int print_menu(const struct menu* menu)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
