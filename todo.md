@@ -1,4 +1,5 @@
 # TODO
+PRIORITY ONE: - Do documentation in general and learn doxygen
 Box drawing around options also goes weird needs investigation
     - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu))
 - Menus:
@@ -10,7 +11,6 @@ Box drawing around options also goes weird needs investigation
     - Generalised menu functions should almost certainly be decoupled further and allow for greater freedom in placement
     - Eventual banner should be able to be moved with the optionsbox
 - Change clang-tidy in order to avoid proliferation of //NOLINT
-- Do documentation in general
 - Continue reading up on gettext in order to prepare internationalisation + posibility to turn nerd font on/off
 - Check license for ascii fonts used (should be okay since they're on a site but never hurts to double check)
 - Automate static analysis from clang static analyser and cppcheck?

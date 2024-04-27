@@ -9,6 +9,9 @@
  * for declaring
  */
 
+/*! \brief structure to hold menu information
+ *
+ */
 struct menu
 {
     char const** choices;
