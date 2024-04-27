@@ -12,12 +12,18 @@ const char selection_string[] = u8"◇ ";
 int const selection_offset      = 2;
 int const menu_box_width_offset = 2 + selection_offset;
 
-WINDOW* add_banner(const struct menu* menu)
+WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 {
+    if (!menu->banner) { return NULL; }
+
+    int x                  = 0;
+    [[maybe_unused]] int y = 0;
+    getmaxyx(menu_win, y, x);
+    int const menu_middle = x / 2;
     WINDOW* banner_win =
         newwin(menu->banner_height, menu->banner_width,
-               (LINES - menu->banner_height - (menu->choices_height + 2)) / 2,
-               (COLS - menu->banner_width) / 2);
+               menu->start_y - menu->banner_height,
+               menu->start_x + menu_middle - menu->banner_width / 2);
     for (int i = 0; i < menu->banner_height; ++i) {
         mvwprintw(banner_win, i, 0, "%s", menu->banner[i]);
     }
@@ -102,7 +108,7 @@ int print_menu(const struct menu* menu)
         newwin(menu->choices_height + 2,
                menu->choices_width + 2 + utf8_strlen(selection_string),
                menu->start_y, menu->start_x);
-    WINDOW* title_win = add_banner(menu);
+    WINDOW* title_win = add_banner(menu, menu_win);
     intrflush(menu_win, false);
     keypad(menu_win, TRUE);
 
@@ -146,8 +152,11 @@ void implementation_initialise_menu(struct menu* menu)
     *banner_width     = utf8_strlen(menu->banner[0]);
     assert(*banner_width <= COLS);
 
-    int* x = (int*)&menu->start_x;
-    *x     = (COLS - (menu->choices_width + 2)) / 2;
-    int* y = (int*)&menu->start_y;
-    *y     = (LINES - (menu->choices_height + 2) + menu->banner_height) / 2;
+    if (menu->start_x < 0) {
+        menu->start_x = (COLS - (menu->choices_width + 2)) / 2;
+    }
+    if (menu->start_y < 0) {
+        menu->start_y =
+            (LINES - (menu->choices_height + 2) + menu->banner_height) / 2;
+    }
 }

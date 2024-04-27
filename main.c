@@ -1,5 +1,6 @@
 #include <locale.h>
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "menu.h"
@@ -10,7 +11,11 @@ void endwin_atexit() { endwin(); }
 
 void ncurses_set_up()
 {
-    setlocale(LC_ALL, ""); //NOLINT
+    const char* locale = setlocale(LC_ALL, "");
+    if (locale == NULL) {
+        fprintf(stderr, "Error setting locale, aborting.../\n"); //NOLINT
+        exit(1);
+    }
     initscr();
     clear();
     noecho();

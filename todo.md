@@ -1,14 +1,18 @@
 # TODO
-- BUG: If min\_width of menu struct is not at least 2 characters larger than largest choice width menu painting will fail, since diamond + space won't fit.
-    - Soon fixed, but initialisation function probably needs to be changed so that it checks for a wider size
+PRIORITY ONE: - Do documentation in general and learn doxygen
 Box drawing around options also goes weird needs investigation
-- Reorganise generalised menu options
-    - Check if macros can be moved from menu.h to menu\_constants.h or even menu\_constants.c as that will reduce global macro definitions
-    - Update/create documentation, especially those pertaining to generalised menus and things like naming convention for enum of choices
-    - Automatically include enum return type somewhere, as in order to force enum definition?
+    - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu))
+- Menus:
+    - Reorganise generalised menu options
+        - Check if macros can be moved from menu.h to menu\_constants.h or even menu\_constants.c as that will reduce global macro definitions
+        - Update/create documentation, especially those pertaining to generalised menus and things like naming convention for enum of choices
+        - Automatically include enum return type somewhere, as in order to force enum definition?
+    - Finish promised menu funcionality (justify + left/right pad (+ optional box?))
+    - Generalised menu functions should almost certainly be decoupled further and allow for greater freedom in placement
+    - Eventual banner should be able to be moved with the optionsbox
 - Change clang-tidy in order to avoid proliferation of //NOLINT
-- Do documentation in general
 - Continue reading up on gettext in order to prepare internationalisation + posibility to turn nerd font on/off
 - Check license for ascii fonts used (should be okay since they're on a site but never hurts to double check)
-- Finish promised menu funcionality (justify + left/right pad)
 - Automate static analysis from clang static analyser and cppcheck?
+- Add visible cursor support
+- Make it possible to only print a menu, and then to select it, and only then interact with it
