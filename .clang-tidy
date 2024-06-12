@@ -13,10 +13,10 @@ Checks: "*,
         -readability-avoid-const-params-in-decls,
         -cppcoreguidelines-non-private-member-variables-in-classes,
         -misc-non-private-member-variables-in-classes,
-        -readability-identifier-length
-        -cppcoreguidelines-pro-bounds-constant-array-index
-        -cppcoreguidelines-avoid-do-while
-        -concurrency-mt-unsafe
+        -readability-identifier-length,
+        -cppcoreguidelines-pro-bounds-constant-array-index,
+        -cppcoreguidelines-avoid-do-while,
+        -concurrency-mt-unsafe,
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
