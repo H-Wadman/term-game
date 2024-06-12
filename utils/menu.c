@@ -7,6 +7,8 @@
 #include "menu.h"
 #include "utf8.h"
 
+#define LINE_FEED 13
+
 const char selection_string[] = u8"◇ ";
 //Needs to be changed if selection_string is changed
 int const selection_offset      = 2;
@@ -16,8 +18,8 @@ WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 {
     if (!menu->banner) { return NULL; }
 
-    int x                  = 0;
-    [[maybe_unused]] int y = 0;
+    int x                         = 0;
+    int y __attribute__((unused)) = 0;
     getmaxyx(menu_win, y, x);
     int const menu_middle = x / 2;
     WINDOW* banner_win =
@@ -117,8 +119,7 @@ int print_menu(const struct menu* menu)
     int option = 0;
     refresh_menu_win(menu_win, menu, option);
 
-    int ch              = 0;
-    const int line_feed = 13;
+    int ch = 0;
     while (true) {
         ch = wgetch(menu_win);
         switch (ch) {
@@ -127,7 +128,7 @@ int print_menu(const struct menu* menu)
                     (option + menu->choices_height - 1) % menu->choices_height;
                 break;
             case KEY_DOWN: option = (option + 1) % menu->choices_height; break;
-            case line_feed:
+            case LINE_FEED:
                 werase(menu_win);
                 wrefresh(menu_win);
                 delwin(menu_win);
