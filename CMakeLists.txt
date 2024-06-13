@@ -8,8 +8,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3)
 else ()
-    add_compile_options(-Wall -Wextra -Werror -Werror=vla -g -fsanitize=address,undefined -fno-omit-frame-pointer)
-    add_link_options(-fsanitize=address,undefined)
+  add_compile_options(-Wall -Wextra -Werror -Werror=vla -Wno-type-limits -g -fsanitize=address,undefined -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address,undefined)
 endif ()
 
 set(utilsDir ${CMAKE_CURRENT_SOURCE_DIR}/utils)
@@ -23,5 +23,6 @@ add_library(menu_constants ${utilsDir}/menu_constants.c)
 
 target_include_directories(run PRIVATE ${utilsDir})
 
-find_library(ncursesLib NAMES ncursesw ncurses REQUIRED)
+find_library(ncursesLib NAMES ncursesw ncurses)
+target_link_libraries(menu PRIVATE utf8)
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants)
