@@ -16,3 +16,4 @@ Box drawing around options also goes weird needs investigation
 - Automate static analysis from clang static analyser and cppcheck?
 - Add visible cursor support
 - Make it possible to only print a menu, and then to select it, and only then interact with it
+- Make it so that checking for enter on mac/unix works the same (although worked on WSL, so might be fine?)
