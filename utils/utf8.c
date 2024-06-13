@@ -50,6 +50,7 @@ int get_utf8_len(unsigned int c)
 }
 
 /*!
+ * Reads a UTF-8 character into a char buffer
  * \param buf A character buffer in which the unicode code point will be read
  * \param win A ncurses window from which the unicode code point will be read
  * \returns 0 on success -1 on failure
@@ -90,6 +91,11 @@ int load_utf8(char* buf, WINDOW* win)
     return 0;
 }
 
+/*!
+ * Reads a UTF-8 character from the specified window and returns a malloced
+ * string containing it
+ * \param win The window from which to read the UTF-8 character
+ */
 const char* wget_utf8(WINDOW* win)
 {
     // A unicode character can be 1-4 bytes + null termination
@@ -105,6 +111,10 @@ const char* wget_utf8(WINDOW* win)
     return res;
 }
 
+/*!
+ * Returns the length of a UTF-8 string in unicode code points
+ * \param str The string whose length will be calculated
+ */
 int utf8_strlen(const char* str)
 {
     int count = 0;

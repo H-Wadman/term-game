@@ -92,6 +92,8 @@ enum Justification
 
 void implementation_initialise_menu(struct menu* menu);
 
+//! Prints the passed in menu to the screen and returns the number of the first
+//! selected choice
 int print_menu(const struct menu* menu);
 
 #undef string_arr_len
