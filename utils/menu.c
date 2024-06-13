@@ -104,6 +104,10 @@ int get_menu_width(struct menu const* menu)
     return max > menu->choices_width ? max : menu->choices_width;
 }
 
+/*! Prints the passed in menu according to its parameters and then blocks until
+ * a choice has been selected. Afterwards an integer corresponding to the menu
+ * choice selected (its index in the menu's choice array)
+ */
 int print_menu(const struct menu* menu)
 {
     WINDOW* menu_win =
