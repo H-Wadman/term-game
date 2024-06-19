@@ -5,8 +5,10 @@
  */
 
 #include <assert.h>
+#include <ctype.h>
 #include <locale.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "gettext_defs.h"
 #include "utf8.h"
@@ -50,8 +52,8 @@ int get_utf8_len(unsigned int c)
 }
 
 /*!
- * Reads a UTF-8 character into a char buffer
- * \param buf A character buffer in which the unicode code point will be read
+ * Reads a UTF-8 character from an ncurses window into a char buffer
+ * \param buf A character buffer in which the unicode code point will be written
  * \param win A ncurses window from which the unicode code point will be read
  * \returns 0 on success -1 on failure
  */
@@ -67,7 +69,6 @@ int load_utf8(char* buf, WINDOW* win)
 
     const int len = get_utf8_len(c);
     if (len == -1) {
-        free(buf);
         fprintf(stderr, //NOLINT
                 "wget_utf8, first byte (= %d) did not conform to UTF-8", c);
         return -1;
@@ -78,9 +79,8 @@ int load_utf8(char* buf, WINDOW* win)
         c = wgetch(win);
         if (!is_continuation(c)) {
             fprintf(stderr, //NOLINT
-                    "wget_utf8: Length indicated by first byte doesn't "
+                    "load_utf8: Length indicated by first byte doesn't "
                     "correspond to length of string");
-            free(buf);
             return -1;
         }
 
@@ -92,14 +92,81 @@ int load_utf8(char* buf, WINDOW* win)
 }
 
 /*!
+ * Reads a UTF-8 character from a file pointer into a char buffer
+ * \param buf A character buffer in which the unicode code point will be written
+ * \param file A file pointer from which the unicode code point will be read
+ * \returns 0 on success and -1 on failure
+ */
+int fload_utf8(char* buf, FILE* file)
+{
+    int c = fgetc(file);
+    if (c == EOF) { return c; }
+    else if (c < 0) {
+        fprintf(stderr, //NOLINT
+                "A character with negative value has been read in wgetch\n");
+        exit(1); //NOLINT
+    }
+
+    const int len = get_utf8_len(c);
+    if (len == -1) {
+        fprintf(stderr, //NOLINT
+                "wget_utf8, first byte (= %d) did not conform to UTF-8", c);
+        return -1;
+    }
+    assert(1 <= len && len <= 4);
+    buf[0] = (char)c;
+    for (int i = 1; i < len; ++i) {
+        c = fgetc(file);
+        if (!is_continuation(c)) {
+            fprintf(stderr, //NOLINT
+                    "file_load_utf8: Length indicated by first byte doesn't "
+                    "correspond to length of string");
+            return -1;
+        }
+
+        buf[i] = (char)c;
+    }
+    buf[len] = '\0';
+
+    return 0;
+}
+
+/*!
+ * Reads a UTF-8 word from a file pointer into a char buffer
+ * \param buf A character buffer in which the unicode code point will be written
+ * \param file A file pointer from which the unicode code point will be read
+ * \returns The whitespace that ended the word on success (could also be EOF)
+ * and 0 on failure
+ */
+int floadw_utf8(char* buf, FILE* file)
+{
+    buf[0]     = '\0';
+    size_t len = 0;
+    do {
+        int err = fload_utf8(buf + len, file);
+        if (err == EOF) { return EOF; }
+        if (err == 0) {
+            fprintf(stderr, //NOLINT
+                    "fload_utf8 encountered an error in floadw_utf8");
+            return 0;
+        }
+
+        len = strlen(buf);
+    } while (!isspace(buf[len - 1]));
+
+    return buf[len - 1];
+}
+
+/*!
  * Reads a UTF-8 character from the specified window and returns a malloced
  * string containing it
  * \param win The window from which to read the UTF-8 character
+ * \returns A pointer to the malloced string on success, NULL on failure
  */
 const char* wget_utf8(WINDOW* win)
 {
     // A unicode character can be 1-4 bytes + null termination
-    char* res = (char*)malloc(5); //NOLINT
+    char* res = (char*)malloc(ASCII_BUF_SZ);
 
     int err = load_utf8(res, win);
 
