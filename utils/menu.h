@@ -24,6 +24,17 @@ struct menu
     int start_y;
 };
 
+/*! \brief structure for dialogues
+ *
+ * \param path The path to a file containing dialogue conforming to formatting
+ * \param width The width of the dialogue box
+ */
+struct dia
+{
+    char const* path;
+    int width;
+};
+
 int get_menu_width(struct menu const* menu);
 
 //! Enum used to specify text justification in menus

@@ -1,6 +1,8 @@
 #include "string.h"
 #include <assert.h>
+#include <ctype.h>
 #include <ncurses.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -164,4 +166,44 @@ void implementation_initialise_menu(struct menu* menu)
         menu->start_y =
             (LINES - (menu->choices_height + 2) + menu->banner_height) / 2;
     }
+}
+
+/*! \brief Prints a dialogue to screen
+ *
+ * Note: It is the responsibility of the caller that the width of the dialogue
+ * is larger than any word contained in the dialogue
+ *
+ *
+ */
+int print_dia(const struct dia dia)
+{
+    FILE* dia_file = fopen(dia.path, "r");
+    int mem_size   = (int)(LINES * sizeof(char*));
+    char** lines   = (char**)malloc(mem_size);
+    memset(lines, 0, mem_size);
+
+    int line_len = 0;
+    int sz       = 0;
+
+    char* line = (char*)malloc((unsigned long)2 * COLS);
+    char buf[ASCII_BUF_SZ];
+    while (true) {
+        int err = file_load_utf8(buf, dia_file);
+        if (err == -1) {
+            fprintf(stderr,
+                    "Error occured while reading utf8 character from file in "
+                    "print_dia"); //NOLINT
+            return -1;
+        }
+        if (isspace(ch)) {
+            word_len = 0;
+            if (ch == '\t') { line_len += 4; }
+            else {
+                ++line_len;
+            }
+            line[sz++] = (char)ch;
+        }
+    }
+
+    free(lines);
 }
