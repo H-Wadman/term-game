@@ -1,7 +1,7 @@
 # TODO
 PRIORITY ONE: - Do documentation in general and learn doxygen
 Box drawing around options also goes weird needs investigation
-    - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu))
+    - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu + Debian))
 - Menus:
     - Reorganise generalised menu options
         - Check if macros can be moved from menu.h to menu\_constants.h or even menu\_constants.c as that will reduce global macro definitions
@@ -13,7 +13,7 @@ Box drawing around options also goes weird needs investigation
 - Change clang-tidy in order to avoid proliferation of //NOLINT
 - Continue reading up on gettext in order to prepare internationalisation + posibility to turn nerd font on/off
 - Check license for ascii fonts used (should be okay since they're on a site but never hurts to double check)
-- Automate static analysis from clang static analyser and cppcheck?
 - Add visible cursor support
 - Make it possible to only print a menu, and then to select it, and only then interact with it
 - Make it so that checking for enter on mac/unix works the same (although worked on WSL, so might be fine?)
+- Set up cmake + a header file in order to get hte build path

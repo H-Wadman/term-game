@@ -1,6 +1,7 @@
 #include "string.h"
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -10,6 +11,7 @@
 #include "utf8.h"
 
 #define LINE_FEED 13
+#define MAX_UTF8_WORD_LEN 40
 
 const char selection_string[] = u8"◇ ";
 //Needs to be changed if selection_string is changed
@@ -34,6 +36,13 @@ WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 
     wrefresh(banner_win);
     return banner_win;
+}
+
+static inline void win_cleanup(WINDOW* win)
+{
+    werase(win);
+    wrefresh(win);
+    delwin(win);
 }
 
 void print_menu_highlight(WINDOW* menu_win, const struct menu* menu,
@@ -135,13 +144,9 @@ int print_menu(const struct menu* menu)
                 break;
             case KEY_DOWN: option = (option + 1) % menu->choices_height; break;
             case LINE_FEED:
-                werase(menu_win);
-                wrefresh(menu_win);
-                delwin(menu_win);
+                win_cleanup(menu_win);
+                win_cleanup(title_win);
 
-                werase(title_win);
-                wrefresh(title_win);
-                delwin(title_win);
                 return option;
             default:;
         }
@@ -168,42 +173,171 @@ void implementation_initialise_menu(struct menu* menu)
     }
 }
 
+struct dia_print
+{
+    FILE* file;
+    const char* path;
+    int line;
+    int len;
+    int width;
+};
+
+#define handle_floadw_error(code, file)                                        \
+    {                                                                          \
+        if ((code) == 0) {                                                     \
+            fprintf(                                                           \
+                stderr,                                                        \
+                "Error occurred while reading utf8 character from file in "    \
+                "print_dia");                                                  \
+            fclose(file);                                                      \
+            return -1;                                                         \
+        }                                                                      \
+    }
+
+/*! \brief Prints the next word of a dia_print struct to screen and updates it
+ * accordingly
+ *
+ *  \param A dia_print struct containing win, file and position information
+ *  \returns A 0 (or 1) indicating if the end of a dialogue window has been
+ * reached (or not), that is if a EOF or § has been encountered in the file.
+ * \returns -1 on error
+ */
+int print_next_word(WINDOW* win, struct dia_print* dia)
+{
+    char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];
+
+    int code = floadw_utf8(buf, dia->file);
+    fprintf(stderr, "%s\n", buf);
+
+    handle_floadw_error(code, dia->file); //NOLINT
+
+    if (dia->len + (int)strlen(buf) > dia->width) {
+        dia->len = (int)strlen(buf) + 1;
+        wmove(win, dia->line, 1);
+        ++dia->line;
+    }
+    else {
+        dia->len += (int)strlen(buf) + 1;
+    }
+    wprintw(win, "%s ", buf);
+
+    if (code == EOF) { return 1; }
+    else if (strcmp(u8"§", buf) == 0) {
+        return 2;
+    }
+    else {
+        return 0;
+    }
+}
+
+/*! \brief Calculates the height needed to print a dialogue
+ *
+ *  \param A dia_print struct
+ *  \returns The number of lines needed to print a dialogue window given the
+ * specified width
+ */
+int get_dia_height(const struct dia_print* dia)
+{
+    FILE* file = fopen(dia->path, "r");
+    int err    = fseek(file, ftell(dia->file), SEEK_SET);
+    if (err != 0) {
+        fprintf(stderr, //NOLINT
+                "fseek encountered an error in get_dia_height");
+    }
+
+    //char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];
+
+    int word_len = 0;
+    int height   = 1;
+    int len      = 0;
+    char buf[ASCII_BUF_SZ];
+    while (true) {
+        int const err = fload_utf8(buf, file);
+        if (err == 1) { return -1; }
+        if (err == EOF || strcmp(buf, u8"§") == 0) { break; }
+
+        ++len;
+        if (isspace(buf[0])) { word_len = 0; }
+        else {
+            ++word_len;
+        }
+        if (len > dia->width) {
+            ++height;
+            len = word_len;
+        }
+    }
+
+    return height;
+}
+
+typedef struct print_dia_win_res
+{
+    bool error;
+    int res;
+} print_dia_win_res;
+
 /*! \brief Prints a dialogue to screen
  *
  * Note: It is the responsibility of the caller that the width of the dialogue
  * is larger than any word contained in the dialogue
  *
+ * \param A dia_print structure containing the necessary printing information
  *
+ * \returns A print_dia_win_res structure indicating if an error occurred, and
+ * if not an integer
  */
-int print_dia(const struct dia dia)
+print_dia_win_res print_dia_win(struct dia_print dia_p)
 {
-    FILE* dia_file = fopen(dia.path, "r");
-    int mem_size   = (int)(LINES * sizeof(char*));
-    char** lines   = (char**)malloc(mem_size);
-    memset(lines, 0, mem_size);
+    //struct dia_print dia_p = {fopen(dia.path, "r"), 0, 0, dia.width};
 
-    int line_len = 0;
-    int sz       = 0;
+    int height = get_dia_height(&dia_p);
+    // Create a centered window with padding for borders
+    WINDOW* dia_win =
+        newwin(2 + height, 2 + dia_p.width, (LINES - (2 + height)) / 2,
+               (COLS - (2 + dia_p.width)) / 2);
 
-    char* line = (char*)malloc((unsigned long)2 * COLS);
-    char buf[ASCII_BUF_SZ];
-    while (true) {
-        int err = file_load_utf8(buf, dia_file);
-        if (err == -1) {
-            fprintf(stderr,
-                    "Error occured while reading utf8 character from file in "
-                    "print_dia"); //NOLINT
-            return -1;
-        }
-        if (isspace(ch)) {
-            word_len = 0;
-            if (ch == '\t') { line_len += 4; }
-            else {
-                ++line_len;
-            }
-            line[sz++] = (char)ch;
+    int r_code = 1;
+    while (r_code == 0) {
+        r_code = print_next_word(dia_win, &dia_p);
+        if (r_code == -1) {
+            print_dia_win_res res = {.error = true};
+            return res;
         }
     }
+    box(dia_win, 0, 0);
+    wrefresh(dia_win);
+    wgetch(dia_win);
 
-    free(lines);
+    win_cleanup(dia_win);
+
+    print_dia_win_res res = {.error = false, .res = r_code};
+    return res;
+}
+
+int print_dia(const char* file_path, int width)
+{
+    FILE* f = fopen(file_path, "r");
+
+    if (!f) {
+        fprintf( //NOLINT
+            stderr,
+            "Error ocurred while opening file in print_dia with errno: %s\n",
+            strerror(errno));
+    }
+    struct dia_print dia = {f, .path = file_path, .line = 1, .len = 0,
+                            .width = width};
+
+    while (true) {
+        print_dia_win_res code = print_dia_win(dia);
+        if (code.error) {
+            fclose(f); //NOLINT
+            return -1;
+        }
+        else {
+            if (code.res == 1) {
+                fclose(f); //NOLINT
+                return 0;
+            }
+        }
+    }
 }

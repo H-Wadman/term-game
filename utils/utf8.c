@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gettext_defs.h"
 #include "utf8.h"
 
 //! Checks if the passed in byte c is an ASCII character
@@ -95,7 +94,7 @@ int load_utf8(char* buf, WINDOW* win)
  * Reads a UTF-8 character from a file pointer into a char buffer
  * \param buf A character buffer in which the unicode code point will be written
  * \param file A file pointer from which the unicode code point will be read
- * \returns 0 on success and -1 on failure
+ * \returns 0 on success, EOF on EOF and 1 on failure
  */
 int fload_utf8(char* buf, FILE* file)
 {
@@ -111,7 +110,7 @@ int fload_utf8(char* buf, FILE* file)
     if (len == -1) {
         fprintf(stderr, //NOLINT
                 "wget_utf8, first byte (= %d) did not conform to UTF-8", c);
-        return -1;
+        return 1;
     }
     assert(1 <= len && len <= 4);
     buf[0] = (char)c;
@@ -121,7 +120,7 @@ int fload_utf8(char* buf, FILE* file)
             fprintf(stderr, //NOLINT
                     "file_load_utf8: Length indicated by first byte doesn't "
                     "correspond to length of string");
-            return -1;
+            return 1;
         }
 
         buf[i] = (char)c;
@@ -140,14 +139,28 @@ int fload_utf8(char* buf, FILE* file)
  */
 int floadw_utf8(char* buf, FILE* file)
 {
+    int ch = 0;
+    while (isspace((ch = fgetc(file)))) { fprintf(stderr, "One\n"); }
+
+    if (ch == EOF) {
+        fprintf(stderr, "Two\n");
+        return 0;
+    }
+
+    int err = ungetc(ch, file);
+    if (err == EOF) {
+        fprintf(stderr, "ungetc failed in floadw_utf8\n"); //NOLINT
+        return 0;
+    }
+
     buf[0]     = '\0';
     size_t len = 0;
     do {
         int err = fload_utf8(buf + len, file);
         if (err == EOF) { return EOF; }
-        if (err == 0) {
+        if (err == 1) {
             fprintf(stderr, //NOLINT
-                    "fload_utf8 encountered an error in floadw_utf8");
+                    "fload_utf8 encountered an error in floadw_utf8\n");
             return 0;
         }
 

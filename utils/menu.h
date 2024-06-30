@@ -107,5 +107,8 @@ void implementation_initialise_menu(struct menu* menu);
 //! selected choice
 int print_menu(const struct menu* menu);
 
+//! Prints the passed in dialogue file to screen with indicated width
+int print_dia(const char* file_path, int width);
+
 #undef string_arr_len
 #endif
