@@ -131,21 +131,21 @@ int fload_utf8(char* buf, FILE* file)
 }
 
 /*!
- * Reads a UTF-8 word from a file pointer into a char buffer
+ * Reads a UTF-8 word from a file pointer into a char buffer.
+ * The function will skip any initial whitespace.
  * \param buf A character buffer in which the unicode code point will be written
  * \param file A file pointer from which the unicode code point will be read
  * \returns The whitespace that ended the word on success (could also be EOF)
  * and 0 on failure
+ * If file stream is exhausted or only whitespace is left in the file buffer
+ * \param a NUL character will be placed at buf[0]
  */
 int floadw_utf8(char* buf, FILE* file)
 {
     int ch = 0;
-    while (isspace((ch = fgetc(file)))) { fprintf(stderr, "One\n"); }
+    while (isspace((ch = fgetc(file)))) {}
 
-    if (ch == EOF) {
-        fprintf(stderr, "Two\n");
-        return 0;
-    }
+    if (ch == EOF) { return EOF; }
 
     int err = ungetc(ch, file);
     if (err == EOF) {
@@ -167,7 +167,10 @@ int floadw_utf8(char* buf, FILE* file)
         len = strlen(buf);
     } while (!isspace(buf[len - 1]));
 
-    return buf[len - 1];
+    int res      = (int)buf[len - 1];
+    buf[len - 1] = '\0';
+
+    return res;
 }
 
 /*!

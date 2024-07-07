@@ -185,11 +185,9 @@ struct dia_print
 #define handle_floadw_error(code, file)                                        \
     {                                                                          \
         if ((code) == 0) {                                                     \
-            fprintf(                                                           \
-                stderr,                                                        \
-                "Error occurred while reading utf8 character from file in "    \
-                "print_dia");                                                  \
-            fclose(file);                                                      \
+            fprintf(stderr,                                                    \
+                    "Error occurred while reading utf8 word from file in "     \
+                    "print_dia\n");                                            \
             return -1;                                                         \
         }                                                                      \
     }
@@ -198,16 +196,16 @@ struct dia_print
  * accordingly
  *
  *  \param A dia_print struct containing win, file and position information
- *  \returns A 0 (or 1) indicating if the end of a dialogue window has been
- * reached (or not), that is if a EOF or § has been encountered in the file.
- * \returns -1 on error
+ *  \returns A 0 (or 1/2 for EOF/§ respectively) indicating if the end of a
+ * dialogue window has been reached (or not), that is if a EOF or § has been
+ * encountered in the file. \returns -1 on error
  */
 int print_next_word(WINDOW* win, struct dia_print* dia)
 {
     char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];
 
     int code = floadw_utf8(buf, dia->file);
-    fprintf(stderr, "%s\n", buf);
+    //fprintf(stderr, "%s\n", buf);
 
     handle_floadw_error(code, dia->file); //NOLINT
 
@@ -219,13 +217,14 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
     else {
         dia->len += (int)strlen(buf) + 1;
     }
-    wprintw(win, "%s ", buf);
 
     if (code == EOF) { return 1; }
-    else if (strcmp(u8"§", buf) == 0) {
+    else if ((strcmp(u8"§", buf) == 0)) {
         return 2;
     }
     else {
+        wprintw(win, "%s ", buf);
+        //wgetch(win);
         return 0;
     }
 }
@@ -296,7 +295,10 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
         newwin(2 + height, 2 + dia_p.width, (LINES - (2 + height)) / 2,
                (COLS - (2 + dia_p.width)) / 2);
 
-    int r_code = 1;
+    box(dia_win, 0, 0);
+    wmove(dia_win, 1, 1);
+
+    int r_code = 0;
     while (r_code == 0) {
         r_code = print_next_word(dia_win, &dia_p);
         if (r_code == -1) {
@@ -304,7 +306,6 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
             return res;
         }
     }
-    box(dia_win, 0, 0);
     wrefresh(dia_win);
     wgetch(dia_win);
 
@@ -333,11 +334,9 @@ int print_dia(const char* file_path, int width)
             fclose(f); //NOLINT
             return -1;
         }
-        else {
-            if (code.res == 1) {
-                fclose(f); //NOLINT
-                return 0;
-            }
+        else if (code.res == 1) {
+            fclose(f); //NOLINT
+            return 0;
         }
     }
 }
