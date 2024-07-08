@@ -179,7 +179,7 @@ struct dia_print
     FILE* file;
     const char* path;
     int line;
-    int len;
+    int line_len;
     int width;
 };
 
@@ -210,13 +210,13 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
 
     handle_floadw_error(code, dia->file); //NOLINT
 
-    if (dia->len + (int)strlen(buf) > dia->width) {
-        dia->len = (int)strlen(buf) + 1;
+    if (dia->line_len + (int)strlen(buf) > dia->width) {
+        dia->line_len = (int)strlen(buf) + 1;
         ++dia->line;
         wmove(win, dia->line, 1);
     }
     else {
-        dia->len += (int)strlen(buf) + 1;
+        dia->line_len += (int)strlen(buf) + 1;
     }
 
     if (code == EOF) { return 1; }
@@ -224,7 +224,7 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
         return 2;
     }
     else {
-        char end = (dia->len == dia->width + 1) ? '\0' : ' ';
+        char end = (dia->line_len == dia->width + 1) ? '\0' : ' ';
         wprintw(win, "%s%c", buf, end);
         //wgetch(win);
         return 0;
@@ -334,7 +334,7 @@ int print_dia(const char* file_path, int width)
             "Error ocurred while opening file in print_dia with errno: %s\n",
             strerror(errno));
     }
-    struct dia_print dia = {f, .path = file_path, .line = 1, .len = 0,
+    struct dia_print dia = {f, .path = file_path, .line = 1, .line_len = 0,
                             .width = width};
 
     while (true) {
