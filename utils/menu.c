@@ -19,11 +19,7 @@ const char selection_string[] = u8"◇ ";
 int const selection_offset      = 2;
 int const menu_box_width_offset = 2 + selection_offset;
 
-void get_dialogue_path(char* buf)
-{
-    strcpy(buf, SOURCE_DIR);
-    strcat(buf, "/dialogue/test.txt");
-}
+void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
 
 WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 {
@@ -218,8 +214,8 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
 
     if (dia->len + (int)strlen(buf) > dia->width) {
         dia->len = (int)strlen(buf) + 1;
-        wmove(win, dia->line, 1);
         ++dia->line;
+        wmove(win, dia->line, 1);
     }
     else {
         dia->len += (int)strlen(buf) + 1;
@@ -230,7 +226,8 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
         return 2;
     }
     else {
-        wprintw(win, "%s ", buf);
+        char end = (dia->len == dia->width + 1) ? '\0' : ' ';
+        wprintw(win, "%s%c", buf, end);
         //wgetch(win);
         return 0;
     }
