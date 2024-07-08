@@ -24,6 +24,17 @@ struct menu
     int start_y;
 };
 
+/*! \brief structure for dialogues
+ *
+ * \param path The path to a file containing dialogue conforming to formatting
+ * \param width The width of the dialogue box
+ */
+struct dia
+{
+    char const* path;
+    int width;
+};
+
 int get_menu_width(struct menu const* menu);
 
 //! Enum used to specify text justification in menus
@@ -90,11 +101,16 @@ enum Justification
 
 #define extern_menu(name) extern const struct menu* const name##_menu
 
+void get_dialogue_path(char* buf);
+
 void implementation_initialise_menu(struct menu* menu);
 
 //! Prints the passed in menu to the screen and returns the number of the first
 //! selected choice
 int print_menu(const struct menu* menu);
+
+//! Prints the passed in dialogue file to screen with indicated width
+int print_dia(const char* file_path, int width);
 
 #undef string_arr_len
 #endif

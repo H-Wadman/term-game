@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "menu.h"
 #include "menu_constants.h"
@@ -48,6 +49,15 @@ int main()
 {
     ncurses_set_up();
     initialise_menus();
+
+    char buf[128]; //NOLINT
+    get_dialogue_path(buf);
+    strcat(buf, "dialogue/test.txt");
+    print_dia(buf, 80); //NOLINT
+    get_dialogue_path(buf);
+    strcat(buf, "dialogue/test2.txt");
+    print_dia(buf, 50); //NOLINT
+
     int op = print_menu(start_menu);
     if (op == start_play_ch) { print_menu(encounter_menu); }
 

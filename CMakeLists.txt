@@ -13,7 +13,9 @@ else ()
 endif ()
 
 set(utilsDir ${CMAKE_CURRENT_SOURCE_DIR}/utils)
+set(configDir ${CMAKE_CURRENT_SOURCE_DIR}/cmake-cfg)
 
+configure_file(${configDir}/build-path.h.in ${configDir}/build-path.h)
 
 add_executable(run main.c)
 add_library(utf8 ${utilsDir}/utf8.c)
@@ -22,6 +24,7 @@ add_library(menu_constants ${utilsDir}/menu_constants.c)
 
 
 target_include_directories(run PRIVATE ${utilsDir})
+target_include_directories(menu PRIVATE ${configDir})
 
 find_library(ncursesLib NAMES ncursesw ncurses)
 target_link_libraries(menu PRIVATE utf8)
