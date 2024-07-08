@@ -306,8 +306,10 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
             return res;
         }
     }
-    wrefresh(dia_win);
-    wgetch(dia_win);
+    if (r_code == 2) {
+        wrefresh(dia_win);
+        wgetch(dia_win);
+    }
 
     win_cleanup(dia_win);
 
