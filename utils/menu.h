@@ -101,6 +101,8 @@ enum Justification
 
 #define extern_menu(name) extern const struct menu* const name##_menu
 
+void get_dialogue_path(char* buf);
+
 void implementation_initialise_menu(struct menu* menu);
 
 //! Prints the passed in menu to the screen and returns the number of the first

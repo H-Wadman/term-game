@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "build-path.h"
 #include "menu.h"
 #include "menu_constants.h"
 #include "utf8.h"
@@ -52,8 +51,7 @@ int main()
     initialise_menus();
 
     char buf[128]; //NOLINT
-    strcpy(buf, SOURCE_DIR);
-    strcat(buf, "/dialogue/test.txt");
+    get_dialogue_path(buf);
     print_dia(buf, 80); //NOLINT
 
     int op = print_menu(start_menu);

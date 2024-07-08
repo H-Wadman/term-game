@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "build-path.h"
 #include "menu.h"
 #include "utf8.h"
 
@@ -17,6 +18,12 @@ const char selection_string[] = u8"◇ ";
 //Needs to be changed if selection_string is changed
 int const selection_offset      = 2;
 int const menu_box_width_offset = 2 + selection_offset;
+
+void get_dialogue_path(char* buf)
+{
+    strcpy(buf, SOURCE_DIR);
+    strcat(buf, "/dialogue/test.txt");
+}
 
 WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 {
