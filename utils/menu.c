@@ -323,6 +323,11 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
 
 int print_dia(const char* file_path, int width)
 {
+    if (width + 2 > COLS) {
+        fprintf(stderr, //NOLINT
+                "Dialogue with width wider than COLS (columns) passed to "
+                "print_dia\n");
+    }
     FILE* f = fopen(file_path, "r");
 
     if (!f) {
