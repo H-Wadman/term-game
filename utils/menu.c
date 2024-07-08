@@ -159,13 +159,11 @@ int print_menu(const struct menu* menu)
 
 void implementation_initialise_menu(struct menu* menu)
 {
-    int* choices_width = (int*)&(menu->choices_width);
-    *choices_width     = get_menu_width(menu);
-    assert(*choices_width <= COLS);
+    menu->choices_width = get_menu_width(menu);
+    assert(menu->choices_width <= COLS);
 
-    int* banner_width = (int*)&menu->banner_width;
-    *banner_width     = utf8_strlen(menu->banner[0]);
-    assert(*banner_width <= COLS);
+    menu->banner_width = utf8_strlen(menu->banner[0]);
+    assert(menu->banner_width <= COLS);
 
     if (menu->start_x < 0) {
         menu->start_x = (COLS - (menu->choices_width + 2)) / 2;
