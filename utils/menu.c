@@ -27,6 +27,13 @@ int const menu_box_width_offset = 2 + selection_offset;
  */
 void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
 
+/*! \brief Prints the banner of a menu to the window
+ *
+ * \param menu A menu struct
+ * \param menu_win The window for the choices of the menu
+ *
+ * \returns The window on which the banner is printed
+ */
 WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 {
     if (!menu->banner) { return NULL; }
