@@ -19,6 +19,12 @@ const char selection_string[] = u8"◇ ";
 int const selection_offset      = 2;
 int const menu_box_width_offset = 2 + selection_offset;
 
+/*! Loads the path to the dialogue directory
+ *
+ *  \param buf A character buffer in which the path to the dialogue directory
+ * will be stored. it is the responsibility of the caller that the buffer is of
+ * sufficient size
+ */
 void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
 
 WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
@@ -72,7 +78,7 @@ void print_menu_highlight(WINDOW* menu_win, const struct menu* menu,
             sz + 1, total_len);
         exit(-1);
     }
-    if (sz == -1) {
+    if (sz == -2) {
         fprintf(stderr, // NOLINT
                 "sprintf encountered an error in print_menu_highlight.\n"
                 "Aborting...");
@@ -107,6 +113,11 @@ bool refresh_menu_win(WINDOW* menu_win, const struct menu* menu, int highlight)
     return true;
 }
 
+/*! \brief Calculates the width of a menu
+ *
+ *  \param menu A menu struct whose width (in unicode points) is to be
+ * calculated \returns The width of the menu as number of unicode points
+ */
 int get_menu_width(struct menu const* menu)
 {
     int max = 0;
@@ -179,7 +190,7 @@ struct dia_print
     FILE* file;
     const char* path;
     int line;
-    int len;
+    int line_len;
     int width;
 };
 
@@ -210,13 +221,13 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
 
     handle_floadw_error(code, dia->file); //NOLINT
 
-    if (dia->len + (int)strlen(buf) > dia->width) {
-        dia->len = (int)strlen(buf) + 1;
+    if (dia->line_len + (int)strlen(buf) > dia->width) {
+        dia->line_len = (int)strlen(buf) + 1;
         ++dia->line;
         wmove(win, dia->line, 1);
     }
     else {
-        dia->len += (int)strlen(buf) + 1;
+        dia->line_len += (int)strlen(buf) + 1;
     }
 
     if (code == EOF) { return 1; }
@@ -224,7 +235,7 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
         return 2;
     }
     else {
-        char end = (dia->len == dia->width + 1) ? '\0' : ' ';
+        char end = (dia->line_len == dia->width + 1) ? '\0' : ' ';
         wprintw(win, "%s%c", buf, end);
         //wgetch(win);
         return 0;
@@ -319,6 +330,20 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
     return res;
 }
 
+/*! This function will print a dialogue to screen, according to the content of a
+ * specified file, and a specified width In order for the dialogue file to
+ * function properly, the file should contain text (UTF8) and all "dialogue
+ * bubbles" should be finished with a '§' character (even the last one). The '§'
+ * character is special and cannot occur in normal dialogue.
+ *
+ * \param file_path A string containing a path to the file containing the
+    dialogue
+ * \param width An int stating the width of the dialogue to print; it
+ * is the responsibility of the caller that the width of any word in the
+ * dialogue (counted as unicode code points) does not exceed this width
+ *
+ * \returns 0 on success, -1 on failure
+ */
 int print_dia(const char* file_path, int width)
 {
     if (width + 2 > COLS) {
@@ -334,7 +359,7 @@ int print_dia(const char* file_path, int width)
             "Error ocurred while opening file in print_dia with errno: %s\n",
             strerror(errno));
     }
-    struct dia_print dia = {f, .path = file_path, .line = 1, .len = 0,
+    struct dia_print dia = {f, .path = file_path, .line = 1, .line_len = 0,
                             .width = width};
 
     while (true) {

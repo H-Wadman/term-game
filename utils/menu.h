@@ -101,6 +101,7 @@ enum Justification
 
 #define extern_menu(name) extern const struct menu* const name##_menu
 
+//! Loads the path to the dialogue directory into buf
 void get_dialogue_path(char* buf);
 
 void implementation_initialise_menu(struct menu* menu);

@@ -52,10 +52,10 @@ int main()
 
     char buf[128]; //NOLINT
     get_dialogue_path(buf);
-    strcat(buf, "dialogue/test.txt");
+    strcat(buf, "/dialogue/test.txt");
     print_dia(buf, 80); //NOLINT
     get_dialogue_path(buf);
-    strcat(buf, "dialogue/test2.txt");
+    strcat(buf, "/dialogue/test2.txt");
     print_dia(buf, 50); //NOLINT
 
     int op = print_menu(start_menu);
