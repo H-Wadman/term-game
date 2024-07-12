@@ -1,11 +1,12 @@
-#include "string.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <ncurses.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "build-path.h"
 #include "menu.h"
@@ -34,7 +35,7 @@ void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
  *
  * \returns The window on which the banner is printed
  */
-WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
+WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
 {
     if (!menu->banner) { return NULL; }
 
@@ -61,7 +62,7 @@ static inline void win_cleanup(WINDOW* win)
     delwin(win);
 }
 
-void print_menu_highlight(WINDOW* menu_win, const struct menu* menu,
+void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
                           int highlight, int x_align)
 {
     // Compensate if menus contain non-ascii characters
@@ -101,7 +102,7 @@ void print_menu_highlight(WINDOW* menu_win, const struct menu* menu,
     free(option);
 }
 
-bool refresh_menu_win(WINDOW* menu_win, const struct menu* menu, int highlight)
+bool refresh_menu_win(WINDOW* menu_win, const struct Menu* menu, int highlight)
 {
     // Printing menu box
     wattroff(menu_win, A_STANDOUT);
@@ -125,7 +126,7 @@ bool refresh_menu_win(WINDOW* menu_win, const struct menu* menu, int highlight)
  *  \param menu A menu struct whose width (in unicode points) is to be
  * calculated \returns The width of the menu as number of unicode points
  */
-int get_menu_width(struct menu const* menu)
+int get_menu_width(struct Menu const* menu)
 {
     int max = 0;
     for (int i = 0; i < menu->choices_height; ++i) {
@@ -140,7 +141,7 @@ int get_menu_width(struct menu const* menu)
  * a choice has been selected. Afterwards an integer corresponding to the menu
  * choice selected (its index in the menu's choice array)
  */
-int print_menu(const struct menu* menu)
+int print_menu(const struct Menu* menu)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
@@ -175,24 +176,30 @@ int print_menu(const struct menu* menu)
     }
 }
 
-void implementation_initialise_menu(struct menu* menu)
+void implementation_initialise_menu(struct Menu* menu)
 {
     menu->choices_width = get_menu_width(menu);
     assert(menu->choices_width <= COLS);
 
-    menu->banner_width = utf8_strlen(menu->banner[0]);
-    assert(menu->banner_width <= COLS);
+    if (menu->banner) {
+        menu->banner_width = utf8_strlen(menu->banner[0]);
+        assert(menu->banner_width <= COLS);
+    }
+    else {
+        menu->banner_width  = 0;
+        menu->banner_height = 0;
+    }
 
     if (menu->start_x < 0) {
         menu->start_x = (COLS - (menu->choices_width + 2)) / 2;
     }
     if (menu->start_y < 0) {
-        menu->start_y =
-            (LINES - (menu->choices_height + 2) + menu->banner_height) / 2;
+        int height    = (menu->banner) ? menu->banner_height : 0;
+        menu->start_y = (LINES - (menu->choices_height + 2) + height) / 2;
     }
 }
 
-struct dia_print
+struct Dia_print
 {
     FILE* file;
     const char* path;
@@ -219,7 +226,7 @@ struct dia_print
  * dialogue window has been reached (or not), that is if a EOF or § has been
  * encountered in the file. \returns -1 on error
  */
-int print_next_word(WINDOW* win, struct dia_print* dia)
+int print_next_word(WINDOW* win, struct Dia_print* dia)
 {
     char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];
 
@@ -255,7 +262,7 @@ int print_next_word(WINDOW* win, struct dia_print* dia)
  *  \returns The number of lines needed to print a dialogue window given the
  * specified width
  */
-int get_dia_height(const struct dia_print* dia)
+int get_dia_height(const struct Dia_print* dia)
 {
     FILE* file = fopen(dia->path, "r");
     int err    = fseek(file, ftell(dia->file), SEEK_SET);
@@ -293,7 +300,7 @@ typedef struct print_dia_win_res
 {
     bool error;
     int res;
-} print_dia_win_res;
+} Print_dia_win_res;
 
 /*! \brief Prints a dialogue to screen
  *
@@ -305,7 +312,7 @@ typedef struct print_dia_win_res
  * \returns A print_dia_win_res structure indicating if an error occurred, and
  * if not an integer
  */
-print_dia_win_res print_dia_win(struct dia_print dia_p)
+Print_dia_win_res print_dia_win(struct Dia_print dia_p)
 {
     //struct dia_print dia_p = {fopen(dia.path, "r"), 0, 0, dia.width};
 
@@ -322,7 +329,7 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
     while (r_code == 0) {
         r_code = print_next_word(dia_win, &dia_p);
         if (r_code == -1) {
-            print_dia_win_res res = {.error = true};
+            Print_dia_win_res res = {.error = true};
             return res;
         }
     }
@@ -333,7 +340,7 @@ print_dia_win_res print_dia_win(struct dia_print dia_p)
 
     win_cleanup(dia_win);
 
-    print_dia_win_res res = {.error = false, .res = r_code};
+    Print_dia_win_res res = {.error = false, .res = r_code};
     return res;
 }
 
@@ -366,11 +373,11 @@ int print_dia(const char* file_path, int width)
             "Error ocurred while opening file in print_dia with errno: %s\n",
             strerror(errno));
     }
-    struct dia_print dia = {f, .path = file_path, .line = 1, .line_len = 0,
+    struct Dia_print dia = {f, .path = file_path, .line = 1, .line_len = 0,
                             .width = width};
 
     while (true) {
-        print_dia_win_res code = print_dia_win(dia);
+        Print_dia_win_res code = print_dia_win(dia);
         if (code.error) {
             fclose(f); //NOLINT
             return -1;

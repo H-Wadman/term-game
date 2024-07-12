@@ -12,7 +12,7 @@
 /*! \brief structure to hold menu information
  *
  */
-struct menu
+struct Menu
 {
     char const** choices;
     int choices_height;
@@ -35,7 +35,7 @@ struct dia
     int width;
 };
 
-int get_menu_width(struct menu const* menu);
+int get_menu_width(struct Menu const* menu);
 
 //! Enum used to specify text justification in menus
 enum Justification
@@ -82,7 +82,7 @@ enum Justification
 
 #define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
                           justification, left_pad, right_pad, x, y)            \
-    static struct menu implementation_##menu_name##_menu = {                   \
+    static struct Menu implementation_##menu_name##_menu = {                   \
         .choices        = (const char**)(menu_name),                           \
         .choices_height = choices_len(menu_name),                              \
         .choices_width  = (min_choice_width),                                  \
@@ -92,23 +92,23 @@ enum Justification
         .start_y        = (y),                                                 \
     };                                                                         \
                                                                                \
-    const struct menu* const menu_name##_menu =                                \
+    const struct Menu* const menu_name##_menu =                                \
         &implementation_##menu_name##_menu
 
 #define make_menu(name, banner, min_width, start_x, start_y)                   \
     make_menu_verbose(name, banner, min_width, left_just, " ", " ", start_x,   \
                       start_y)
 
-#define extern_menu(name) extern const struct menu* const name##_menu
+#define extern_menu(name) extern const struct Menu* const name##_menu
 
 //! Loads the path to the dialogue directory into buf
 void get_dialogue_path(char* buf);
 
-void implementation_initialise_menu(struct menu* menu);
+void implementation_initialise_menu(struct Menu* menu);
 
 //! Prints the passed in menu to the screen and returns the number of the first
 //! selected choice
-int print_menu(const struct menu* menu);
+int print_menu(const struct Menu* menu);
 
 //! Prints the passed in dialogue file to screen with indicated width
 int print_dia(const char* file_path, int width);

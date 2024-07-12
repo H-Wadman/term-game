@@ -16,8 +16,17 @@ enum Start_menu_choices
 {
     start_play_ch,
     start_options_ch,
-    start_potatisflask_ch,
     start_exit_ch
+};
+
+extern_menu(options);
+
+enum Options_choices
+{
+    options_language,
+    options_volume,
+    options_colour,
+    options_exit
 };
 
 extern_menu(encounter);
