@@ -53,7 +53,7 @@ make_menu(start, title, 77, -1, -1); //NOLINT
 
 make_menu(encounter, run, 0, 15, -1); //NOLINT
 
-make_menu(options, NULL, 0, -1, -1); //NOLINT
+make_menu(options, NULL, 60, -1, -1); //NOLINT
 
 void initialise_menus()
 {
