@@ -66,8 +66,8 @@ void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
                           int highlight, int x_align)
 {
     // Compensate if menus contain non-ascii characters
-    int const u8_ascii_diff = (int)strlen(menu->choices[highlight]) -
-                              utf8_strlen(menu->choices[highlight]);
+    int const u8_ascii_diff = (int)strlen(menu->choices[highlight].label) -
+                              utf8_strlen(menu->choices[highlight].label);
     // +1 in order to account for '\0'-termination
     int const total_len =
         menu->choices_width + u8_ascii_diff + (int)strlen(selection_string) + 1;
@@ -75,8 +75,8 @@ void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
     char* option = (char*)malloc(total_len);
 
     int const sz = snprintf(option, total_len, u8"%s%s", selection_string,
-                            menu->choices[highlight]);
-    assert(sz == (int)strlen(menu->choices[highlight]) +
+                            menu->choices[highlight].label);
+    assert(sz == (int)strlen(menu->choices[highlight].label) +
                      (int)strlen(selection_string));
     if (sz > total_len - 1) {
         fprintf( //NOLINT
@@ -130,7 +130,7 @@ int get_menu_width(struct Menu const* menu)
 {
     int max = 0;
     for (int i = 0; i < menu->choices_height; ++i) {
-        int temp = utf8_strlen(menu->choices[i]);
+        int temp = utf8_strlen(menu->choices[i].label);
         if (temp > max) { max = temp; }
     }
 
@@ -179,7 +179,7 @@ int print_menu(const struct Menu* menu)
 void implementation_initialise_menu(struct Menu* menu)
 {
     menu->choices_width = get_menu_width(menu);
-    assert(menu->choices_width <= COLS);
+    assert(menu->choices_width + utf8_strlen(selection_string) + 2 <= COLS);
 
     if (menu->banner) {
         menu->banner_width = utf8_strlen(menu->banner[0]);
@@ -351,7 +351,7 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
  * character is special and cannot occur in normal dialogue.
  *
  * \param file_path A string containing a path to the file containing the
-    dialogue
+ *  dialogue
  * \param width An int stating the width of the dialogue to print; it
  * is the responsibility of the caller that the width of any word in the
  * dialogue (counted as unicode code points) does not exceed this width
