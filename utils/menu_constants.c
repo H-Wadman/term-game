@@ -13,6 +13,8 @@
 
 #include "menu_constants.h"
 #include "menu.h"
+#include "start.h"
+#include <limits.h>
 #include <ncurses.h>
 
 // clang-format off
@@ -39,21 +41,63 @@ const char* const run[9] = {
 };
 // clang-format on
 
+/********************** COMMANDS **********************/
+int command_exit([[maybe_unused]] void* _) { return INT_MIN; };
 
-const char* const start[] = {"Play", "Options", "Exit"};
-// const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
-//                                  "󰞇 Time to fight", " Time to debug!"};
-const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
-                                 "󰞇 Time to fight",
-                                 "󰞇 Time to fight"}; //AHA!
+int no_op([[maybe_unused]] void* _) { return 0; }
 
-char const* const options[] = {"Language", "Volume", "Colour", "Return"};
+/**************** START MENU -> OPTIONS ****************/
+const struct Command options_language = {.label     = "Language",
+                                         .on_select = no_op};
+const struct Command options_volume   = {.label = "Volume", .on_select = no_op};
+const struct Command options_colour   = {.label = "Colour", .on_select = no_op};
+const struct Command options_back     = {.label     = "Back",
+                                         .on_select = command_exit};
+
+struct Command const* const options[] = {&options_language, &options_volume,
+                                         &options_colour, &options_back};
+make_menu(options, NULL, 60, -1, -1); //NOLINT
+
+int select_options([[maybe_unused]] void* _)
+{
+    int i = print_menu(options_menu);
+    return i;
+}
+
+/********************* START MENU *********************/
+int intro([[maybe_unused]] void* _)
+{
+    show_intro();
+
+    return COMMAND_RETURN;
+}
+
+const struct Command start_play = {.label = "Play", .on_select = command_exit};
+const struct Command start_options = {.label     = "Options",
+                                      .on_select = select_options};
+const struct Command start_exit = {.label = "Exit", .on_select = command_exit};
+
+struct Command const* const start[] = {&start_play, &start_options,
+                                       &start_exit};
 
 make_menu(start, title, 77, -1, -1); //NOLINT
+/*****************************************************/
+
+struct Command const encounter_no      = {.label     = "No! >:(",
+                                          .on_select = command_exit};
+struct Command const encounter_aah     = {.label     = "AAAAAAAAAAAAAAAAAAAAH",
+                                          .on_select = command_exit};
+struct Command const encounter_fight   = {.label     = "󰞇 Time to fight",
+                                          .on_select = command_exit};
+struct Command const encounter_fight_2 = {.label     = "󰞇 Time to fight",
+                                          .on_select = command_exit};
+
+// const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
+//                                  "󰞇 Time to fight", " Time to debug!"};
+struct Command const* const encounter[] = {&encounter_no, &encounter_aah,
+                                           &encounter_fight, &encounter_fight};
 
 make_menu(encounter, run, 0, 15, -1); //NOLINT
-
-make_menu(options, NULL, 60, -1, -1); //NOLINT
 
 void initialise_menus()
 {

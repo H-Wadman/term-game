@@ -1,6 +1,10 @@
+#ifndef START_H
+#define START_H
 
-void intro();
+void show_intro();
 
-void options();
+void show_options();
 
-void show_main_menu();
+int show_main_menu();
+
+#endif

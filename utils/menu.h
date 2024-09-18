@@ -9,12 +9,18 @@
  * for declaring
  */
 
+struct Command
+{
+    char const* label;
+    int (*on_select)(void*);
+};
+
 /*! \brief structure to hold menu information
  *
  */
 struct Menu
 {
-    char const** choices;
+    struct Command const** choices;
     int choices_height;
     int choices_width;
     char const** banner;
@@ -83,7 +89,7 @@ enum Justification
 #define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
                           justification, left_pad, right_pad, x, y)            \
     static struct Menu implementation_##menu_name##_menu = {                   \
-        .choices        = (const char**)(menu_name),                           \
+        .choices        = (struct Command const**)(menu_name),                 \
         .choices_height = choices_len(menu_name),                              \
         .choices_width  = (min_choice_width),                                  \
         .banner         = (const char**)(menu_banner),                         \

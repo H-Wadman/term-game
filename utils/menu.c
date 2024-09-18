@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -55,6 +56,21 @@ WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
     return banner_win;
 }
 
+void refresh_banner(WINDOW* banner_win, const struct Menu* menu,
+                    WINDOW* menu_win)
+{
+    if (!banner_win) { return; }
+
+    int x                         = 0;
+    int y __attribute__((unused)) = 0;
+    getmaxyx(menu_win, y, x);
+    for (int i = 0; i < menu->banner_height; ++i) {
+        mvwprintw(banner_win, i, 0, "%s", menu->banner[i]);
+    }
+
+    wrefresh(banner_win);
+}
+
 static inline void win_cleanup(WINDOW* win)
 {
     werase(win);
@@ -66,8 +82,8 @@ void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
                           int highlight, int x_align)
 {
     // Compensate if menus contain non-ascii characters
-    int const u8_ascii_diff = (int)strlen(menu->choices[highlight].label) -
-                              utf8_strlen(menu->choices[highlight].label);
+    int const u8_ascii_diff = (int)strlen(menu->choices[highlight]->label) -
+                              utf8_strlen(menu->choices[highlight]->label);
     // +1 in order to account for '\0'-termination
     int const total_len =
         menu->choices_width + u8_ascii_diff + (int)strlen(selection_string) + 1;
@@ -75,8 +91,8 @@ void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
     char* option = (char*)malloc(total_len);
 
     int const sz = snprintf(option, total_len, u8"%s%s", selection_string,
-                            menu->choices[highlight].label);
-    assert(sz == (int)strlen(menu->choices[highlight].label) +
+                            menu->choices[highlight]->label);
+    assert(sz == (int)strlen(menu->choices[highlight]->label) +
                      (int)strlen(selection_string));
     if (sz > total_len - 1) {
         fprintf( //NOLINT
@@ -111,7 +127,7 @@ bool refresh_menu_win(WINDOW* menu_win, const struct Menu* menu, int highlight)
     const int x_align = 1;
     int y_align       = 1;
     for (int i = 0; i < menu->choices_height; ++i) {
-        mvwprintw(menu_win, y_align, x_align, "%s", menu->choices[i]);
+        mvwprintw(menu_win, y_align, x_align, "%s", menu->choices[i]->label);
         ++y_align;
     }
 
@@ -130,7 +146,7 @@ int get_menu_width(struct Menu const* menu)
 {
     int max = 0;
     for (int i = 0; i < menu->choices_height; ++i) {
-        int temp = utf8_strlen(menu->choices[i].label);
+        int temp = utf8_strlen(menu->choices[i]->label);
         if (temp > max) { max = temp; }
     }
 
@@ -164,15 +180,23 @@ int print_menu(const struct Menu* menu)
                 option =
                     (option + menu->choices_height - 1) % menu->choices_height;
                 break;
-            case KEY_DOWN: option = (option + 1) % menu->choices_height; break;
-            case LINE_FEED:
-                win_cleanup(menu_win);
-                win_cleanup(title_win);
+            case KEY_DOWN : option = (option + 1) % menu->choices_height; break;
+            case LINE_FEED: {
+                struct Command const* const curr = menu->choices[option];
+                if (curr->on_select) {
+                    int res = curr->on_select((void*)curr);
+                    if (res == INT_MIN) {
+                        win_cleanup(menu_win);
+                        win_cleanup(title_win);
 
-                return option;
+                        return option;
+                    }
+                }
+            }
             default:;
         }
         refresh_menu_win(menu_win, menu, option);
+        refresh_banner(title_win, menu, menu_win);
     }
 }
 

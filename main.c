@@ -50,7 +50,11 @@ int main()
     ncurses_set_up();
     initialise_menus();
 
-    show_main_menu();
+    int o = show_main_menu();
+    if (o == start_play_ch) { show_intro(); }
+    else if (o == start_exit_ch) {
+        return 0;
+    }
 
-    return 0;
+    return 1;
 }

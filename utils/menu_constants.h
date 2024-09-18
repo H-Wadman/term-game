@@ -1,6 +1,8 @@
 #ifndef MENU_CONSTANTS_H
 #define MENU_CONSTANTS_H
 
+#include <limits.h>
+#define COMMAND_RETURN INT_MIN
 #include "menu.h"
 
 /*! \file menu.h
@@ -23,10 +25,10 @@ extern_menu(options);
 
 enum Options_choices
 {
-    options_language,
-    options_volume,
-    options_colour,
-    options_exit
+    options_language_ch,
+    options_volume_ch,
+    options_colour_ch,
+    options_exit_ch
 };
 
 extern_menu(encounter);

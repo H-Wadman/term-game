@@ -24,11 +24,18 @@ add_library(menu_constants ${utilsDir}/menu_constants.c)
 add_library(start start.c)
 
 
-target_include_directories(run PRIVATE ${utilsDir})
+#start dependencies
 target_include_directories(start PRIVATE ${utilsDir})
-target_include_directories(menu PRIVATE ${configDir})
-
-find_library(ncursesLib NAMES ncursesw ncurses)
 target_link_libraries(start PRIVATE menu)
+
+#menu_constants dependencies
+target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
+
+#menu dependencies
+target_include_directories(menu PRIVATE ${configDir})
 target_link_libraries(menu PRIVATE utf8)
+
+#run dependencies
+target_include_directories(run PRIVATE ${utilsDir})
+find_library(ncursesLib NAMES ncursesw ncurses)
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start)
