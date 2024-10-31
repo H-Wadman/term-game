@@ -165,7 +165,7 @@ int print_menu(const struct Menu* menu)
                menu->start_y, menu->start_x);
     WINDOW* title_win = add_banner(menu, menu_win);
     intrflush(menu_win, false);
-    keypad(menu_win, TRUE);
+    keypad(menu_win, true);
 
     box(menu_win, 0, 0);
 
