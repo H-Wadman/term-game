@@ -40,9 +40,8 @@ const char* const run[9] = {
 // clang-format on
 
 
-const char* const start[] = {"Play", "Options", "Potatisfläsk", "Exit"};
-// const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
-//                                  "󰞇 Time to fight", " Time to debug!"};
+const char* const start[] = {"Play", "Options", "Exit"};
+
 const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
                                  "󰞇 Time to fight",
                                  "󰞇 Time to fight"}; //AHA!

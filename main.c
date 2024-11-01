@@ -54,11 +54,16 @@ int main()
     char buf[1024]; //NOLINT
 
     get_dialogue_path(buf, dia_buf_sz);
-    strcat(buf, "intro.txt");
+    strcat(buf, "opening.txt");
     print_dia(buf, 50); //NOLINT
 
     int op = print_menu(start_menu);
-    if (op == start_play_ch) { print_menu(encounter_menu); }
+    if (op == start_play_ch) {
+        get_dialogue_path(buf, dia_buf_sz);
+        strcat(buf, "intro.txt");
+        print_dia(buf, COLS / 2);
+        print_menu(encounter_menu);
+    }
 
     return 0;
 }
