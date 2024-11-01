@@ -25,7 +25,14 @@ int const menu_box_width_offset = 2 + selection_offset;
  * will be stored. it is the responsibility of the caller that the buffer is of
  * sufficient size
  */
-void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
+void get_dialogue_path(char* buf, int sz)
+{
+    if (!((int)strlen(SOURCE_DIR) < sz - 1)) {
+        fprintf(stderr, //NOLINT
+                "Buffer for dialogue path was not large enough, aborting...\n");
+    }
+    strcpy(buf, SOURCE_DIR);
+}
 
 WINDOW* add_banner(const struct menu* menu, WINDOW* menu_win)
 {

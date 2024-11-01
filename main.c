@@ -50,11 +50,12 @@ int main()
     ncurses_set_up();
     initialise_menus();
 
-    char buf[128]; //NOLINT
-    get_dialogue_path(buf);
+    int const dia_buf_sz = 1024;
+    char buf[1024]; //NOLINT
+    get_dialogue_path(buf, dia_buf_sz);
     strcat(buf, "/dialogue/test.txt");
     print_dia(buf, 80); //NOLINT
-    get_dialogue_path(buf);
+    get_dialogue_path(buf, dia_buf_sz);
     strcat(buf, "/dialogue/test2.txt");
     print_dia(buf, 50); //NOLINT
 
