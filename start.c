@@ -51,7 +51,7 @@ int show_main_menu()
             case start_exit_ch   : return start_exit_ch; break;
             default:
                 fprintf(stderr, //NOLINT
-                        "Unrecognized option in show_mai_menu");
+                        "Unrecognized option in show_main_menu");
                 exit(1);
         }
     }
