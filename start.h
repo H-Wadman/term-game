@@ -3,7 +3,7 @@
 
 #include "menu.h"
 
-Func show_intro();
+Func show_opening();
 
 Func show_options();
 

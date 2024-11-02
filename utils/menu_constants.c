@@ -66,7 +66,7 @@ make_menu(options, NULL, 60, -1, -1); //NOLINT
 /********************* START MENU *********************/
 int intro([[maybe_unused]] void* _)
 {
-    show_intro();
+    show_opening();
 
     return COMMAND_RETURN;
 }

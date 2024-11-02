@@ -17,14 +17,14 @@
 #define get_and_print_dia(file, width)                                         \
     {                                                                          \
         char buf[1024];                                                        \
-        get_dialogue_path(buf);                                                \
+        get_dialogue_path(buf, 1024);                                          \
         strcat(buf, (file));                                                   \
         print_dia(buf, (width));                                               \
     }
 
-Func show_intro()
+Func show_opening()
 {
-    get_and_print_dia("/dialogue/intro_placeholder.txt", COLS / 3);
+    get_and_print_dia("opening.txt", COLS / 3);
     return (Func){.func = show_main_menu};
 }
 

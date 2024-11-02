@@ -50,7 +50,7 @@ int main()
     ncurses_set_up();
     initialise_menus();
 
-    Func curr = (Func){.func = show_intro};
+    Func curr = (Func){.func = show_opening};
     while (curr.func) { curr = curr.func(); }
 
     return 0;
