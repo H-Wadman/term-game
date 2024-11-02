@@ -195,6 +195,8 @@ int print_menu(const struct Menu* menu)
             }
             default:;
         }
+        //Redraws menu after stacked menu returns (and highlights correct
+        //option)
         refresh_menu_win(menu_win, menu, option);
         refresh_banner(title_win, menu, menu_win);
     }

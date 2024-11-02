@@ -41,18 +41,18 @@ void show_options()
 
 int show_main_menu()
 {
-    while (true) {
-        int op = print_menu(start_menu);
-        switch (op) {
-            case start_play_ch:
-                //if new game
-                return start_play_ch;
-            case start_options_ch: show_options(); break;
-            case start_exit_ch   : return start_exit_ch; break;
-            default:
-                fprintf(stderr, //NOLINT
-                        "Unrecognized option in show_main_menu");
-                exit(1);
-        }
+    int op = print_menu(start_menu);
+    switch (op) {
+        case start_play_ch:
+            //if new game
+            return start_play_ch;
+        case start_options_ch: show_options(); break;
+        case start_exit_ch   : return start_exit_ch; break;
+        default:
+            fprintf(stderr, //NOLINT
+                    "Unrecognized option in show_main_menu");
+            exit(1);
     }
+
+    return 5;
 }

@@ -9,6 +9,11 @@
  * for declaring
  */
 
+typedef struct
+{
+    struct Func (*func)();
+} Func;
+
 struct Command
 {
     char const* label;
