@@ -24,10 +24,21 @@ int const menu_box_width_offset = 2 + selection_offset;
 /*! Loads the path to the dialogue directory
  *
  *  \param buf A character buffer in which the path to the dialogue directory
- * will be stored. it is the responsibility of the caller that the buffer is of
- * sufficient size
+ * will be stored.
+ *
+ * \param sz An int specifying the size of the receiving buffer. If the receing
+ * buffer is too small, the program will abort
  */
-void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
+void get_dialogue_path(char* buf, int sz)
+{
+    int const extra_len = (int)strlen("/dialogue/");
+    if (!((int)strlen(SOURCE_DIR) + extra_len < sz - 1)) {
+        fprintf(stderr, //NOLINT
+                "Buffer for dialogue path was not large enough, aborting...\n");
+    }
+    strcpy(buf, SOURCE_DIR);
+    strcat(buf, "/dialogue/");
+}
 
 /*! \brief Prints the banner of a menu to the window
  *
@@ -429,8 +440,10 @@ int print_dia(const char* file_path, int width)
     if (!f) {
         fprintf( //NOLINT
             stderr,
-            "Error ocurred while opening file in print_dia with errno: %s\n",
-            strerror(errno));
+            "Error ocurred while opening file '%s' in print_dia with errno: "
+            "%s\n",
+            file_path, strerror(errno));
+        exit(1);
     }
     struct Dia_print dia = {f, .path = file_path, .line = 1, .line_len = 0,
                             .width = width};
