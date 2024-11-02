@@ -403,9 +403,11 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
             return res;
         }
     }
+
+    char buf[ASCII_BUF_SZ];
     if (r_code == 2) {
         wrefresh(dia_win);
-        wgetch(dia_win);
+        load_utf8(buf, dia_win);
     }
 
     win_cleanup(dia_win);
