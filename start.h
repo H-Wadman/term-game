@@ -1,10 +1,12 @@
 #ifndef START_H
 #define START_H
 
-void show_intro();
+#include "menu.h"
 
-void show_options();
+Func show_intro();
 
-int show_main_menu();
+Func show_options();
+
+Func show_main_menu();
 
 #endif

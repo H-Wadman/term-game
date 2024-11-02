@@ -9,7 +9,8 @@
  * for declaring
  */
 
-typedef struct
+
+typedef struct Func
 {
     struct Func (*func)();
 } Func;
@@ -17,8 +18,11 @@ typedef struct
 struct Command
 {
     char const* label;
-    int (*on_select)(void*);
+    Func (*on_select)();
 };
+
+void push_func(Func f);
+Func pop_func();
 
 /*! \brief structure to hold menu information
  *
@@ -119,7 +123,7 @@ void implementation_initialise_menu(struct Menu* menu);
 
 //! Prints the passed in menu to the screen and returns the number of the first
 //! selected choice
-int print_menu(const struct Menu* menu);
+Func print_menu(const struct Menu* menu);
 
 //! Prints the passed in dialogue file to screen with indicated width
 int print_dia(const char* file_path, int width);

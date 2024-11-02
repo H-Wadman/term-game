@@ -50,11 +50,8 @@ int main()
     ncurses_set_up();
     initialise_menus();
 
-    int o = show_main_menu();
-    if (o == start_play_ch) { show_intro(); }
-    else if (o == start_exit_ch) {
-        return 0;
-    }
+    Func curr = (Func){.func = show_intro};
+    while (curr.func) { curr = curr.func(); }
 
-    return 1;
+    return 0;
 }

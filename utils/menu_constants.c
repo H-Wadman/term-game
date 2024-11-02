@@ -42,27 +42,26 @@ const char* const run[9] = {
 // clang-format on
 
 /********************** COMMANDS **********************/
-int command_exit([[maybe_unused]] void* _) { return INT_MIN; };
+Func command_exit() { return (Func){.func = NULL}; };
 
-int no_op([[maybe_unused]] void* _) { return 0; }
+//int no_op([[maybe_unused]] void* _) { return 0; }
 
 /**************** START MENU -> OPTIONS ****************/
 const struct Command options_language = {.label     = "Language",
-                                         .on_select = no_op};
-const struct Command options_volume   = {.label = "Volume", .on_select = no_op};
-const struct Command options_colour   = {.label = "Colour", .on_select = no_op};
-const struct Command options_back     = {.label     = "Back",
-                                         .on_select = command_exit};
+                                         .on_select = NULL};
+const struct Command options_volume   = {.label = "Volume", .on_select = NULL};
+const struct Command options_colour   = {.label = "Colour", .on_select = NULL};
+const struct Command options_back = {.label = "Back", .on_select = pop_func};
 
 struct Command const* const options[] = {&options_language, &options_volume,
                                          &options_colour, &options_back};
 make_menu(options, NULL, 60, -1, -1); //NOLINT
 
-int select_options([[maybe_unused]] void* _)
-{
-    int i = print_menu(options_menu);
-    return i;
-}
+// int select_options([[maybe_unused]] void* _)
+// {
+//     int i = print_menu(options_menu);
+//     return i;
+// }
 
 /********************* START MENU *********************/
 int intro([[maybe_unused]] void* _)
@@ -74,7 +73,7 @@ int intro([[maybe_unused]] void* _)
 
 const struct Command start_play = {.label = "Play", .on_select = command_exit};
 const struct Command start_options = {.label     = "Options",
-                                      .on_select = select_options};
+                                      .on_select = show_options};
 const struct Command start_exit = {.label = "Exit", .on_select = command_exit};
 
 struct Command const* const start[] = {&start_play, &start_options,

@@ -36,6 +36,43 @@ void get_dialogue_path(char* buf) { strcpy(buf, SOURCE_DIR); }
  *
  * \returns The window on which the banner is printed
  */
+
+
+typedef struct Node
+{
+    struct Node* next;
+    Func val;
+} Node;
+
+static Node* func_stack = NULL; //NOLINT
+
+void push_func(Func f)
+{
+    Node* curr = (Node*)malloc(sizeof(Node));
+
+    curr->val  = f;
+    curr->next = func_stack;
+
+    func_stack = curr;
+}
+
+Func pop_func()
+{
+    if (!func_stack) {
+        fprintf(stderr, "Empty func stack popped\n"); //NOLINT
+        exit(1);
+    }
+
+    Node* popped = func_stack;
+
+    func_stack = func_stack->next;
+
+    Func res = popped->val;
+    free(popped);
+
+    return res;
+}
+
 WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
 {
     if (!menu->banner) { return NULL; }
@@ -157,7 +194,7 @@ int get_menu_width(struct Menu const* menu)
  * a choice has been selected. Afterwards an integer corresponding to the menu
  * choice selected (its index in the menu's choice array)
  */
-int print_menu(const struct Menu* menu)
+Func print_menu(const struct Menu* menu)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
@@ -184,19 +221,15 @@ int print_menu(const struct Menu* menu)
             case LINE_FEED: {
                 struct Command const* const curr = menu->choices[option];
                 if (curr->on_select) {
-                    int res = curr->on_select((void*)curr);
-                    if (res == INT_MIN) {
-                        win_cleanup(menu_win);
-                        win_cleanup(title_win);
+                    Func res = curr->on_select();
+                    win_cleanup(menu_win);
+                    win_cleanup(title_win);
 
-                        return option;
-                    }
+                    return res;
                 }
             }
             default:;
         }
-        //Redraws menu after stacked menu returns (and highlights correct
-        //option)
         refresh_menu_win(menu_win, menu, option);
         refresh_banner(title_win, menu, menu_win);
     }
