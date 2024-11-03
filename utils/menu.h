@@ -51,6 +51,7 @@ struct dia
 };
 
 int get_menu_width(struct Menu const* menu);
+int get_banner_width(const char* const* banner, int size);
 
 //! Enum used to specify text justification in menus
 enum Justification

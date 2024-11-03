@@ -39,6 +39,27 @@ const char* const run[9] = {
 "|_|_\\\\___/|_|\\_| /_/  (_) | | \n",
 "                          |__|\n",
 };
+
+const char* const questionmark[] = {
+"            ________\n",
+"        _jgN########Ngg_\n",
+"      _N##N@@\"\"  \"\"9NN##Np_\n",
+"     d###P            N####p\n",
+"     \"^^\"              T####\n",
+"                       d###P\n",
+"                    _g###@F\n",
+"                 _gN##@P\n",
+"               gN###F\"\n",
+"              d###F\n",
+"             0###F\n",
+"             0###F\n",
+"             0###\n",
+"             \"NN@'\n",
+"\n",
+"              ___\n",
+"             q###r\n",
+"              \"\"\n",
+};
 // clang-format on
 
 /********************** COMMANDS **********************/
@@ -105,7 +126,7 @@ const struct Command glade_forest   = {.label     = "Forest",
 struct Command const* const glade[] = {&glade_cabin, &glade_well,
                                        &glade_forest};
 
-make_menu(glade, NULL, 77, -1, -1); //NOLINT
+make_menu(glade, questionmark, 77, -1, -1); //NOLINT
 
 /*****************************************************/
 void initialise_menus()

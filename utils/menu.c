@@ -201,6 +201,19 @@ int get_menu_width(struct Menu const* menu)
     return max > menu->choices_width ? max : menu->choices_width;
 }
 
+/*! \brief Calculates the width of a banner
+ *
+ * \param banner An array of strings
+ * \param size and integer denoting the size of banner
+ * \returns The width of the banner
+ */
+int get_banner_width(const char* const* banner, int size)
+{
+    int max = 0;
+    for (int i = 0; i < size; ++i) { max = (int)utf8_strlen(banner[i]); }
+    return max;
+}
+
 /*! Prints the passed in menu according to its parameters and then blocks until
  * a choice has been selected. Afterwards an integer corresponding to the menu
  * choice selected (its index in the menu's choice array)
@@ -252,7 +265,8 @@ void implementation_initialise_menu(struct Menu* menu)
     assert(menu->choices_width + utf8_strlen(selection_string) + 2 <= COLS);
 
     if (menu->banner) {
-        menu->banner_width = utf8_strlen(menu->banner[0]);
+        menu->banner_width =
+            get_banner_width(menu->banner, menu->banner_height);
         assert(menu->banner_width <= COLS);
     }
     else {
