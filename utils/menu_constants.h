@@ -41,6 +41,8 @@ enum Encounter_menu_choices
     encounter_debug_ch,
 };
 
+extern_menu(glade);
+
 void initialise_menus();
 
 #endif

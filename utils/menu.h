@@ -18,7 +18,7 @@ typedef struct Func
 struct Command
 {
     char const* label;
-    Func (*on_select)();
+    Func (*on_select)(void*);
 };
 
 void push_func(Func f);

@@ -232,7 +232,7 @@ Func print_menu(const struct Menu* menu)
             case LINE_FEED: {
                 struct Command const* const curr = menu->choices[option];
                 if (curr->on_select) {
-                    Func res = curr->on_select();
+                    Func res = curr->on_select((void*)&curr);
                     win_cleanup(menu_win);
                     win_cleanup(title_win);
 

@@ -63,15 +63,29 @@ make_menu(options, NULL, 60, -1, -1); //NOLINT
 //     return i;
 // }
 
+struct Return_command
+{
+    struct Command base;
+    Func return_value;
+};
+
+#define MAKE_RETURN_COMMAND(cmd_name, label_val, ret_val)                      \
+    Func impl_return_##ret_val(void* _ __attribute__((unused)))                \
+    {                                                                          \
+        return (Func){ret_val};                                                \
+    }                                                                          \
+    const struct Command cmd_name = {.label     = (label_val),                 \
+                                     .on_select = impl_return_##ret_val}
+
 /********************* START MENU *********************/
 int intro([[maybe_unused]] void* _)
 {
-    show_opening();
+    show_opening(NULL);
 
     return COMMAND_RETURN;
 }
 
-const struct Command start_play = {.label = "Play", .on_select = command_exit};
+MAKE_RETURN_COMMAND(start_play, "Play", show_glade);
 const struct Command start_options = {.label     = "Options",
                                       .on_select = show_options};
 const struct Command start_exit = {.label = "Exit", .on_select = command_exit};
@@ -80,29 +94,25 @@ struct Command const* const start[] = {&start_play, &start_options,
                                        &start_exit};
 
 make_menu(start, title, 77, -1, -1); //NOLINT
+
+/******************* GLADE -> OPTIONS *******************/
+
+const struct Command glade_cabin = {.label     = "Cabin",
+                                    .on_select = command_exit};
+const struct Command glade_well  = {.label = "Well", .on_select = command_exit};
+const struct Command glade_forest   = {.label     = "Forest",
+                                       .on_select = command_exit};
+struct Command const* const glade[] = {&glade_cabin, &glade_well,
+                                       &glade_forest};
+
+make_menu(glade, NULL, 77, -1, -1); //NOLINT
+
 /*****************************************************/
-
-struct Command const encounter_no      = {.label     = "No! >:(",
-                                          .on_select = command_exit};
-struct Command const encounter_aah     = {.label     = "AAAAAAAAAAAAAAAAAAAAH",
-                                          .on_select = command_exit};
-struct Command const encounter_fight   = {.label     = "󰞇 Time to fight",
-                                          .on_select = command_exit};
-struct Command const encounter_fight_2 = {.label     = "󰞇 Time to fight",
-                                          .on_select = command_exit};
-
-// const char* const encounter[] = {"No! >:(", "AAAAAAAAAAAAAAAAAAAAH",
-//                                  "󰞇 Time to fight", " Time to debug!"};
-struct Command const* const encounter[] = {&encounter_no, &encounter_aah,
-                                           &encounter_fight, &encounter_fight};
-
-make_menu(encounter, run, 0, 15, -1); //NOLINT
-
 void initialise_menus()
 {
     implementation_initialise_menu(&implementation_start_menu);
-    implementation_initialise_menu(&implementation_encounter_menu);
     implementation_initialise_menu(&implementation_options_menu);
+    implementation_initialise_menu(&implementation_glade_menu);
 }
 
 // const int outer_menu_width = 2 * title_width / 3 + 10;
