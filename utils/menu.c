@@ -210,7 +210,10 @@ int get_menu_width(struct Menu const* menu)
 int get_banner_width(const char* const* banner, int size)
 {
     int max = 0;
-    for (int i = 0; i < size; ++i) { max = (int)utf8_strlen(banner[i]); }
+    for (int i = 0; i < size; ++i) {
+        int curr = (int)utf8_strlen(banner[i]);
+        if (max < curr) { max = curr; }
+    }
     return max;
 }
 
