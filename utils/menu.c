@@ -67,7 +67,7 @@ void push_func(Func f)
     func_stack = curr;
 }
 
-Func pop_func()
+Func pop_func(void* _ __attribute__((unused)))
 {
     if (!func_stack) {
         fprintf(stderr, "Empty func stack popped\n"); //NOLINT

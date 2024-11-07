@@ -22,7 +22,7 @@ struct Command
 };
 
 void push_func(Func f);
-Func pop_func();
+Func pop_func(void*);
 
 /*! \brief structure to hold menu information
  *
