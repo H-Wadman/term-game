@@ -11,4 +11,6 @@ Func show_main_menu(void*);
 
 Func show_glade(void*);
 
+Func show_well(void*);
+
 #endif

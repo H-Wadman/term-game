@@ -168,7 +168,9 @@ make_menu(start, title, 77, -1, -1); //NOLINT
 
 const struct Command glade_cabin = {.label     = "Cabin",
                                     .on_select = command_exit};
-const struct Command glade_well  = {.label = "Well", .on_select = command_exit};
+
+MAKE_RETURN_COMMAND(glade_well, "Well", show_well);
+
 const struct Command glade_forest   = {.label     = "Forest",
                                        .on_select = command_exit};
 struct Command const* const glade[] = {&glade_cabin, &glade_well,

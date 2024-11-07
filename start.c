@@ -45,8 +45,29 @@ Func show_main_menu(void* _ __attribute__((unused)))
 
 Func show_glade(void* _ __attribute__((unused)))
 {
-    get_and_print_dia("intro.txt", COLS / 2);
+    static bool has_visited = false;
+
+
+    if (!has_visited) {
+        get_and_print_dia("intro.txt", COLS / 2);
+        has_visited = true;
+    }
     Func op = print_menu(glade_menu);
+
+    return op;
+}
+
+Func show_well(void* _ __attribute__((unused)))
+{
+    static bool has_visited = false;
+
+    push_func((Func){show_glade});
+    if (!has_visited) {
+        get_and_print_dia("well.txt", COLS / 2);
+        has_visited = true;
+    }
+
+    Func op = print_menu(well_menu);
 
     return op;
 }
