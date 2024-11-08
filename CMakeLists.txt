@@ -22,11 +22,11 @@ add_library(utf8 ${utilsDir}/utf8.c)
 add_library(menu ${utilsDir}/menu.c)
 add_library(menu_constants ${utilsDir}/menu_constants.c)
 add_library(start start.c)
-
+add_library(state ${utilsDir}/state.c)
 
 #start dependencies
 target_include_directories(start PRIVATE ${utilsDir})
-target_link_libraries(start PRIVATE menu)
+target_link_libraries(start PRIVATE menu state)
 
 #menu_constants dependencies
 target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
@@ -34,6 +34,9 @@ target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
 #menu dependencies
 target_include_directories(menu PRIVATE ${configDir})
 target_link_libraries(menu PRIVATE utf8)
+
+#state dependencies
+target_include_directories(start PRIVATE ${utilsDir})
 
 #run dependencies
 target_include_directories(run PRIVATE ${utilsDir})
