@@ -6,6 +6,7 @@
 #include "menu_constants.h"
 #include "start.h"
 #include "utils/menu.h"
+#include "utils/state.h"
 
 // static inline void win_cleanup(WINDOW* win)
 // {
@@ -45,12 +46,9 @@ Func show_main_menu(void* _ __attribute__((unused)))
 
 Func show_glade(void* _ __attribute__((unused)))
 {
-    static bool has_visited = false;
-
-
-    if (!has_visited) {
+    if (!player_visited_glade_val()) {
         get_and_print_dia("intro.txt", COLS / 2);
-        has_visited = true;
+        player_visited_glade_set();
     }
     Func op = print_menu(glade_menu);
 
@@ -59,12 +57,10 @@ Func show_glade(void* _ __attribute__((unused)))
 
 Func show_well(void* _ __attribute__((unused)))
 {
-    static bool has_visited = false;
-
     push_func((Func){show_glade});
-    if (!has_visited) {
+    if (player_visited_well_val()) {
         get_and_print_dia("well.txt", COLS / 2);
-        has_visited = true;
+        player_visited_well_set();
     }
 
     Func op = print_menu(well_menu);
