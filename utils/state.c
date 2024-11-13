@@ -9,7 +9,7 @@ struct Player
 
 static struct Player player; //NOLINT
 
-bool player_visited_glade_val() { return player.has_visited_well; }
+bool player_visited_glade_val() { return player.has_visited_glade; }
 
 void player_visited_glade_set() { player.has_visited_glade = true; }
 

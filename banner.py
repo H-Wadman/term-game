@@ -17,7 +17,9 @@ with open(argv[1]) as f:
     lines = f.readlines()
     for i, line in enumerate(lines):
         line = line.strip("\n")
-        lines[i] = f'"{line}\\n",'
+        line = line.replace('"', '\\"')
+        line = line.replace("\\", "\\\\")
+        # lines[i] = f'"{line}\\n",'
 
 
 for line in lines:

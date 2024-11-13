@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ncurses.h>
 #include <stdbool.h>
 #include <string.h>
@@ -66,4 +67,80 @@ Func show_well(void* _ __attribute__((unused)))
     Func op = print_menu(well_menu);
 
     return op;
+}
+
+// clang-format off
+    char const* const bucket[] = {
+        "_________",
+        "\\\\      /",
+        " \\\\    /",
+        "  -----",
+    };
+// clang-format on
+
+void wpaint_bucket(WINDOW* win, int const y)
+{
+    int const max_x = getmaxx(win);
+
+    int const height = sizeof(bucket) / sizeof(char*);
+    int const width  = get_banner_width(bucket, height);
+
+    int const x = (max_x - width) / 2;
+    for (int i = 0; i < height; ++i) { mvwaddstr(win, y + i, x, bucket[i]); }
+
+    wrefresh(win);
+}
+
+Func well_raise_bucket_func(void* _ __attribute__((unused)))
+{
+    int const bucket_height = sizeof(bucket) / sizeof(char*);
+    int const bucket_width  = get_banner_width(bucket, bucket_height);
+
+
+    int const mid_x = COLS / 2;
+    WINDOW* bucket_win =
+        newwin(LINES, bucket_width, 0, mid_x - bucket_width / 2);
+    intrflush(bucket_win, false);
+    keypad(bucket_win, true);
+
+
+    int const piece_len = 4;
+    assert(piece_len > 1);
+    int count = (LINES - bucket_height) / piece_len;
+
+    assert(count > 0);
+    while (count > 0) {
+        werase(bucket_win);
+        for (int i = 0; i < count; ++i) {
+            int const curr = piece_len * i;
+            for (int j = 0; j < piece_len - 1; ++j) {
+                mvwaddstr(bucket_win, curr + j, bucket_width / 2, "|");
+            }
+            mvwaddstr(bucket_win, curr + piece_len, bucket_width / 2, "O");
+        }
+        wpaint_bucket(bucket_win, count * piece_len + 1);
+        wrefresh(bucket_win);
+
+        int ch = wgetch(bucket_win);
+        switch (ch) {
+            case KEY_UP:
+            case 'w':
+            case 'W'     : --count; break;
+            case KEY_DOWN:
+            case 's'     :
+            case 'S'     : {
+                int total_height = count * piece_len + bucket_height;
+                if (total_height + piece_len <= LINES) { ++count; }
+            } break;
+            default:;
+        }
+    }
+
+    player_has_key_set();
+
+    werase(bucket_win);
+    wrefresh(bucket_win);
+    delwin(bucket_win);
+
+    return (Func){.func = show_well};
 }

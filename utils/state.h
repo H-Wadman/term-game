@@ -1,3 +1,4 @@
+#include <ncurses.h>
 #include <stdbool.h>
 
 bool player_visited_glade_val();

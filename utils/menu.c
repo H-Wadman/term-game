@@ -88,9 +88,7 @@ WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
 {
     if (!menu->banner) { return NULL; }
 
-    int x                         = 0;
-    int y __attribute__((unused)) = 0;
-    getmaxyx(menu_win, y, x);
+    int x                 = getmaxx(menu_win);
     int const menu_middle = x / 2;
     WINDOW* banner_win =
         newwin(menu->banner_height, menu->banner_width,
