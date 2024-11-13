@@ -411,6 +411,9 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
         newwin(2 + height, 2 + dia_p.width, (LINES - (2 + height)) / 2,
                (COLS - (2 + dia_p.width)) / 2);
 
+    intrflush(dia_win, false);
+    keypad(dia_win, true);
+
     box(dia_win, 0, 0);
     wmove(dia_win, 1, 1);
 
