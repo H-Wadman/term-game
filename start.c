@@ -71,7 +71,8 @@ Func show_well(void* _ __attribute__((unused)))
 
 // clang-format off
     char const* const bucket[] = {
-        "_________",
+        " ───┴───",
+        "/_______\\",
         "\\\\      /",
         " \\\\    /",
         "  -----",
@@ -95,10 +96,10 @@ void wpaint_rope(WINDOW* win, int count, int piece_len, int bucket_width)
 {
     for (int i = 0; i < count; ++i) {
         int const curr = piece_len * i;
-        for (int j = 0; j < piece_len - 1; ++j) {
+        mvwaddstr(win, curr, bucket_width / 2, "O");
+        for (int j = 1; j <= piece_len - 1; ++j) {
             mvwaddstr(win, curr + j, bucket_width / 2, "|");
         }
-        mvwaddstr(win, curr + piece_len - 1, bucket_width / 2, "O");
     }
 }
 
