@@ -439,8 +439,8 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
 /*! This function will print a dialogue to screen, according to the content of a
  * specified file, and a specified width In order for the dialogue file to
  * function properly, the file should contain text (UTF8) and all "dialogue
- * bubbles" should be finished with a '§' character (even the last one). The '§'
- * character is special and cannot occur in normal dialogue.
+ * bubbles" should be finished with a '§' character on a new line(even the last
+ * one). The '§' character is special and cannot occur in normal dialogue.
  *
  * \param file_path A string containing a path to the file containing the
  *  dialogue

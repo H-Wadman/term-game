@@ -1,6 +1,8 @@
 #include <assert.h>
+#include <errno.h>
 #include <ncurses.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "menu.h"
@@ -23,6 +25,73 @@
         strcat(buf, (file));                                                   \
         print_dia(buf, (width));                                               \
     }
+
+//len of str should fit in an int
+
+/*! \brief This function prints the string passed in as a dialogue
+ *
+ * This funcion will print a dialogue with an identical result to print_dia,
+ * however instead of printing the contents of a file, it will print the passed
+ * in string.
+ *
+ * \param str A string containing the text you want to print with length fitting
+ * into an int
+ *
+ * \returns 0 on success and a negative integer on failure depending on the
+ * error
+ */
+int print_diastr(char const* const str, int width)
+{
+    char const tmpl[] = "/tmp/tmpdia.XXXXXX";
+    int fd            = mkstemp((char*)tmpl);
+    FILE* temp        = fdopen(fd, "w");
+    int b             = fputs(str, temp);
+
+    assert(b == (int)strlen(str));
+    if (b != (int)strlen(str)) {
+        fprintf(
+            stderr, //NOLINT
+            "fputs did not manage to print entire string in print_diastr\n");
+        return -1;
+    }
+
+    int err = fputs(u8"§\n", temp);
+    if (err == EOF) {
+        fprintf(stderr, //NOLINT
+                "fputs failed in print_diastr\n");
+        return -2;
+    }
+    err = fflush(temp);
+    if (err == EOF) {
+        fprintf(stderr, //NOLINT
+                "fflush failed in print_diastr, with errno value: %s\n",
+                strerror(errno));
+        return -3;
+    }
+
+    err = print_dia(tmpl, width);
+    if (err == -1) {
+        fprintf(stderr, "print_dia failed in print_diastr\n"); //NOLINT
+        return -6;                                             //NOLINT
+    }
+
+    err = fclose(temp);
+    if (err == EOF) {
+        fprintf(stderr, //NOLINT
+                "fclose failed in print_diastr\n");
+        return -4;
+    }
+
+    err = remove(tmpl);
+    if (err == -1) {
+        fprintf(stderr, //NOLINT
+                "failed to remove file in print_diastr\n");
+        return -5; //NOLINT
+    }
+
+
+    return 0;
+}
 
 Func show_opening(void* _ __attribute__((unused)))
 {
@@ -130,6 +199,7 @@ int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
 
 Func well_raise_bucket_func(void* _ __attribute__((unused)))
 {
+    if (player_has_key_val()) {}
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
 
