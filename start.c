@@ -91,13 +91,49 @@ void wpaint_bucket(WINDOW* win, int const y)
     wrefresh(win);
 }
 
+void wpaint_rope(WINDOW* win, int count, int piece_len, int bucket_width)
+{
+    for (int i = 0; i < count; ++i) {
+        int const curr = piece_len * i;
+        for (int j = 0; j < piece_len - 1; ++j) {
+            mvwaddstr(win, curr + j, bucket_width / 2, "|");
+        }
+        mvwaddstr(win, curr + piece_len - 1, bucket_width / 2, "O");
+    }
+}
+
+int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
+                     int bucket_height)
+{
+    werase(win);
+    wpaint_rope(win, count, piece_len, bucket_width);
+    wpaint_bucket(win, count * piece_len);
+    wrefresh(win);
+
+    int ch = wgetch(win);
+    switch (ch) {
+        case KEY_UP:
+        case 'w':
+        case 'W'     : --count; break;
+        case KEY_DOWN:
+        case 's'     :
+        case 'S'     : {
+            int total_height = count * piece_len + bucket_height;
+            if (total_height + piece_len <= LINES) { ++count; }
+        } break;
+        default:;
+    }
+
+    return count;
+}
+
 Func well_raise_bucket_func(void* _ __attribute__((unused)))
 {
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
 
-
     int const mid_x = COLS / 2;
+    // Make centered window with bucket_width
     WINDOW* bucket_win =
         newwin(LINES, bucket_width, 0, mid_x - bucket_width / 2);
     intrflush(bucket_win, false);
@@ -110,30 +146,8 @@ Func well_raise_bucket_func(void* _ __attribute__((unused)))
 
     assert(count > 0);
     while (count > 0) {
-        werase(bucket_win);
-        for (int i = 0; i < count; ++i) {
-            int const curr = piece_len * i;
-            for (int j = 0; j < piece_len - 1; ++j) {
-                mvwaddstr(bucket_win, curr + j, bucket_width / 2, "|");
-            }
-            mvwaddstr(bucket_win, curr + piece_len, bucket_width / 2, "O");
-        }
-        wpaint_bucket(bucket_win, count * piece_len + 1);
-        wrefresh(bucket_win);
-
-        int ch = wgetch(bucket_win);
-        switch (ch) {
-            case KEY_UP:
-            case 'w':
-            case 'W'     : --count; break;
-            case KEY_DOWN:
-            case 's'     :
-            case 'S'     : {
-                int total_height = count * piece_len + bucket_height;
-                if (total_height + piece_len <= LINES) { ++count; }
-            } break;
-            default:;
-        }
+        count = bucket_iteration(bucket_win, count, piece_len, bucket_width,
+                                 bucket_height);
     }
 
     player_has_key_set();
