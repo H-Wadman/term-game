@@ -16,4 +16,6 @@ Func show_well(void*);
 
 Func well_raise_bucket_func(void*);
 
+int print_diastr(char const* const str);
+
 #endif

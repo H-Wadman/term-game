@@ -8,6 +8,7 @@
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
+#include "utf8.h"
 #include "utils/menu.h"
 #include "utils/state.h"
 
@@ -40,7 +41,7 @@
  * \returns 0 on success and a negative integer on failure depending on the
  * error
  */
-int print_diastr(char const* const str, int width)
+int print_diastr(char const* const str)
 {
     char const tmpl[] = "/tmp/tmpdia.XXXXXX";
     int fd            = mkstemp((char*)tmpl);
@@ -55,7 +56,7 @@ int print_diastr(char const* const str, int width)
         return -1;
     }
 
-    int err = fputs(u8"§\n", temp);
+    int err = fputs(u8"\n§\n", temp);
     if (err == EOF) {
         fprintf(stderr, //NOLINT
                 "fputs failed in print_diastr\n");
@@ -69,7 +70,7 @@ int print_diastr(char const* const str, int width)
         return -3;
     }
 
-    err = print_dia(tmpl, width);
+    err = print_dia(tmpl, utf8_strlen(str));
     if (err == -1) {
         fprintf(stderr, "print_dia failed in print_diastr\n"); //NOLINT
         return -6;                                             //NOLINT
@@ -199,7 +200,10 @@ int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
 
 Func well_raise_bucket_func(void* _ __attribute__((unused)))
 {
-    if (player_has_key_val()) {}
+    if (player_has_key_val()) {
+        print_diastr("You've already got the key!");
+        return (Func){.func = show_glade};
+    }
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
 
