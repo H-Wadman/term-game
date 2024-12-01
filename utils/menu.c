@@ -322,13 +322,13 @@ int print_next_word(WINDOW* win, struct Dia_print* dia)
 
     handle_floadw_error(code, dia->file); //NOLINT
 
-    if (dia->line_len + (int)strlen(buf) > dia->width) {
-        dia->line_len = (int)strlen(buf) + 1;
+    if (dia->line_len + utf8_strlen(buf) > dia->width) {
+        dia->line_len = utf8_strlen(buf) + 1;
         ++dia->line;
         wmove(win, dia->line, 1);
     }
     else {
-        dia->line_len += (int)strlen(buf) + 1;
+        dia->line_len += utf8_strlen(buf) + 1;
     }
 
     if (code == EOF) { return 1; }
@@ -362,7 +362,9 @@ int get_dia_height(const struct Dia_print* dia)
 
     int word_len = 0;
     int height   = 1;
-    int len      = 0;
+    //Temp fix 1 to stop line break when text exactly fits
+    //int len = 0;
+    int len = -1;
     char buf[ASCII_BUF_SZ];
     while (true) {
         int const err = fload_utf8(buf, file);
@@ -376,7 +378,9 @@ int get_dia_height(const struct Dia_print* dia)
         }
         if (len > dia->width) {
             ++height;
-            len = word_len;
+            //Temp fix 2 to stop line break when text exacgtly fits
+            //len = word_len;
+            len = word_len - 1;
         }
     }
 
