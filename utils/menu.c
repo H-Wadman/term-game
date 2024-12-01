@@ -378,7 +378,7 @@ int get_dia_height(const struct Dia_print* dia)
         }
         if (len > dia->width) {
             ++height;
-            //Temp fix 2 to stop line break when text exacgtly fits
+            //Temp fix 2 to stop line break when text exactly fits
             //len = word_len;
             len = word_len - 1;
         }
