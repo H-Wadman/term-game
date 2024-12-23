@@ -147,7 +147,7 @@ struct Return_command
                                      .on_select = impl_return_##ret_val}
 
 /********************* START MENU *********************/
-int intro([[maybe_unused]] void* _)
+int intro(void* _ __attribute__((unused)))
 {
     show_opening(NULL);
 
