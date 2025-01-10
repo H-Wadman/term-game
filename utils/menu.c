@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <ncurses.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -117,7 +118,7 @@ void refresh_banner(WINDOW* banner_win, const struct Menu* menu,
     wrefresh(banner_win);
 }
 
-static inline void win_cleanup(WINDOW* win)
+void win_cleanup(WINDOW* win)
 {
     werase(win);
     wrefresh(win);
@@ -260,6 +261,69 @@ Func print_menu(const struct Menu* menu)
         refresh_menu_win(menu_win, menu, option);
         refresh_banner(title_win, menu, menu_win);
     }
+}
+
+/*! Prints the passed in menu according to its parameters and then blocks until
+ * a choice has been selected. Afterwards an integer corresponding to the menu
+ * choice selected (its index in the menu's choice array)
+ */
+int print_menu_old(const struct Menu* menu)
+{
+    WINDOW* menu_win =
+        newwin(menu->choices_height + 2,
+               menu->choices_width + 2 + utf8_strlen(selection_string),
+               menu->start_y, menu->start_x);
+    WINDOW* title_win = add_banner(menu, menu_win);
+    intrflush(menu_win, false);
+    keypad(menu_win, TRUE);
+
+    box(menu_win, 0, 0);
+
+    int option = 0;
+    refresh_menu_win(menu_win, menu, option);
+
+    int ch = 0;
+    while (true) {
+        ch = wgetch(menu_win);
+        switch (ch) {
+            case KEY_UP:
+                option =
+                    (option + menu->choices_height - 1) % menu->choices_height;
+                break;
+            case KEY_DOWN: option = (option + 1) % menu->choices_height; break;
+            case LINE_FEED:
+                win_cleanup(menu_win);
+                win_cleanup(title_win);
+
+                return option;
+            default:;
+        }
+        refresh_menu_win(menu_win, menu, option);
+    }
+}
+
+int quick_print_menu(int count, ...)
+
+{
+    va_list va = NULL;
+    va_start(va, count);
+
+    //Could be optimised by just allocating a Command* and filling it with
+    //commands, then creating an array and filling that with pointers to
+    //individual elements, thus saving on mallocs
+    Command** choices = (Command**)malloc(count * sizeof(Command*));
+    for (int i = 0; i < count; ++i) { choices[i] = malloc(sizeof(Command)); }
+
+    for (int i = 0; i < count; ++i) {
+        char const* ch        = va_arg(va, char const*);
+        choices[i]->label     = ch;
+        choices[i]->on_select = NULL;
+    }
+
+    Menu m = {(Command const**)choices, count, 0, NULL, 0, 0, -1, -1};
+    implementation_initialise_menu(&m);
+
+    return print_menu_old(&m);
 }
 
 void implementation_initialise_menu(struct Menu* menu)

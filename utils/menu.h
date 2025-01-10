@@ -1,6 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 #define choices_len(arr) ((int)(sizeof(arr) / sizeof(char*)))
+#include <ncurses.h>
 
 /*! \file menu.h
  * \brief Contains declarations relating to menu.c
@@ -15,11 +16,11 @@ typedef struct Func
     struct Func (*func)();
 } Func;
 
-struct Command
+typedef struct Command
 {
     char const* label;
     Func (*on_select)(void*);
-};
+} Command;
 
 void push_func(Func f);
 Func pop_func(void*);
@@ -27,7 +28,7 @@ Func pop_func(void*);
 /*! \brief structure to hold menu information
  *
  */
-struct Menu
+typedef struct Menu
 {
     struct Command const** choices;
     int choices_height;
@@ -37,7 +38,7 @@ struct Menu
     int banner_width;
     int start_x;
     int start_y;
-};
+} Menu;
 
 /*! \brief structure for dialogues
  *
@@ -60,6 +61,8 @@ enum Justification
     center_just,
     right_just
 };
+
+void win_cleanup(WINDOW* win);
 
 /*! \brief Macro to create a menu structure
  *
@@ -125,6 +128,10 @@ void implementation_initialise_menu(struct Menu* menu);
 //! Prints the passed in menu to the screen and returns the number of the first
 //! selected choice
 Func print_menu(const struct Menu* menu);
+
+//! Prints the passed in strings as a menu to screen
+//! and returns the index of the selected choice
+int quick_print_menu(int count, ...);
 
 //! Prints the passed in dialogue file to screen with indicated width
 int print_dia(const char* file_path, int width);

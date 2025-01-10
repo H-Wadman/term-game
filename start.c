@@ -50,8 +50,8 @@ int print_diastr(char const* const str)
 
     assert(b == (int)strlen(str));
     if (b != (int)strlen(str)) {
-        fprintf(
-            stderr, //NOLINT
+        fprintf( //NOLINT
+            stderr,
             "fputs did not manage to print entire string in print_diastr\n");
         return -1;
     }
@@ -202,7 +202,7 @@ Func well_raise_bucket_func(void* _ __attribute__((unused)))
 {
     if (player_has_key_val()) {
         print_diastr("You've already got the key!");
-        return (Func){.func = show_glade};
+        return (Func){.func = show_well};
     }
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
@@ -225,11 +225,15 @@ Func well_raise_bucket_func(void* _ __attribute__((unused)))
                                  bucket_height);
     }
 
-    player_has_key_set();
-
     werase(bucket_win);
     wrefresh(bucket_win);
     delwin(bucket_win);
+
+    print_diastr("There's an old rusty key at the bottom of the bucket.");
+    print_diastr("Grab it?");
+
+    int res = quick_print_menu(2, "Yes", "No");
+    if (res == 0) { player_has_key_set(); }
 
     return (Func){.func = show_well};
 }

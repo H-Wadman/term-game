@@ -10,6 +10,7 @@ Box drawing around options also goes weird needs investigation
     - Finish promised menu funcionality (justify + left/right pad (+ optional box?))
     - Generalised menu functions should almost certainly be decoupled further and allow for greater freedom in placement
     - Eventual banner should be able to be moved with the optionsbox
+    - Rework print_menu_old and print_menu to work together
 - Change clang-tidy in order to avoid proliferation of //NOLINT
 - Continue reading up on gettext in order to prepare internationalisation + posibility to turn nerd font on/off
 - Check license for ascii fonts used (should be okay since they're on a site but never hurts to double check)
