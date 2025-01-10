@@ -142,6 +142,8 @@ int fload_utf8(char* buf, FILE* file)
  */
 int floadw_utf8(char* buf, FILE* file)
 {
+    //If no characters are left we still want buf to be null terminated
+    buf[0] = '\0';
     int ch = 0;
     while (isspace((ch = fgetc(file)))) {}
 
@@ -153,7 +155,6 @@ int floadw_utf8(char* buf, FILE* file)
         return 0;
     }
 
-    buf[0]     = '\0';
     size_t len = 0;
     do {
         int err = fload_utf8(buf + len, file);
@@ -206,6 +207,5 @@ int utf8_strlen(const char* str)
         i += get_utf8_len(str[i]);
         ++count;
     }
-
     return count;
 }
