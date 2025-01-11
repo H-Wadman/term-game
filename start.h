@@ -18,4 +18,6 @@ Func well_raise_bucket_func(void*);
 
 int print_diastr(char const* const str);
 
+WINDOW* paint_sudoku_board(int* board);
+
 #endif
