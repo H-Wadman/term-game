@@ -383,22 +383,13 @@ bool is_solved(int const* board)
 {
     int const sz = 9;
     for (int i = 0; i < sz; ++i) {
-        if (!valid_row(board, i)) {
-            fprintf(stderr, "Invalid row %d\n", i + 1);
-            return false;
-        }
-        if (!valid_col(board, i)) {
-            fprintf(stderr, "Invalid col %d\n", i + 1);
-            return false;
-        }
+        if (!valid_row(board, i)) { return false; }
+        if (!valid_col(board, i)) { return false; }
     }
 
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            if (!valid_sq(board, i, j)) {
-                fprintf(stderr, "Invalid sq (%d, %d)\n", j, i);
-                return false;
-            }
+            if (!valid_sq(board, i, j)) { return false; }
         }
     }
 
@@ -420,10 +411,14 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
     while (!is_solved((int*)board)) {
         int ch = wgetch(suk_win);
 
+        //If square we're leaving was originally empty but has been filled in,
+        //we give it reverse effect
         if (sc->board[y][x] == 0 && board[y][x] != 0) {
             wattrset(suk_win, A_REVERSE);
             paint_sudoku_sq(suk_win, y, x, board[y][x]);
         }
+        //Otherwise (empty square or one that was originally filled) we leave it
+        //with the normal effect
         else {
             wattrset(suk_win, A_NORMAL);
             paint_sudoku_sq(suk_win, y, x, board[y][x]);
@@ -443,6 +438,7 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
                 if (x < 8) { ++x; }
                 break;
             default:
+                //If input was a digit, we fill the square in if possible
                 if ('0' <= ch && ch <= '9' && sc->board[y][x] == 0) {
                     board[y][x] = ch - '0';
                     paint_sudoku_sq(suk_win, y, x, board[y][x]);
@@ -450,6 +446,7 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
                 break;
         }
 
+        //Give newly selected square blink effect
         wattrset(suk_win, A_BLINK | A_REVERSE);
         paint_sudoku_sq(suk_win, y, x, board[y][x]);
     }
