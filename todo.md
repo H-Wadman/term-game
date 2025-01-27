@@ -19,3 +19,5 @@ Box drawing around options also goes weird needs investigation
 - Make it so that checking for enter on mac/unix works the same (although worked on WSL, so might be fine?)
 - Set up cmake + a header file in order to get hte build path
 - get_banner_width currently doesn't take things like trailing whitespade (\n) into account
+- Remove test_sudoku once the sudoku part has been properly added to the game
+- Unify sudoku board
