@@ -405,42 +405,18 @@ bool is_solved(int const* board)
     return true;
 }
 
-Func paint_sudoku(void* this)
+void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
 {
-#ifndef NDEBUG
-    //NOLINTBEGIN
-    int test[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-    assert(!valid_row(test, 0));
-    test[0] = 9;
-    assert(valid_row(test, 0));
-    test[8] = 9;
-    assert(!valid_row(test, 0));
-
-    int test2[3][9] = {
-        {1, 2, 3, 4, 5, 6, 7, 8, 9},
-        {4, 5, 6, 7, 8, 9, 1, 2, 3},
-        {7, 8, 9, 1, 2, 3, 4, 5, 6}
-    };
-    assert(valid_sq((int*)test2, 0, 0));
-    assert(valid_sq((int*)test2, 0, 1));
-    assert(valid_sq((int*)test2, 0, 2));
-    //NOLINTEND
-#endif
-
-    Sudoku_command* sc = (Sudoku_command*)this;
-    WINDOW* suk_win    = paint_sudoku_board((int*)sc->board);
-
+    int y = 0;
+    int x = 0;
     int board[9][9]; //NOLINT
 
     memcpy(board, sc->board, sizeof board);
 
-
-    int y = 0;
-    int x = 0;
-
     wattrset(suk_win, A_BLINK | A_REVERSE);
-    paint_sudoku_sq(suk_win, y, x, board[y][x]);
+    paint_sudoku_sq(suk_win, 0, 0, board[0][0]);
     wrefresh(suk_win);
+
     while (!is_solved((int*)board)) {
         int ch = wgetch(suk_win);
 
@@ -477,6 +453,39 @@ Func paint_sudoku(void* this)
         wattrset(suk_win, A_BLINK | A_REVERSE);
         paint_sudoku_sq(suk_win, y, x, board[y][x]);
     }
+}
+
+void sudoku_test()
+{
+    //NOLINTBEGIN
+    int test[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+    assert(!valid_row(test, 0));
+    test[0] = 9;
+    assert(valid_row(test, 0));
+    test[8] = 9;
+    assert(!valid_row(test, 0));
+
+    int test2[3][9] = {
+        {1, 2, 3, 4, 5, 6, 7, 8, 9},
+        {4, 5, 6, 7, 8, 9, 1, 2, 3},
+        {7, 8, 9, 1, 2, 3, 4, 5, 6}
+    };
+    assert(valid_sq((int*)test2, 0, 0));
+    assert(valid_sq((int*)test2, 0, 1));
+    assert(valid_sq((int*)test2, 0, 2));
+    //NOLINTEND
+}
+
+Func paint_sudoku(void* this)
+{
+#ifndef NDEBUG
+    sudoku_test();
+#endif
+
+    Sudoku_command* sc = (Sudoku_command*)this;
+    WINDOW* suk_win    = paint_sudoku_board((int*)sc->board);
+
+    play_sudoku(suk_win, sc);
 
     werase(suk_win);
     wrefresh(suk_win);
@@ -488,7 +497,7 @@ Func paint_sudoku(void* this)
 void test_sudoku()
 {
     //NOLINTBEGIN
-    Sudoku_command sc_solved = {
+    Sudoku_command sc_solved __attribute__((unused)) = {
         .c     = (Command){.label = NULL, .on_select = NULL},
         .board = {
                            {0, 8, 5, 4, 7, 9, 1, 3, 2},
@@ -502,7 +511,7 @@ void test_sudoku()
                            {1, 9, 7, 2, 5, 4, 6, 8, 3},
                            }
     };
-    Sudoku_command sc __attribute__((unused)) = {
+    Sudoku_command sc = {
         .c     = (Command){.label = NULL, .on_select = NULL},
         .board = {
                            {6, 0, 0, 0, 7, 9, 0, 3, 2},
@@ -518,5 +527,5 @@ void test_sudoku()
     };
     //NOLINTEND
 
-    paint_sudoku(&sc_solved);
+    paint_sudoku(&sc);
 }
