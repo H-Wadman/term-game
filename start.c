@@ -8,9 +8,8 @@
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
+#include "state.h"
 #include "utf8.h"
-#include "utils/menu.h"
-#include "utils/state.h"
 
 // static inline void win_cleanup(WINDOW* win)
 // {
@@ -379,7 +378,7 @@ bool valid_sq(int const* board, int y, int x)
     return true;
 }
 
-bool is_solved(int const* board)
+bool sudoku_is_solved(int const* board)
 {
     int const sz = 9;
     for (int i = 0; i < sz; ++i) {
@@ -408,7 +407,7 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
     paint_sudoku_sq(suk_win, 0, 0, board[0][0]);
     wrefresh(suk_win);
 
-    while (!is_solved((int*)board)) {
+    while (!sudoku_is_solved((int*)board)) {
         int ch = wgetch(suk_win);
 
         //If square we're leaving was originally empty but has been filled in,
