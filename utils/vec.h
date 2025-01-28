@@ -17,7 +17,7 @@ void free_vec(void* v) { free(((struct Vec*)v)->data); }
 
 #define GROWTH_FACTOR 2
 #define SHRINK_FACTOR 1.5
-#define create_vec(type)                                                       \
+#define create_vec(type, eq_fnc)                                               \
     typedef struct Vec_##type                                                  \
     {                                                                          \
         int sz;                                                                \
@@ -50,7 +50,7 @@ void free_vec(void* v) { free(((struct Vec*)v)->data); }
     bool Vec_contains_##type(Vec_##type v, type e)                             \
     {                                                                          \
         for (int i = 0; i < v.sz; ++i) {                                       \
-            if (v.data[i] == e) { return true; }                               \
+            if (eq_fnc(v.data[i], e)) { return true; }                         \
         }                                                                      \
         return false;                                                          \
     }                                                                          \
@@ -60,16 +60,31 @@ void free_vec(void* v) { free(((struct Vec*)v)->data); }
         return v->data[--v->sz];                                               \
     }
 
+typedef struct Coord
+{
+    int y;
+    int x;
+} coord;
 
-create_vec(int)
+bool int_eq(int a, int b) { return a == b; }
 
-#define vec_get(v, i) _Generic((v), Vec_int: Vec_get_int)(v, i)
+bool coord_eq(coord c, coord c2) { return c.x == c2.x && c.y == c2.y; }
 
-#define vec_push(v, e) _Generic((v), Vec_int *: Vec_push_int)(v, e)
+create_vec(int, int_eq);
+create_vec(coord, coord_eq);
 
-#define vec_pop(v) _Generic((v), Vec_int *: vec_pop_int)(v)
+#define vec_get(v, i)                                                          \
+    _Generic((v), Vec_int: Vec_get_int, Vec_coord: Vec_get_coord)(v, i)
+
+#define vec_push(v, e)                                                         \
+    _Generic((v), Vec_int *: Vec_push_int, Vec_coord *: Vec_push_coord)(v, e)
+
+#define vec_pop(v)                                                             \
+    _Generic((v), Vec_int *: vec_pop_int, Vec_coord *: vec_pop_coord)(v)
 
 //O(n^2)
-#define vec_contains(v, e) _Generic((v), Vec_int: Vec_contains_int)(v, e)
+#define vec_contains(v, e)                                                     \
+    _Generic((v), Vec_int: Vec_contains_int, Vec_coord: Vec_contains_coord)(v, \
+                                                                            e)
 //NOLINTEND
 #endif
