@@ -25,10 +25,6 @@ add_library(menu_constants ${utilsDir}/menu_constants.c)
 add_library(start start.c)
 add_library(state ${utilsDir}/state.c)
 
-#start dependencies
-target_include_directories(start PRIVATE ${utilsDir})
-target_link_libraries(start PRIVATE menu state)
-
 #menu_constants dependencies
 target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
 
@@ -43,5 +39,9 @@ target_include_directories(start PRIVATE ${utilsDir})
 target_include_directories(run PRIVATE ${utilsDir})
 find_library(ncursesLib NAMES ncursesw ncurses)
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start)
+
+#start dependencies
+target_include_directories(start PRIVATE ${utilsDir})
+target_link_libraries(start PRIVATE menu state ${ncursesLib} menu_constants)
 
 add_subdirectory(tests)
