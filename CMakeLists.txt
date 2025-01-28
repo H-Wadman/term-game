@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(nCursesGame VERSION 0.1.0 LANGUAGES C)
+include(CTest)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -42,3 +43,5 @@ target_include_directories(start PRIVATE ${utilsDir})
 target_include_directories(run PRIVATE ${utilsDir})
 find_library(ncursesLib NAMES ncursesw ncurses)
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start)
+
+add_subdirectory(tests)
