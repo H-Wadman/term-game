@@ -5,7 +5,6 @@ include(CTest)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
-
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3)
 else ()
@@ -24,6 +23,11 @@ add_library(menu ${utilsDir}/menu.c)
 add_library(menu_constants ${utilsDir}/menu_constants.c)
 add_library(start start.c)
 add_library(state ${utilsDir}/state.c)
+add_library(vec ${utilsDir}/vec.c)
+add_library(witness ${utilsDir}/witness.c)
+
+#Non local libraries
+find_library(ncursesLib NAMES ncursesw ncurses)
 
 #menu_constants dependencies
 target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
@@ -32,12 +36,18 @@ target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(menu PRIVATE ${configDir})
 target_link_libraries(menu PRIVATE utf8)
 
+#witness dependencies
+target_include_directories(witness PRIVATE ${utilsDir})
+target_link_libraries(witness PRIVATE utf8 ${ncursesLib})
+
+#vec dependencies
+target_include_directories(vec PRIVATE ${utilsDir})
+
 #state dependencies
 target_include_directories(start PRIVATE ${utilsDir})
 
 #run dependencies
 target_include_directories(run PRIVATE ${utilsDir})
-find_library(ncursesLib NAMES ncursesw ncurses)
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start)
 
 #start dependencies
