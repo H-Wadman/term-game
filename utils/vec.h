@@ -16,6 +16,7 @@
     type Vec_get_##type(Vec_##type vec, int i);                                \
     void Vec_push_##type(Vec_##type* v, type e);                               \
     bool Vec_contains_##type(Vec_##type v, type e);                            \
+    type Vec_back_##type(Vec_##type v);                                        \
     type vec_pop_##type(Vec_##type* v);                                        \
     Vec_##type new_vec_##type(int cap);
 
@@ -32,6 +33,9 @@
 #define vec_contains(v, e)                                                     \
     _Generic((v), Vec_int: Vec_contains_int, Vec_coord: Vec_contains_coord)(v, \
                                                                             e)
+
+#define vec_back(v)                                                            \
+    _Generic((v), Vec_int: Vec_back_int, Vec_coord: Vec_back_coord)(v)
 
 typedef struct Coord
 {

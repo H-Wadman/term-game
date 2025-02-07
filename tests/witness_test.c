@@ -33,9 +33,11 @@ typedef struct Witness_command
     Sq* board;
     int height;
     int width;
+    Vec_coord pos;
+    coord end;
 } Witness_command;
 
-bool wit_coord_valid(Witness_command* wc, coord c);
+bool wit_coord_valid_sq(Witness_command* wc, coord c);
 Vec_coord get_area(Witness_command* wc, coord c);
 coord step(coord c, Dir d);
 
@@ -44,15 +46,15 @@ void test_wit_coord_valid()
 {
     Witness_command wc = {{0}, NULL, .height = 3, .width = 9};
 
-    assert(wit_coord_valid(&wc, (coord){0, 0}));
-    assert(wit_coord_valid(&wc, (coord){1, 0}));
-    assert(wit_coord_valid(&wc, (coord){2, 0}));
-    assert(!wit_coord_valid(&wc, (coord){3, 0}));
+    assert(wit_coord_valid_sq(&wc, (coord){0, 0}));
+    assert(wit_coord_valid_sq(&wc, (coord){1, 0}));
+    assert(wit_coord_valid_sq(&wc, (coord){2, 0}));
+    assert(!wit_coord_valid_sq(&wc, (coord){3, 0}));
 
-    assert(wit_coord_valid(&wc, (coord){2, 8}));
-    assert(!wit_coord_valid(&wc, (coord){2, 9}));
-    assert(!wit_coord_valid(&wc, (coord){3, 8}));
-    assert(!wit_coord_valid(&wc, (coord){3, 9}));
+    assert(wit_coord_valid_sq(&wc, (coord){2, 8}));
+    assert(!wit_coord_valid_sq(&wc, (coord){2, 9}));
+    assert(!wit_coord_valid_sq(&wc, (coord){3, 8}));
+    assert(!wit_coord_valid_sq(&wc, (coord){3, 9}));
 }
 
 void test_step()

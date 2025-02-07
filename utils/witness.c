@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <ncurses.h>
 #include <stdlib.h>
 
 #include "menu.h"
@@ -34,16 +36,23 @@ typedef struct Witness_command
     Sq* board;
     int height;
     int width;
+    Vec_coord pos;
+    coord end;
 } Witness_command;
 
-bool wit_coord_valid(Witness_command* wc, coord c)
+bool wit_coord_valid_sq(Witness_command* wc, coord c)
 {
     return c.y >= 0 && c.x >= 0 && c.y < wc->height && c.x < wc->width;
 }
 
+bool wit_coord_valid_grid(Witness_command* wc, coord c)
+{
+    return c.y >= 0 && c.x >= 0 && c.y <= wc->height && c.x <= wc->width;
+}
+
 Sq get(Witness_command* wc, coord c)
 {
-    if (!wit_coord_valid(wc, c)) {
+    if (!wit_coord_valid_sq(wc, c)) {
         fprintf(stderr, //NOLINT
                 "Out of bounds access by get (y = %d, x = %d) on witness board "
                 "of dimensions %dx%d\n",
@@ -110,7 +119,7 @@ Vec_coord get_area(Witness_command* wc, coord c)
 
         for (int i = 0; i < 4; ++i) {
             coord s = step(curr, i);
-            if (!wit_coord_valid(wc, s)) { continue; }
+            if (!wit_coord_valid_sq(wc, s)) { continue; }
             if (get(wc, curr).walls[i] == we_filled) { continue; }
             if (!vec_contains(back_track, s) && !vec_contains(res, s)) {
                 vec_push(&back_track, s);
@@ -124,6 +133,9 @@ Vec_coord get_area(Witness_command* wc, coord c)
 
 bool witness_is_solved(Witness_command* wc)
 {
+    if (vec_back(wc->pos).x != wc->end.x || vec_back(wc->pos).y != wc->end.y) {
+        return false;
+    }
     Vec_coord visited = new_vec_coord(wc->width * wc->height);
     for (int i = 0; i < wc->height; ++i) {
         for (int j = 0; j < wc->width; ++j) {
@@ -144,13 +156,14 @@ bool witness_is_solved(Witness_command* wc)
                     }
                 }
             }
+            for (int i = 0; i < v.sz; ++i) { vec_push(&visited, v.data[i]); }
 
             free_vec(&v);
         }
     }
 
     free_vec(&visited);
-    return false;
+    return true;
 }
 
 WINDOW* print_witness_board(Witness_command* wc)
@@ -163,13 +176,165 @@ WINDOW* print_witness_board(Witness_command* wc)
     return win;
 }
 
-/*
+coord get_screen_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.x}; }
+
+/*void update_wit_board(Witness_command* wc, Dir d)
+{
+    {
+        coord s = step(wc->pos, d);
+        if (!wit_coord_valid_grid(wc, s)) { return; }
+    }
+
+    coord scr = get_screen_pos(wc->pos);
+
+    switch (d) {
+        case dir_up:;
+    }
+}*/
+
+//Needs board to be > 2 in both dimensions
+void paint_up_left(Witness_command* wc, WINDOW* win)
+{
+    assert(wc->pos.x == 0);
+    if (!wit_coord_valid_grid(wc, step(wc->pos, dir_up))) {
+        fprintf(stderr, "Move to invalid coord in paint_up_left\n"); //NOLINT
+        exit(1);
+    }
+    coord const scr = get_screen_pos(wc->pos);
+
+    //Going up to upper-left corner
+    if (wc->pos.y == 1) {
+        mvwaddstr(win, scr.y - 3, scr.x, "╓");
+        mvwaddstr(win, scr.y - 2, scr.x, "║");
+        mvwaddstr(win, scr.y - 1, scr.x, "║");
+        //WRONG
+        mvwaddstr(win, scr.y, scr.x, "╟");
+        return;
+    }
+
+    //Going up from lower-left corner
+    if (wc->pos.y == wc->height) {
+        mvwaddstr(win, scr.y - 3, scr.x, "╟");
+        mvwaddstr(win, scr.y - 2, scr.x, "║");
+        mvwaddstr(win, scr.y - 1, scr.x, "║");
+        mvwaddstr(win, scr.y, scr.x, "╙");
+        return;
+    }
+
+    //Otherwise
+    mvwaddstr(win, scr.y - 3, scr.x, "╟"); //Best we can do?
+    mvwaddstr(win, scr.y - 2, scr.x, "║");
+    mvwaddstr(win, scr.y - 1, scr.x, "║");
+    mvwaddstr(win, scr.y, scr.x, "╟"); //WRONG can come from left
+}
+
+void paint_up_right(Witness_command* wc, WINDOW* win)
+{
+    assert(wc->pos.x == wc->width);
+
+    if (!wit_coord_valid_grid(wc, step(wc->pos, dir_up))) {
+        fprintf(stderr, "Move to invalid coord in paint_up_right\n"); //NOLINT
+        exit(1);
+    }
+    coord const scr = get_screen_pos(wc->pos);
+
+    //Going up to upper-right corner
+    if (wc->pos.y == 1) {
+        mvwaddstr(win, scr.y - 3, scr.x, "╖");
+        mvwaddstr(win, scr.y - 2, scr.x, "║");
+        mvwaddstr(win, scr.y - 1, scr.x, "║");
+        mvwaddstr(win, scr.y, scr.x, "╢");
+        return;
+    }
+
+    //Going up from lower-left corner
+    if (wc->pos.y == wc->height) {
+        mvwaddstr(win, scr.y - 3, scr.x, "╢");
+        mvwaddstr(win, scr.y - 2, scr.x, "║");
+        mvwaddstr(win, scr.y - 1, scr.x, "║");
+        mvwaddstr(win, scr.y, scr.x, "╜");
+        return;
+    }
+
+    //Otherwise
+    mvwaddstr(win, scr.y - 3, scr.x, "╢");
+    mvwaddstr(win, scr.y - 2, scr.x, "║");
+    mvwaddstr(win, scr.y - 1, scr.x, "║");
+    mvwaddstr(win, scr.y, scr.x, "╢");
+}
+
+void paint_up_middle(Witness_command* wc, WINDOW* win)
+{
+    if (!wit_coord_valid_grid(wc, step(wc->pos, dir_up))) {
+        fprintf(stderr, "Move to invalid coord in paint_up_right\n"); //NOLINT
+        exit(1);
+    }
+    coord const scr = get_screen_pos(wc->pos);
+
+    //Going up to upper ledge corner
+    if (wc->pos.y == 1) {
+        mvwaddstr(win, scr.y - 3, scr.x, "╥");
+        mvwaddstr(win, scr.y - 2, scr.x, "║");
+        mvwaddstr(win, scr.y - 1, scr.x, "║");
+        mvwaddstr(win, scr.y, scr.x, "╫");
+        return;
+    }
+
+    //Going up from lower-left corner
+    if (wc->pos.y == wc->height) {
+        mvwaddstr(win, scr.y - 3, scr.x, "╢");
+        mvwaddstr(win, scr.y - 2, scr.x, "║");
+        mvwaddstr(win, scr.y - 1, scr.x, "║");
+        mvwaddstr(win, scr.y, scr.x, "╨");
+        return;
+    }
+
+    //Otherwise
+    mvwaddstr(win, scr.y - 3, scr.x, "╫");
+    mvwaddstr(win, scr.y - 2, scr.x, "║");
+    mvwaddstr(win, scr.y - 1, scr.x, "║");
+    mvwaddstr(win, scr.y, scr.x, "╫");
+}
+
+void paint_up(Witness_command* wc, WINDOW* win)
+{
+    if (wc->pos.x == 0) { paint_up_left(wc, win); }
+    else if (wc->pos.x == wc->width) {
+        paint_up_right(wc, win);
+    }
+    else {
+        paint_up_middle(wc, win);
+    }
+
+    Sq s = get(wc, wc->pos);
+}
+
 Func paint_witness(void* this)
 {
     Witness_command* wc = (Witness_command*)this;
     WINDOW* win         = print_witness_board(wc);
+    intrflush(win, false);
+    keypad(win, true);
 
     int y = 0;
     int x = 0;
+
+    while (!witness_is_solved(wc)) {
+        int ch = wgetch(win);
+
+        switch (ch) {
+            case KEY_UP:
+            case KEY_LEFT:
+            case KEY_DOWN:
+            case KEY_RIGHT:
+            default       :;
+        }
+    }
+
+
+    werase(win);
+    wrefresh(win);
+    delwin(win);
+
+    return pop_func(NULL);
 }
-*/

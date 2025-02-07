@@ -45,6 +45,7 @@ void free_vec(void* v) { free(((struct Vec*)v)->data); }
         }                                                                      \
         return false;                                                          \
     }                                                                          \
+    type Vec_back_##type(Vec_##type v) { return v.data[v.sz - 1]; }            \
     type vec_pop_##type(Vec_##type* v) { return v->data[--v->sz]; }
 
 bool int_eq(int a, int b) { return a == b; }
