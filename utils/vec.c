@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +22,11 @@ void free_vec(void* v) { free(((struct Vec*)v)->data); }
         return (Vec_##type){                                                   \
             .sz = 0, .cap = cap, .data = (type*)malloc(cap * sizeof(type))};   \
     }                                                                          \
-    type Vec_get_##type(Vec_##type vec, int i) { return vec.data[i]; }         \
+    type Vec_get_##type(Vec_##type vec, int i)                                 \
+    {                                                                          \
+        assert(i < vec.sz);                                                    \
+        return vec.data[i];                                                    \
+    }                                                                          \
     void Vec_grow_##type(Vec_##type* vec)                                      \
     {                                                                          \
         type* new_data = (type*)malloc(                                        \
