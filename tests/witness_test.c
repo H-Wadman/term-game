@@ -40,6 +40,7 @@ typedef struct Witness_command
 bool wit_coord_valid_sq(Witness_command* wc, coord c);
 Vec_coord get_area(Witness_command* wc, coord c);
 coord step(coord c, Dir d);
+coord get_scr_pos(coord c);
 
 //NOLINTBEGIN
 void test_wit_coord_valid()
@@ -153,6 +154,41 @@ void test_get_area_regions()
     assert(v1.sz == 1);
 }
 
+void test_get_scr_pos()
+{
+    coord c = {0, 0};
+    coord p = get_scr_pos(c);
+    assert(p.y == 0 && p.x == 0);
+
+    coord c2 = {0, 1};
+    coord p2 = get_scr_pos(c2);
+    assert(p2.y == 0 && p2.x == 4);
+
+    coord c3 = {0, 2};
+    coord p3 = get_scr_pos(c3);
+    assert(p3.y == 0 && p3.x == 8);
+
+    coord c4 = {0, 3};
+    coord p4 = get_scr_pos(c4);
+    assert(p4.y == 0 && p4.x == 12);
+
+    coord c5 = {1, 0};
+    coord p5 = get_scr_pos(c5);
+    assert(p5.y == 2 && p5.x == 0);
+
+    coord c6 = {2, 0};
+    coord p6 = get_scr_pos(c6);
+    assert(p6.y == 4 && p6.x == 0);
+
+    coord c7 = {3, 0};
+    coord p7 = get_scr_pos(c7);
+    assert(p7.y == 6 && p7.x == 0);
+
+    coord c8 = {1, 1};
+    coord p8 = get_scr_pos(c8);
+    assert(p8.y == 2 && p8.x == 4);
+}
+
 //NOLINTEND
 
 void test()
@@ -161,6 +197,7 @@ void test()
     test_step();
     test_get_area_full_board();
     test_get_area_regions();
+    test_get_scr_pos();
 }
 
 int main() { test(); }
