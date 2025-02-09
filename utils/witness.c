@@ -23,6 +23,16 @@ typedef enum Dir
     dir_left
 } Dir;
 
+char const* dir_to_str(Dir d)
+{
+    switch (d) {
+        case dir_up   : return "up";
+        case dir_down : return "down";
+        case dir_left : return "left";
+        case dir_right: return "right";
+    }
+}
+
 typedef struct Square
 {
     int color;
@@ -66,29 +76,28 @@ void print_witness_line(WINDOW* win, Witness_command* wc, int line)
 {
     wmove(win, line, 0);
     if (line == 0) {
-        waddstr(win, "╔═══");
-        for (int i = 1; i < wc->width; ++i) { waddstr(win, "╦═══"); }
-        waddstr(win, "╗");
+        waddstr(win, "┌───");
+        for (int i = 1; i < wc->width; ++i) { waddstr(win, "┬───"); }
+        waddstr(win, "┐");
         return;
     }
-    if (line == wc->height - 1) {
-        waddstr(win, "╚═══");
-        for (int i = 1; i < wc->width; ++i) { waddstr(win, "╩═══"); }
-        waddstr(win, "╝");
+    if (line == 2 * wc->height) {
+        waddstr(win, "└───");
+        for (int i = 1; i < wc->width; ++i) { waddstr(win, "┴───"); }
+        waddstr(win, "┘");
         return;
     }
 
-    switch (line % 3) {
+    switch (line % 2) {
         case 0:
-            waddstr(win, "╠───");
+            waddstr(win, "├───");
             for (int i = 1; i < wc->width; ++i) { waddstr(win, "┼───"); }
-            waddstr(win, "╣");
+            waddstr(win, "┤");
             return;
         case 1:
-        case 2:
-            waddstr(win, "║   ");
+            waddstr(win, "│   ");
             for (int i = 1; i < wc->width; ++i) { waddstr(win, "│   "); }
-            waddstr(win, "║");
+            waddstr(win, "│");
             return;
     }
 }
@@ -166,168 +175,290 @@ bool witness_is_solved(Witness_command* wc)
     return true;
 }
 
-WINDOW* print_witness_board(Witness_command* wc)
+WINDOW* create_witness_win(Witness_command* wc)
 {
     int const ht = 1 + 2 * wc->height;
     int const wd = 1 + 4 * wc->width;
     WINDOW* win  = newwin(ht, wd, (LINES - ht) / 2, (COLS - wd) / 2);
-    for (int i = 0; i < wc->height; ++i) { print_witness_line(win, wc, i); }
+    intrflush(win, false);
+    keypad(win, true);
 
     return win;
 }
 
-coord get_screen_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.x}; }
-
-/*void update_wit_board(Witness_command* wc, Dir d)
+void paint_witness_board(Witness_command* wc, WINDOW* win)
 {
-    {
-        coord s = step(wc->pos, d);
-        if (!wit_coord_valid_grid(wc, s)) { return; }
+    for (int i = 0; i <= wc->height * 2; ++i) {
+        print_witness_line(win, wc, i);
     }
-
-    coord scr = get_screen_pos(wc->pos);
-
-    switch (d) {
-        case dir_up:;
-    }
-}*/
-
-//Needs board to be > 2 in both dimensions
-void paint_up_left(Witness_command* wc, WINDOW* win)
-{
-    assert(wc->pos.x == 0);
-    if (!wit_coord_valid_grid(wc, step(wc->pos, dir_up))) {
-        fprintf(stderr, "Move to invalid coord in paint_up_left\n"); //NOLINT
-        exit(1);
-    }
-    coord const scr = get_screen_pos(wc->pos);
-
-    //Going up to upper-left corner
-    if (wc->pos.y == 1) {
-        mvwaddstr(win, scr.y - 3, scr.x, "╓");
-        mvwaddstr(win, scr.y - 2, scr.x, "║");
-        mvwaddstr(win, scr.y - 1, scr.x, "║");
-        //WRONG
-        mvwaddstr(win, scr.y, scr.x, "╟");
-        return;
-    }
-
-    //Going up from lower-left corner
-    if (wc->pos.y == wc->height) {
-        mvwaddstr(win, scr.y - 3, scr.x, "╟");
-        mvwaddstr(win, scr.y - 2, scr.x, "║");
-        mvwaddstr(win, scr.y - 1, scr.x, "║");
-        mvwaddstr(win, scr.y, scr.x, "╙");
-        return;
-    }
-
-    //Otherwise
-    mvwaddstr(win, scr.y - 3, scr.x, "╟"); //Best we can do?
-    mvwaddstr(win, scr.y - 2, scr.x, "║");
-    mvwaddstr(win, scr.y - 1, scr.x, "║");
-    mvwaddstr(win, scr.y, scr.x, "╟"); //WRONG can come from left
 }
 
-void paint_up_right(Witness_command* wc, WINDOW* win)
+coord get_scr_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.y}; }
+
+//Has to pass coords directly below/above or to the right/left of each other
+Dir get_direction(coord from, coord to)
 {
-    assert(wc->pos.x == wc->width);
+    coord c = {to.y - from.y, to.x - from.x};
 
-    if (!wit_coord_valid_grid(wc, step(wc->pos, dir_up))) {
-        fprintf(stderr, "Move to invalid coord in paint_up_right\n"); //NOLINT
-        exit(1);
+    if (!(c.x == 0 || c.y == 0)) {
+        fprintf(stderr, //NOLINT
+                "Invalid coords from = {%d, %d}, to = {%d, %d}, passed to %s",
+                from.y, from.x, to.y, to.x, __func__);
     }
-    coord const scr = get_screen_pos(wc->pos);
-
-    //Going up to upper-right corner
-    if (wc->pos.y == 1) {
-        mvwaddstr(win, scr.y - 3, scr.x, "╖");
-        mvwaddstr(win, scr.y - 2, scr.x, "║");
-        mvwaddstr(win, scr.y - 1, scr.x, "║");
-        mvwaddstr(win, scr.y, scr.x, "╢");
-        return;
+    if (!(abs(c.x) == 1 || abs(c.y) == 1)) {
+        fprintf(stderr, //NOLINT
+                "Invalid coords from = {%d, %d}, to = {%d, %d}, passed to %s",
+                from.y, from.x, to.y, to.x, __func__);
     }
+    if (c.y == 0 && c.x == 1) { return dir_right; }
+    if (c.y == 0 && c.x == -1) { return dir_left; }
+    if (c.y == 1 && c.x == 0) { return dir_down; }
+    if (c.y == -1 && c.x == 0) { return dir_up; }
 
-    //Going up from lower-left corner
-    if (wc->pos.y == wc->height) {
-        mvwaddstr(win, scr.y - 3, scr.x, "╢");
-        mvwaddstr(win, scr.y - 2, scr.x, "║");
-        mvwaddstr(win, scr.y - 1, scr.x, "║");
-        mvwaddstr(win, scr.y, scr.x, "╜");
-        return;
-    }
-
-    //Otherwise
-    mvwaddstr(win, scr.y - 3, scr.x, "╢");
-    mvwaddstr(win, scr.y - 2, scr.x, "║");
-    mvwaddstr(win, scr.y - 1, scr.x, "║");
-    mvwaddstr(win, scr.y, scr.x, "╢");
+    fprintf(stderr, "Impossible branch reached in %s, aborting...\n", //NOLINT
+            __func__);
+    exit(1);
 }
 
-void paint_up_middle(Witness_command* wc, WINDOW* win)
+void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    if (!wit_coord_valid_grid(wc, step(wc->pos, dir_up))) {
-        fprintf(stderr, "Move to invalid coord in paint_up_right\n"); //NOLINT
-        exit(1);
-    }
-    coord const scr = get_screen_pos(wc->pos);
+    //TODO: Transform these into robust error checks with handling
+    assert(wit_coord_valid_grid(wc, c));
+    assert(wit_coord_valid_grid(wc, step(c, dir_up)));
+    assert(wit_coord_valid_grid(wc, step(step(c, dir_up), point)));
+    assert(point != dir_down);
 
-    //Going up to upper ledge corner
-    if (wc->pos.y == 1) {
-        mvwaddstr(win, scr.y - 3, scr.x, "╥");
-        mvwaddstr(win, scr.y - 2, scr.x, "║");
-        mvwaddstr(win, scr.y - 1, scr.x, "║");
-        mvwaddstr(win, scr.y, scr.x, "╫");
-        return;
-    }
-
-    //Going up from lower-left corner
-    if (wc->pos.y == wc->height) {
-        mvwaddstr(win, scr.y - 3, scr.x, "╢");
-        mvwaddstr(win, scr.y - 2, scr.x, "║");
-        mvwaddstr(win, scr.y - 1, scr.x, "║");
-        mvwaddstr(win, scr.y, scr.x, "╨");
-        return;
+    char const* final_pipe = NULL;
+    switch (point) {
+        case dir_up:
+            if (c.x == wc->width) {
+                final_pipe = "╢";
+                break;
+            }
+            final_pipe = (c.x == 0) ? "╫" : "╟";
+            break;
+        case dir_left : final_pipe = "╗"; break;
+        case dir_right: final_pipe = "╔"; break;
+        default:
+            fprintf(stderr, //NOLINT
+                    "Invalid point direction in %s, aborting...\n", __func__);
     }
 
-    //Otherwise
-    mvwaddstr(win, scr.y - 3, scr.x, "╫");
-    mvwaddstr(win, scr.y - 2, scr.x, "║");
-    mvwaddstr(win, scr.y - 1, scr.x, "║");
-    mvwaddstr(win, scr.y, scr.x, "╫");
+    coord scr_pos = get_scr_pos(c);
+
+    mvwaddstr(win, scr_pos.y - 2, scr_pos.x, final_pipe);
+    mvwaddstr(win, scr_pos.y - 1, scr_pos.x, "║");
 }
 
-void paint_up(Witness_command* wc, WINDOW* win)
+void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    if (wc->pos.x == 0) { paint_up_left(wc, win); }
-    else if (wc->pos.x == wc->width) {
-        paint_up_right(wc, win);
-    }
-    else {
-        paint_up_middle(wc, win);
+    //TODO: Transform these into robust error checks with handling
+    assert(wit_coord_valid_grid(wc, c));
+    assert(wit_coord_valid_grid(wc, step(c, dir_left)));
+    assert(wit_coord_valid_grid(wc, step(step(c, dir_left), point)));
+    assert(point != dir_right);
+    char const* final_pipe = NULL;
+
+    switch (point) {
+        case dir_up: final_pipe = "╚"; break;
+        case dir_left:
+            if (c.y == 0) {
+                final_pipe = "╧";
+                break;
+            }
+            final_pipe = (c.y == wc->height) ? "╤" : "╪";
+            break;
+        case dir_down: final_pipe = "╔"; break;
+        default:
+            fprintf(stderr, //NOLINT
+                    "Invalid point direction in %s, aborting...\n", __func__);
     }
 
-    Sq s = get(wc, wc->pos);
+    coord scr_pos = get_scr_pos(c);
+
+    mvwaddstr(win, scr_pos.y, scr_pos.x - 1, "═");
+    mvwaddstr(win, scr_pos.y, scr_pos.x - 2, "═");
+    mvwaddstr(win, scr_pos.y, scr_pos.x - 3, "═");
+    mvwaddstr(win, scr_pos.y, scr_pos.x - 4, final_pipe);
 }
 
-Func paint_witness(void* this)
+void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
+{
+    //TODO: Transform these into robust error checks with handling
+    assert(wit_coord_valid_grid(wc, c));
+    assert(wit_coord_valid_grid(wc, step(c, dir_right)));
+    assert(wit_coord_valid_grid(wc, step(step(c, dir_right), point)));
+    assert(point != dir_left);
+    char const* final_pipe = NULL;
+
+    switch (point) {
+        case dir_up: final_pipe = "╝"; break;
+        case dir_right:
+            if (c.y == 0) {
+                final_pipe = "╤";
+                break;
+            }
+            final_pipe = (c.y == wc->height) ? "╧" : "╪";
+            break;
+        case dir_down: final_pipe = "╗"; break;
+        default:
+            fprintf(stderr, //NOLINT
+                    "Invalid point direction in %s, aborting...\n", __func__);
+    }
+
+    coord scr_pos = get_scr_pos(c);
+
+    mvwaddstr(win, scr_pos.y, scr_pos.x + 1, "═");
+    mvwaddstr(win, scr_pos.y, scr_pos.x + 2, "═");
+    mvwaddstr(win, scr_pos.y, scr_pos.x + 3, "═");
+    mvwaddstr(win, scr_pos.y, scr_pos.x + 4, final_pipe);
+}
+
+void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
+{
+    //TODO: Transform these into robust error checks with handling
+    assert(wit_coord_valid_grid(wc, c));
+    assert(wit_coord_valid_grid(wc, step(c, dir_down)));
+    assert(wit_coord_valid_grid(wc, step(step(c, dir_down), point)));
+    assert(point != dir_up);
+
+    char const* final_pipe = NULL;
+    switch (point) {
+        case dir_down:
+            if (c.x == wc->width) {
+                final_pipe = "╢";
+                break;
+            }
+            final_pipe = (c.x == 0) ? "╟" : "╫";
+            break;
+        case dir_left : final_pipe = "╝"; break;
+        case dir_right: final_pipe = "╚"; break;
+        default:
+            fprintf(stderr, //NOLINT
+                    "Invalid point direction in %s, aborting...\n", __func__);
+            exit(1);
+    }
+
+    coord scr_pos = get_scr_pos(c);
+
+    mvwaddstr(win, scr_pos.y + 2, scr_pos.x, final_pipe);
+    mvwaddstr(win, scr_pos.y + 1, scr_pos.x, "║");
+}
+
+void paint(Dir move, Witness_command* wc, WINDOW* win, coord c, Dir point)
+{
+    switch (move) {
+        case dir_up   : paint_up(wc, win, c, point); break;
+        case dir_left : paint_left(wc, win, c, point); break;
+        case dir_right: paint_right(wc, win, c, point); break;
+        case dir_down : paint_down(wc, win, c, point); break;
+    }
+}
+
+void paint_path(Witness_command* wc, WINDOW* win)
+{
+    if (wc->pos.sz < 2) {
+        assert(wc->pos.sz == 1);
+        return;
+    }
+    //For all but the last segment (i.e. the last two coords), the pipe drawn
+    //depends on the next two coords
+    Vec_coord v = wc->pos;
+    for (int i = 0; i < v.sz - 2; ++i) {
+        Dir move  = get_direction(v.data[i], v.data[i + 1]);
+        Dir point = get_direction(v.data[i + 1], v.data[i + 2]);
+
+        paint(move, wc, win, v.data[i], point);
+    }
+
+
+    coord scr_pos = get_scr_pos(v.data[v.sz - 2]);
+    Dir move      = get_direction(v.data[v.sz - 2], v.data[v.sz - 1]);
+    switch (move) {
+        case dir_up: mvwaddstr(win, scr_pos.y - 1, scr_pos.x, "║"); break;
+        case dir_left:
+            mvwaddstr(win, scr_pos.y, scr_pos.x - 1, "═");
+            mvwaddstr(win, scr_pos.y, scr_pos.x - 2, "═");
+            mvwaddstr(win, scr_pos.y, scr_pos.x - 3, "═");
+            break;
+        case dir_right:
+            mvwaddstr(win, scr_pos.y, scr_pos.x + 1, "═");
+            mvwaddstr(win, scr_pos.y, scr_pos.x + 2, "═");
+            mvwaddstr(win, scr_pos.y, scr_pos.x + 3, "═");
+            break;
+        case dir_down: mvwaddstr(win, scr_pos.y + 1, scr_pos.x, "║"); break;
+        default      : assert(false);
+    }
+}
+
+/*
+void print_vec_deb(Vec_coord v)
+{
+    if (v.sz == 0) { fprintf(stderr, "{}\n"); }
+    fprintf(stderr, "{ {%d, %d}", v.data[0].y, v.data[0].x);
+
+    for (int i = 1; i < v.sz; ++i) {
+        fprintf(stderr, ", {%d, %d}", v.data[i].y, v.data[i].x);
+    }
+
+    fprintf(stderr, " }\n");
+}
+*/
+
+bool is_backtrack(Witness_command* wc, Dir move)
+{
+    if (wc->pos.sz < 2) { return false; }
+
+    return move == get_direction(wc->pos.data[wc->pos.sz - 1],
+                                 wc->pos.data[wc->pos.sz - 2]);
+}
+
+Func play_witness(void* this)
 {
     Witness_command* wc = (Witness_command*)this;
-    WINDOW* win         = print_witness_board(wc);
-    intrflush(win, false);
-    keypad(win, true);
-
-    int y = 0;
-    int x = 0;
+    WINDOW* win         = create_witness_win(wc);
+    paint_witness_board(wc, win);
+    wrefresh(win);
 
     while (!witness_is_solved(wc)) {
         int ch = wgetch(win);
 
+        Dir next_dir = 0;
+        bool move    = false;
         switch (ch) {
             case KEY_UP:
+                move     = true;
+                next_dir = dir_up;
+                break;
             case KEY_LEFT:
+                move     = true;
+                next_dir = dir_left;
+                break;
             case KEY_DOWN:
+                move     = true;
+                next_dir = dir_down;
+                break;
             case KEY_RIGHT:
-            default       :;
+                move     = true;
+                next_dir = dir_right;
+                break;
+            default:;
+        }
+
+        if (move) {
+            if (is_backtrack(wc, next_dir)) { vec_pop(&wc->pos); }
+            else {
+                coord next = step(vec_back(wc->pos), next_dir);
+                //Guard against stepping outside the grid and
+                //walking over already visited junctions
+                if (wit_coord_valid_grid(wc, next) &&
+                    !vec_contains(wc->pos, next)) {
+                    vec_push(&wc->pos, next);
+                }
+            }
+            paint_witness_board(wc, win);
+            paint_path(wc, win);
+            wrefresh(win);
         }
     }
 
@@ -337,4 +468,28 @@ Func paint_witness(void* this)
     delwin(win);
 
     return pop_func(NULL);
+}
+
+void test_play_witness()
+{
+    //NOLINTBEGIN
+    Sq board[6][6] = {0};
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j) {
+            board[i][j] = (Sq){.color = COLOR_NONE, .symbol = "", .walls = {0}};
+        }
+    }
+    Witness_command test_wc = {
+        .c      = {0},
+        .board  = (Sq*)board,
+        .height = 6,
+        .width  = 6,
+        .pos    = new_vec_coord(36),
+        .end    = {6, 6}
+    };
+    vec_push(&test_wc.pos, ((coord){0, 0}));
+
+    play_witness(&test_wc);
+
+    //NOLINTEND
 }
