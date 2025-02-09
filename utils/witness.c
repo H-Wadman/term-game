@@ -220,13 +220,15 @@ Dir get_direction(coord from, coord to)
     exit(1);
 }
 
+#define VERIFY_PAINT_CONDITIONS(wc, c, dir, point)                             \
+    assert(wit_coord_valid_grid(wc, c));                                       \
+    assert(wit_coord_valid_grid(wc, step(c, dir)));                            \
+    assert(wit_coord_valid_grid(wc, step(step(c, dir), point)));               \
+    assert((point) != (dir));
+
 void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    //TODO: Transform these into robust error checks with handling
-    assert(wit_coord_valid_grid(wc, c));
-    assert(wit_coord_valid_grid(wc, step(c, dir_up)));
-    assert(wit_coord_valid_grid(wc, step(step(c, dir_up), point)));
-    assert(point != dir_down);
+    VERIFY_PAINT_CONDITIONS(wc, c, dir_up, point);
 
     char const* final_pipe = NULL;
     switch (point) {
@@ -252,11 +254,7 @@ void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
 
 void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    //TODO: Transform these into robust error checks with handling
-    assert(wit_coord_valid_grid(wc, c));
-    assert(wit_coord_valid_grid(wc, step(c, dir_left)));
-    assert(wit_coord_valid_grid(wc, step(step(c, dir_left), point)));
-    assert(point != dir_right);
+    VERIFY_PAINT_CONDITIONS(wc, c, dir_left, point);
     char const* final_pipe = NULL;
 
     switch (point) {
@@ -284,11 +282,7 @@ void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
 
 void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    //TODO: Transform these into robust error checks with handling
-    assert(wit_coord_valid_grid(wc, c));
-    assert(wit_coord_valid_grid(wc, step(c, dir_right)));
-    assert(wit_coord_valid_grid(wc, step(step(c, dir_right), point)));
-    assert(point != dir_left);
+    VERIFY_PAINT_CONDITIONS(wc, c, dir_right, point);
     char const* final_pipe = NULL;
 
     switch (point) {
@@ -316,11 +310,7 @@ void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
 
 void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    //TODO: Transform these into robust error checks with handling
-    assert(wit_coord_valid_grid(wc, c));
-    assert(wit_coord_valid_grid(wc, step(c, dir_down)));
-    assert(wit_coord_valid_grid(wc, step(step(c, dir_down), point)));
-    assert(point != dir_up);
+    VERIFY_PAINT_CONDITIONS(wc, c, dir_right, point);
 
     char const* final_pipe = NULL;
     switch (point) {
@@ -355,23 +345,9 @@ void paint(Dir move, Witness_command* wc, WINDOW* win, coord c, Dir point)
     }
 }
 
-void paint_path(Witness_command* wc, WINDOW* win)
+void paint_last(Witness_command* wc, WINDOW* win)
 {
-    if (wc->pos.sz < 2) {
-        assert(wc->pos.sz == 1);
-        return;
-    }
-    //For all but the last segment (i.e. the last two coords), the pipe drawn
-    //depends on the next two coords
-    Vec_coord v = wc->pos;
-    for (int i = 0; i < v.sz - 2; ++i) {
-        Dir move  = get_direction(v.data[i], v.data[i + 1]);
-        Dir point = get_direction(v.data[i + 1], v.data[i + 2]);
-
-        paint(move, wc, win, v.data[i], point);
-    }
-
-
+    Vec_coord v   = wc->pos;
     coord scr_pos = get_scr_pos(v.data[v.sz - 2]);
     Dir move      = get_direction(v.data[v.sz - 2], v.data[v.sz - 1]);
     switch (move) {
@@ -389,6 +365,22 @@ void paint_path(Witness_command* wc, WINDOW* win)
         case dir_down: mvwaddstr(win, scr_pos.y + 1, scr_pos.x, "║"); break;
         default      : assert(false);
     }
+}
+
+void paint_path(Witness_command* wc, WINDOW* win)
+{
+    //For all but the last segment (i.e. the last two coords), the pipe drawn
+    //depends on the next two coords
+    Vec_coord v = wc->pos;
+    for (int i = 0; i < v.sz - 2; ++i) {
+        Dir move  = get_direction(v.data[i], v.data[i + 1]);
+        Dir point = get_direction(v.data[i + 1], v.data[i + 2]);
+
+        paint(move, wc, win, v.data[i], point);
+    }
+
+    //Handle the last segment separately
+    paint_last(wc, win);
 }
 
 /*
@@ -456,6 +448,7 @@ Func play_witness(void* this)
                     vec_push(&wc->pos, next);
                 }
             }
+            //Update screen
             paint_witness_board(wc, win);
             paint_path(wc, win);
             wrefresh(win);
