@@ -34,11 +34,11 @@ target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
 
 #menu dependencies
 target_include_directories(menu PRIVATE ${configDir})
-target_link_libraries(menu PRIVATE utf8)
+target_link_libraries(menu PRIVATE utf8 ${ncursesLib})
 
 #witness dependencies
 target_include_directories(witness PRIVATE ${utilsDir})
-target_link_libraries(witness PRIVATE utf8 ${ncursesLib})
+target_link_libraries(witness PRIVATE utf8 vec menu ${ncursesLib})
 
 #vec dependencies
 target_include_directories(vec PRIVATE ${utilsDir})
@@ -48,7 +48,7 @@ target_include_directories(start PRIVATE ${utilsDir})
 
 #run dependencies
 target_include_directories(run PRIVATE ${utilsDir})
-target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start)
+target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start witness)
 
 #start dependencies
 target_include_directories(start PRIVATE ${utilsDir})
