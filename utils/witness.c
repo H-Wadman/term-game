@@ -33,6 +33,17 @@ char const* dir_to_str(Dir d)
     }
 }
 
+Dir opposite(Dir d)
+{
+    switch (d) {
+        case dir_up   : return dir_down;
+        case dir_right: return dir_left;
+        case dir_left : return dir_right;
+        case dir_down : return dir_up;
+        default       : assert(false);
+    }
+}
+
 typedef struct Square
 {
     int color;
@@ -224,7 +235,7 @@ Dir get_direction(coord from, coord to)
     assert(wit_coord_valid_grid(wc, c));                                       \
     assert(wit_coord_valid_grid(wc, step(c, dir)));                            \
     assert(wit_coord_valid_grid(wc, step(step(c, dir), point)));               \
-    assert((point) != (dir));
+    assert((point) != opposite(dir));
 
 void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
@@ -310,7 +321,7 @@ void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
 
 void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
-    VERIFY_PAINT_CONDITIONS(wc, c, dir_right, point);
+    VERIFY_PAINT_CONDITIONS(wc, c, dir_down, point);
 
     char const* final_pipe = NULL;
     switch (point) {
@@ -369,6 +380,7 @@ void paint_last(Witness_command* wc, WINDOW* win)
 
 void paint_path(Witness_command* wc, WINDOW* win)
 {
+    if (wc->pos.sz == 1) { return; }
     //For all but the last segment (i.e. the last two coords), the pipe drawn
     //depends on the next two coords
     Vec_coord v = wc->pos;
