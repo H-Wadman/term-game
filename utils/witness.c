@@ -16,6 +16,15 @@ enum Witness_enum
     we_empty
 };
 
+char const* we_enum_to_str(enum Witness_enum we)
+{
+    switch (we) {
+        case we_dot   : return "dot";
+        case we_filled: return "filled";
+        case we_empty : return "empty";
+    }
+}
+
 typedef enum Dir
 {
     dir_up,
@@ -98,6 +107,18 @@ Sq get(Witness_command* wc, coord c)
     return wc->board[c.y * wc->width + c.x];
 }
 
+Sq* get_p(Witness_command* wc, coord c)
+{
+    if (!wit_coord_valid_sq(wc, c)) {
+        fprintf(stderr, //NOLINT
+                "Out of bounds access by get (y = %d, x = %d) on witness board "
+                "of dimensions %dx%d\n",
+                c.y, c.x, wc->height, wc->width);
+        exit(1);
+    }
+    return &wc->board[c.y * wc->width + c.x];
+}
+
 void print_witness_line(WINDOW* win, Witness_command* wc, int line)
 {
     wmove(win, line, 0);
@@ -141,6 +162,8 @@ coord step(coord c, Dir d)
     }
 }
 
+//Returns coords such that when d is up/down cs[0] is to the left and cs[1] is
+//to the right and when d is left/right cs[0] is up and cs[1] is down
 void get_walls(coord c, coord cs[2], Dir d)
 {
     switch (d) {
@@ -470,6 +493,49 @@ bool is_backtrack(Witness_command* wc, Dir move)
                                  wc->pos.data[wc->pos.sz - 2]);
 }
 
+void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
+{
+    coord cs[2];
+
+    get_walls(vec_back(wc->pos), cs, d);
+
+    if (wit_coord_valid_sq(wc, cs[0])) {
+        Sq* s = get_p(wc, cs[0]);
+        switch (d) {
+            case dir_up:
+            case dir_down : s->walls[dir_right] = we; break;
+            case dir_left :
+            case dir_right: s->walls[dir_down] = we; break;
+            default:
+                fprintf(stderr, "Non-valid Dir value passed to %s\n", //NOLINT
+                        __func__);
+                exit(1);
+        }
+    }
+
+    if (wit_coord_valid_sq(wc, cs[1])) {
+        Sq* s = get_p(wc, cs[1]);
+        switch (d) {
+            case dir_up:
+            case dir_down : s->walls[dir_left] = we; break;
+            case dir_left :
+            case dir_right: s->walls[dir_up] = we; break;
+            default:
+                fprintf(stderr, "Non-valid Dir value passed to %s\n", //NOLINT
+                        __func__);
+                exit(1);
+        }
+    }
+}
+
+//Expects backtrack to be possible, undefined otherwise
+void backtrack(Witness_command* wc)
+{
+    Dir d = get_direction(vec_back(wc->pos), wc->pos.data[wc->pos.sz - 2]);
+    set_walls(wc, d, we_empty);
+    vec_pop(&wc->pos);
+}
+
 Func play_witness(void* this)
 {
     Witness_command* wc = (Witness_command*)this;
@@ -503,13 +569,14 @@ Func play_witness(void* this)
         }
 
         if (move) {
-            if (is_backtrack(wc, next_dir)) { vec_pop(&wc->pos); }
+            if (is_backtrack(wc, next_dir)) { backtrack(wc); }
             else {
                 coord next = step(vec_back(wc->pos), next_dir);
                 //Guard against stepping outside the grid and
                 //walking over already visited junctions
                 if (wit_coord_valid_grid(wc, next) &&
                     !vec_contains(wc->pos, next)) {
+                    set_walls(wc, next_dir, we_filled);
                     vec_push(&wc->pos, next);
                 }
             }

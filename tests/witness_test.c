@@ -236,9 +236,12 @@ void test_get_area_regions()
     }
 
     board[0][0].walls[dir_down] = we_empty;
-    board[1][0].walls[dir_up]   = we_empty;
-    Witness_command wc          = {{0}, (Sq*)board, .height = 3, .width = 2};
-    Vec_coord v1                = get_area(&wc, (coord){0, 0});
+    board[0][0].walls[dir_up]   = we_empty;
+    board[0][0].walls[dir_left] = we_empty;
+
+    board[1][0].walls[dir_up] = we_empty;
+    Witness_command wc        = {{0}, (Sq*)board, .height = 3, .width = 2};
+    Vec_coord v1              = get_area(&wc, (coord){0, 0});
 
     assert(v1.sz == 2);
     assert(vec_contains(v1, ((coord){0, 0})));
