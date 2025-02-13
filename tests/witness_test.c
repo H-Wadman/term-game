@@ -1,6 +1,9 @@
 #include <assert.h>
+#include <ncurses.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "color.h"
 #include "menu.h"
 #include "utf8.h"
 #include "vec.h"
@@ -9,7 +12,7 @@ enum Witness_enum
 {
     we_dot,
     we_filled,
-    we_empty
+    we_empty,
 };
 
 typedef enum Dir
@@ -20,10 +23,15 @@ typedef enum Dir
     dir_left
 } Dir;
 
+typedef struct Group
+{
+    enum color color;
+    char symbol[ASCII_BUF_SZ];
+} Group;
+
 typedef struct Square
 {
-    int color;
-    char symbol[ASCII_BUF_SZ];
+    Group group;
     enum Witness_enum walls[4];
 } Sq;
 
@@ -38,12 +46,16 @@ typedef struct Witness_command
 } Witness_command;
 
 bool wit_coord_valid_sq(Witness_command* wc, coord c);
+bool wit_coord_valid_grid(Witness_command* wc, coord c);
 Vec_coord get_area(Witness_command* wc, coord c);
 coord step(coord c, Dir d);
 coord get_scr_pos(coord c);
+Sq get(Witness_command* wc, coord c);
+void get_walls(coord c, coord cs[2], Dir d);
+Dir get_direction(coord from, coord to);
 
 //NOLINTBEGIN
-void test_wit_coord_valid()
+void test_wit_coord_valid_sq()
 {
     Witness_command wc = {{0}, NULL, .height = 3, .width = 9};
 
@@ -56,6 +68,44 @@ void test_wit_coord_valid()
     assert(!wit_coord_valid_sq(&wc, (coord){2, 9}));
     assert(!wit_coord_valid_sq(&wc, (coord){3, 8}));
     assert(!wit_coord_valid_sq(&wc, (coord){3, 9}));
+}
+
+void test_wit_coord_valid_grid()
+{
+    Witness_command wc = {.width = 6, .height = 9};
+    assert(wit_coord_valid_grid(&wc, (coord){.x = 0, .y = 9}));
+    assert(wit_coord_valid_grid(&wc, (coord){.x = 6, .y = 9}));
+    assert(!wit_coord_valid_grid(&wc, (coord){.x = 6, .y = 10}));
+    assert(wit_coord_valid_grid(&wc, (coord){.x = 5, .y = 5}));
+    assert(wit_coord_valid_grid(&wc, (coord){.x = 0, .y = 0}));
+    assert(!wit_coord_valid_grid(&wc, (coord){.x = -1, .y = 0}));
+    assert(!wit_coord_valid_grid(&wc, (coord){.x = -1, .y = 9}));
+
+    wc.width = 3;
+    assert(wit_coord_valid_grid(&wc, (coord){.x = 3, .y = 9}));
+    assert(!wit_coord_valid_grid(&wc, (coord){.x = 4, .y = 9}));
+    assert(wit_coord_valid_grid(&wc, (coord){.x = 0, .y = 9}));
+}
+
+void test_get()
+{
+    Witness_command wc = {.width = 6, .height = 8};
+    wc.board           = malloc(wc.width * wc.height * sizeof(Sq));
+    memset(wc.board, 0, wc.width * wc.height * sizeof(Sq));
+    wc.board[0] = (Sq){.group.color = 1};
+    Sq s        = get(&wc, (coord){0, 0});
+    assert(s.group.color == 1);
+    assert(s.group.symbol[0] == '\0');
+
+    for (int i = 0; i < wc.height; ++i) {
+        for (int j = 0; j < wc.width; ++j) {
+            if (i == 0 && j == 0) { continue; }
+            Sq s = get(&wc, (coord){.y = i, .x = j});
+            assert(s.group.color == 0);
+            assert(strcmp(s.group.symbol, "") == 0);
+            for (int i = 0; i < 4; ++i) { assert(s.walls[i] == 0); }
+        }
+    }
 }
 
 void test_step()
@@ -78,6 +128,59 @@ void test_step()
     assert(s.y == c.y);
 }
 
+void test_get_walls()
+{
+    Witness_command wc = {.width = 4, .height = 3};
+    wc.board           = malloc(wc.width * wc.height * sizeof(Sq));
+    memset(wc.board, 0, wc.width * wc.height * sizeof(Sq));
+
+    coord cs[2];
+    get_walls((coord){0, 0}, cs, dir_right);
+    assert(wit_coord_valid_sq(&wc, cs[0]) || wit_coord_valid_sq(&wc, cs[1]));
+    assert(!wit_coord_valid_sq(&wc, cs[0]) || !wit_coord_valid_sq(&wc, cs[1]));
+
+    coord valid = wit_coord_valid_sq(&wc, cs[0]) ? cs[0] : cs[1];
+    assert(valid.y == 0 && valid.x == 0);
+
+    get_walls((coord){0, 0}, cs, dir_down);
+    assert(wit_coord_valid_sq(&wc, cs[0]) || wit_coord_valid_sq(&wc, cs[1]));
+    assert(!wit_coord_valid_sq(&wc, cs[0]) || !wit_coord_valid_sq(&wc, cs[1]));
+
+    valid = wit_coord_valid_sq(&wc, cs[0]) ? cs[0] : cs[1];
+    assert(valid.y == 0 && valid.x == 0);
+
+    get_walls((coord){0, 0}, cs, dir_up);
+    assert(!wit_coord_valid_sq(&wc, cs[0]) && !wit_coord_valid_sq(&wc, cs[1]));
+
+    for (int i = 1; i < wc.height - 1; ++i) {
+        for (int j = 1; j < wc.width - 1; ++j) {
+            for (int d = 0; d < 4; ++d) {
+                get_walls((coord){i, j}, cs, (Dir)d);
+                assert(wit_coord_valid_sq(&wc, cs[0]));
+                assert(wit_coord_valid_sq(&wc, cs[1]));
+            }
+        }
+    }
+
+    get_walls((coord){2, 1}, cs, dir_right);
+    assert((cs[0].y == 1 && cs[0].x == 1) || (cs[1].y == 1 && cs[1].x == 1));
+    assert((cs[0].y == 2 && cs[0].x == 1) || (cs[1].y == 2 && cs[1].x == 1));
+}
+
+void test_get_direction()
+{
+    coord o  = {0, 0};
+    coord up = {-1, 0};
+    assert(get_direction(o, up) == dir_up);
+    coord down = {1, 0};
+    assert(get_direction(o, down) == dir_down);
+    coord left = {0, -1};
+    assert(get_direction(o, left) == dir_left);
+    coord right = {0, 1};
+    assert(get_direction(o, right) == dir_right);
+}
+
+//Needs more tests
 void test_get_area_full_board()
 {
     Sq board[3][2];
@@ -193,11 +296,15 @@ void test_get_scr_pos()
 
 void test()
 {
-    test_wit_coord_valid();
+    test_wit_coord_valid_sq();
+    test_wit_coord_valid_grid();
     test_step();
     test_get_area_full_board();
     test_get_area_regions();
     test_get_scr_pos();
+    test_get();
+    test_get_walls();
+    test_get_direction();
 }
 
 int main() { test(); }

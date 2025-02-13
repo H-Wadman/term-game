@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+#include "color.h"
 #include "menu.h"
 #include "utf8.h"
 #include "vec.h"
@@ -44,10 +45,22 @@ Dir opposite(Dir d)
     }
 }
 
+typedef struct Group
+{
+    enum color color;
+    char symbol[ASCII_BUF_SZ];
+} Group;
+
+Group const groups[] = {
+    {.color = COLOR_NONE,  .symbol = ""},
+    {.color = col_yellow, .symbol = "✪"},
+    { .color = col_green, .symbol = "⌘"},
+    {   .color = col_red, .symbol = "֍"}
+};
+
 typedef struct Square
 {
-    int color;
-    char symbol[ASCII_BUF_SZ];
+    Group group;
     enum Witness_enum walls[4];
 } Sq;
 
@@ -60,6 +73,8 @@ typedef struct Witness_command
     Vec_coord pos;
     coord end;
 } Witness_command;
+
+coord get_scr_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.y}; }
 
 bool wit_coord_valid_sq(Witness_command* wc, coord c)
 {
@@ -126,6 +141,32 @@ coord step(coord c, Dir d)
     }
 }
 
+void get_walls(coord c, coord cs[2], Dir d)
+{
+    switch (d) {
+        case dir_up:
+            cs[0] = (coord){c.y - 1, c.x - 1};
+            cs[1] = (coord){c.y - 1, c.x};
+            return;
+        case dir_down:
+            cs[0] = (coord){c.y, c.x - 1};
+            cs[1] = (coord){c.y, c.x};
+            return;
+        case dir_right:
+            cs[0] = (coord){c.y - 1, c.x};
+            cs[1] = (coord){c.y, c.x};
+            return;
+        case dir_left:
+            cs[0] = (coord){c.y - 1, c.x - 1};
+            cs[1] = (coord){c.y, c.x - 1};
+            return;
+        default:
+            fprintf(stderr, "Non-valid Dir value passed to %s\n", //NOLINT
+                    __func__);
+            exit(1);
+    }
+}
+
 Vec_coord get_area(Witness_command* wc, coord c)
 {
     int const init_cap   = 16;
@@ -168,7 +209,7 @@ bool witness_is_solved(Witness_command* wc)
             int color = -1;
             while (v.sz > 0) {
                 coord c = vec_pop(&v);
-                int clr = get(wc, c).color;
+                int clr = get(wc, c).group.color;
                 if (clr != COLOR_NONE) {
                     if (color == -1) { color = clr; }
                     else if (color != clr) {
@@ -202,9 +243,19 @@ void paint_witness_board(Witness_command* wc, WINDOW* win)
     for (int i = 0; i <= wc->height * 2; ++i) {
         print_witness_line(win, wc, i);
     }
-}
 
-coord get_scr_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.y}; }
+    for (int i = 0; i < wc->height; ++i) {
+        for (int j = 0; j < wc->width; ++j) {
+            Sq s = get(wc, (coord){i, j});
+            char const* ch =
+                (utf8_strlen(s.group.symbol) == 1) ? s.group.symbol : " ";
+            coord scr_pos = get_scr_pos((coord){i, j});
+            wattron(win, COLOR_PAIR(s.group.color));
+            mvwaddstr(win, scr_pos.y + 1, scr_pos.x + 2, ch);
+            wattroff(win, COLOR_PAIR(s.group.color));
+        }
+    }
+}
 
 //Has to pass coords directly below/above or to the right/left of each other
 Dir get_direction(coord from, coord to)
@@ -272,10 +323,10 @@ void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
         case dir_up: final_pipe = "╚"; break;
         case dir_left:
             if (c.y == 0) {
-                final_pipe = "╧";
+                final_pipe = "╤";
                 break;
             }
-            final_pipe = (c.y == wc->height) ? "╤" : "╪";
+            final_pipe = (c.y == wc->height) ? "╧" : "╪";
             break;
         case dir_down: final_pipe = "╔"; break;
         default:
@@ -378,9 +429,10 @@ void paint_last(Witness_command* wc, WINDOW* win)
     }
 }
 
-void paint_path(Witness_command* wc, WINDOW* win)
+void paint_path(Witness_command* wc, WINDOW* win, enum color color)
 {
     if (wc->pos.sz == 1) { return; }
+    wattron(win, COLOR_PAIR(color));
     //For all but the last segment (i.e. the last two coords), the pipe drawn
     //depends on the next two coords
     Vec_coord v = wc->pos;
@@ -393,6 +445,7 @@ void paint_path(Witness_command* wc, WINDOW* win)
 
     //Handle the last segment separately
     paint_last(wc, win);
+    wattroff(win, COLOR_PAIR(color));
 }
 
 /*
@@ -462,7 +515,7 @@ Func play_witness(void* this)
             }
             //Update screen
             paint_witness_board(wc, win);
-            paint_path(wc, win);
+            paint_path(wc, win, col_yellow);
             wrefresh(win);
         }
     }
@@ -478,12 +531,21 @@ Func play_witness(void* this)
 void test_play_witness()
 {
     //NOLINTBEGIN
+    assert(utf8_strlen("☘") == 1);
+
     Sq board[6][6] = {0};
     for (int i = 0; i < 6; ++i) {
         for (int j = 0; j < 6; ++j) {
-            board[i][j] = (Sq){.color = COLOR_NONE, .symbol = "", .walls = {0}};
+            board[i][j] = (Sq){
+                .group = {.color = col_green, .symbol = "✪"},
+                  .walls = {0}
+            };
         }
     }
+    board[0][0] = (Sq){
+        .group = {.color = col_yellow, .symbol = "h"},
+          .walls = {0}
+    };
     Witness_command test_wc = {
         .c      = {0},
         .board  = (Sq*)board,

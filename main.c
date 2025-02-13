@@ -10,6 +10,13 @@
 
 void endwin_atexit() { endwin(); }
 
+void init_color_pairs()
+{
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_RED, COLOR_BLACK);
+}
+
 void ncurses_set_up()
 {
     const char* locale = setlocale(LC_ALL, "");
@@ -18,6 +25,8 @@ void ncurses_set_up()
         exit(1);
     }
     initscr();
+    start_color();
+    init_color_pairs();
     clear();
     noecho();
     cbreak();
