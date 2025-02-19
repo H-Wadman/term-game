@@ -11,11 +11,12 @@
  * for these "menu component" will be used
  */
 
-#include "menu_constants.h"
-#include "menu.h"
-#include "start.h"
 #include <limits.h>
-#include <ncurses.h>
+#include <stddef.h>
+
+#include "menu.h"
+#include "menu_constants.h"
+#include "start.h"
 
 // clang-format off
 char const* const title[7] = {

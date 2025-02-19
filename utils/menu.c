@@ -14,8 +14,11 @@
 #include "menu.h"
 #include "utf8.h"
 
-#define LINE_FEED 13
-#define MAX_UTF8_WORD_LEN 40
+enum
+{
+    LINE_FEED         = 13,
+    MAX_UTF8_WORD_LEN = 40
+};
 
 const char selection_string[] = u8"◇ ";
 //Needs to be changed if selection_string is changed
@@ -36,6 +39,7 @@ void get_dialogue_path(char* buf, int sz)
     if (!((int)strlen(SOURCE_DIR) + extra_len < sz - 1)) {
         fprintf(stderr, //NOLINT
                 "Buffer for dialogue path was not large enough, aborting...\n");
+        exit(1);
     }
     strcpy(buf, SOURCE_DIR);
     strcat(buf, "/dialogue/");
@@ -210,7 +214,7 @@ int get_banner_width(const char* const* banner, int size)
 {
     int max = 0;
     for (int i = 0; i < size; ++i) {
-        int curr = (int)utf8_strlen(banner[i]);
+        int curr = utf8_strlen(banner[i]);
         if (max < curr) { max = curr; }
     }
     return max;
@@ -303,8 +307,9 @@ int print_menu_old(const struct Menu* menu)
 }
 
 int quick_print_menu(int count, ...)
-
 {
+    assert(count > 0);
+
     va_list va = NULL;
     va_start(va, count);
 
@@ -314,6 +319,7 @@ int quick_print_menu(int count, ...)
     Command** choices = (Command**)malloc(count * sizeof(Command*));
     for (int i = 0; i < count; ++i) { choices[i] = malloc(sizeof(Command)); }
 
+    assert(count > 0);
     for (int i = 0; i < count; ++i) {
         char const* ch        = va_arg(va, char const*);
         choices[i]->label     = ch;
@@ -323,7 +329,11 @@ int quick_print_menu(int count, ...)
     Menu m = {(Command const**)choices, count, 0, NULL, 0, 0, -1, -1};
     implementation_initialise_menu(&m);
 
-    return print_menu_old(&m);
+    int res = print_menu_old(&m);
+    for (int i = 0; i < count; ++i) { free(choices[i]); }
+    free((void*)choices);
+    va_end(va);
+    return res;
 }
 
 void implementation_initialise_menu(struct Menu* menu)
@@ -416,10 +426,16 @@ int print_next_word(WINDOW* win, struct Dia_print* dia)
 int get_dia_height(const struct Dia_print* dia)
 {
     FILE* file = fopen(dia->path, "r");
-    int err    = fseek(file, ftell(dia->file), SEEK_SET);
+    if (!file) {
+        fprintf(stderr, //NOLINT
+                "fopen encountered an error in get_dia_height\n");
+        exit(1);
+    }
+    int err = fseek(file, ftell(dia->file), SEEK_SET);
     if (err != 0) {
         fprintf(stderr, //NOLINT
-                "fseek encountered an error in get_dia_height");
+                "fseek encountered an error in get_dia_height\n");
+        exit(1);
     }
 
     //char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];

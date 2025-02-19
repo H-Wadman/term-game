@@ -13,13 +13,13 @@
 
 typedef struct Func
 {
-    struct Func (*func)();
+    struct Func (*func)(void*);
 } Func;
 
 typedef struct Command
 {
-    char const* label;
     Func (*on_select)(void*);
+    char const* label;
 } Command;
 
 void push_func(Func f);

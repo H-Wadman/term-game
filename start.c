@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <ncurses.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,8 +51,18 @@ int print_diastr(char const* const str)
 {
     char const tmpl[] = "/tmp/tmpdia.XXXXXX";
     int fd            = mkstemp((char*)tmpl);
-    FILE* temp        = fdopen(fd, "w");
-    int b             = fputs(str, temp);
+    if (fd == -1) {
+        fprintf(stderr, //NOLINT
+                "Failed to make temporary file in %s, aborting...\n", __func__);
+        exit(1);
+    }
+    FILE* temp = fdopen(fd, "w");
+    if (!temp) {
+        fprintf(stderr, //NOLINT
+                "Call to fdopen failed in %s, aborting...\n", __func__);
+        exit(1);
+    }
+    int b = fputs(str, temp);
 
     assert(b == (int)strlen(str));
     if (b != (int)strlen(str)) {
@@ -265,8 +276,12 @@ char const* const sudoku_board[] = {
     "╚═══╩═══╩═══╩═══╩═══╩═══╩═══════════╝",
 };
 
-#define SUDOKU_HEIGHT 19
-#define SUDOKU_WIDTH 37
+enum
+{
+    SUDOKU_CHAR_HEIGHT = 19,
+    SUDOKU_CHAR_WIDTH  = 37,
+    SUDOKU_SZ          = 9
+};
 
 int sudoku_xcoord(int x) { return 2 + 4 * x; }
 
@@ -283,8 +298,8 @@ void paint_sudoku_sq(WINDOW* s_win, int y, int x, int dig)
 
 WINDOW* paint_sudoku_board(int* board)
 {
-    int const height = SUDOKU_HEIGHT;
-    int const width  = SUDOKU_WIDTH;
+    int const height = SUDOKU_CHAR_HEIGHT;
+    int const width  = SUDOKU_CHAR_WIDTH;
     int x_pos        = (COLS - width) / 2;
     int y_pos        = (LINES - height) / 2;
     WINDOW* s_win    = newwin(height, width, y_pos, x_pos);
@@ -314,7 +329,7 @@ WINDOW* paint_sudoku_board(int* board)
 
 bool valid_row(int const* board, int r)
 {
-    bool digs[9]; //NOLINT
+    bool digs[SUDOKU_SZ];
     int const sz = 9;
     memset(digs, false, sizeof digs);
 
@@ -335,7 +350,7 @@ bool valid_row(int const* board, int r)
 
 bool valid_col(int const* board, int c)
 {
-    bool digs[9]; //NOLINT
+    bool digs[SUDOKU_SZ]; //NOLINT
     int const sz = 9;
     memset(digs, false, sizeof digs);
 
@@ -358,7 +373,7 @@ bool valid_sq(int const* board, int y, int x)
 {
     int const sz = 9;
 
-    bool digs[9]; //NOLINT
+    bool digs[SUDOKU_SZ];
     memset(digs, false, sizeof digs);
 
     for (int i = 0; i < 3; ++i) {
@@ -399,7 +414,7 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
 {
     int y = 0;
     int x = 0;
-    int board[9][9]; //NOLINT
+    int board[SUDOKU_SZ][SUDOKU_SZ];
 
     memcpy(board, sc->board, sizeof board);
 
@@ -428,13 +443,13 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
                 if (y > 0) { --y; }
                 break;
             case KEY_DOWN:
-                if (y < 8) { ++y; }
+                if (y < SUDOKU_SZ - 1) { ++y; }
                 break;
             case KEY_LEFT:
                 if (x > 0) { --x; }
                 break;
             case KEY_RIGHT:
-                if (x < 8) { ++x; }
+                if (x < SUDOKU_SZ - 1) { ++x; }
                 break;
             default:
                 //If input was a digit, we fill the square in if possible

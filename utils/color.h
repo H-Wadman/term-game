@@ -3,7 +3,8 @@
 
 enum color
 {
-    col_yellow = 1,
+    col_default,
+    col_yellow,
     col_green,
     col_red
 };

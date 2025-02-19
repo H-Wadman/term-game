@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logging.h"
+#include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
 #include "utf8.h"
@@ -58,9 +60,11 @@ int main()
 {
     ncurses_set_up();
     initialise_menus();
+    //set_log_output(stderr);
+
 
     Func curr = (Func){.func = show_opening};
-    while (curr.func) { curr = curr.func(); }
+    while (curr.func) { curr = curr.func(&curr); }
 
     return 0;
 }

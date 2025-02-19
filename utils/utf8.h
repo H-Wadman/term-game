@@ -3,6 +3,7 @@
 
 #include <ncurses.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define ASCII_MAX 127
 #define ASCII_MIN 0

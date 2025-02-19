@@ -7,8 +7,6 @@
 #include "utf8.h"
 #include "vec.h"
 
-#define COLOR_NONE 0
-
 enum Witness_enum
 {
     we_dot,
@@ -61,10 +59,10 @@ typedef struct Group
 } Group;
 
 Group const groups[] = {
-    {.color = COLOR_NONE,  .symbol = ""},
-    {.color = col_yellow, .symbol = "✪"},
-    { .color = col_green, .symbol = "⌘"},
-    {   .color = col_red, .symbol = "֍"}
+    {.color = col_default,  .symbol = ""},
+    { .color = col_yellow, .symbol = "✪"},
+    {  .color = col_green, .symbol = "⌘"},
+    {    .color = col_red, .symbol = "֍"}
 };
 
 typedef struct Square
@@ -146,6 +144,9 @@ void print_witness_line(WINDOW* win, Witness_command* wc, int line)
             for (int i = 1; i < wc->width; ++i) { waddstr(win, "│   "); }
             waddstr(win, "│");
             return;
+        default:
+            fprintf(stderr, //NOLINT
+                    "Impossible branch reached, aborting...\n");
     }
 }
 
@@ -233,7 +234,7 @@ bool witness_is_solved(Witness_command* wc)
             while (v.sz > 0) {
                 coord c = vec_pop(&v);
                 int clr = get(wc, c).group.color;
-                if (clr != COLOR_NONE) {
+                if (clr != col_default) {
                     if (color == -1) { color = clr; }
                     else if (color != clr) {
                         return false;

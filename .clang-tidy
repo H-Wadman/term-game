@@ -17,7 +17,8 @@ Checks: "*,
         -cppcoreguidelines-pro-bounds-constant-array-index,
         -cppcoreguidelines-avoid-do-while,
         -concurrency-mt-unsafe,
-        -bugprone-easily-swappable-parameters
+        -bugprone-easily-swappable-parameters,
+        -readability-math-missing-parentheses
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
