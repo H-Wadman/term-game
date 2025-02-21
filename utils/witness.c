@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "color.h"
+#include "logging.h"
 #include "menu.h"
 #include "utf8.h"
 #include "vec.h"
@@ -96,11 +97,10 @@ bool wit_coord_valid_grid(Witness_command* wc, coord c)
 Sq get(Witness_command* wc, coord c)
 {
     if (!wit_coord_valid_sq(wc, c)) {
-        fprintf(stderr, //NOLINT
-                "Out of bounds access by get (y = %d, x = %d) on witness board "
-                "of dimensions %dx%d\n",
-                c.y, c.x, wc->height, wc->width);
-        exit(1);
+        log_and_exit(
+            "Out of bounds access by get (y = %d, x = %d) on witness board "
+            "of dimensions %dx%d\n",
+            c.y, c.x, wc->height, wc->width);
     }
     return wc->board[c.y * wc->width + c.x];
 }
@@ -108,11 +108,10 @@ Sq get(Witness_command* wc, coord c)
 Sq* get_p(Witness_command* wc, coord c)
 {
     if (!wit_coord_valid_sq(wc, c)) {
-        fprintf(stderr, //NOLINT
-                "Out of bounds access by get (y = %d, x = %d) on witness board "
-                "of dimensions %dx%d\n",
-                c.y, c.x, wc->height, wc->width);
-        exit(1);
+        log_and_exit(
+            "Out of bounds access by get (y = %d, x = %d) on witness board "
+            "of dimensions %dx%d\n",
+            c.y, c.x, wc->height, wc->width);
     }
     return &wc->board[c.y * wc->width + c.x];
 }
@@ -144,9 +143,7 @@ void print_witness_line(WINDOW* win, Witness_command* wc, int line)
             for (int i = 1; i < wc->width; ++i) { waddstr(win, "│   "); }
             waddstr(win, "│");
             return;
-        default:
-            fprintf(stderr, //NOLINT
-                    "Impossible branch reached, aborting...\n");
+        default: log_and_exit("Impossible branch reached, aborting...\n");
     }
 }
 
@@ -157,9 +154,7 @@ coord step(coord c, Dir d)
         case dir_right: return (coord){.x = c.x + 1, .y = c.y};
         case dir_down : return (coord){.x = c.x, .y = c.y + 1};
         case dir_left : return (coord){.x = c.x - 1, .y = c.y};
-        default:
-            fprintf(stderr, "Non-valid Dir value passed to step\n"); //NOLINT
-            exit(1);
+        default       : log_and_exit("Non-valid Dir value passed to step\n");
     }
 }
 
@@ -184,10 +179,7 @@ void get_walls(coord c, coord cs[2], Dir d)
             cs[0] = (coord){c.y - 1, c.x - 1};
             cs[1] = (coord){c.y, c.x - 1};
             return;
-        default:
-            fprintf(stderr, "Non-valid Dir value passed to %s\n", //NOLINT
-                    __func__);
-            exit(1);
+        default: log_and_exit("Non-valid Dir value passed to %s\n", __func__);
     }
 }
 
@@ -286,24 +278,18 @@ Dir get_direction(coord from, coord to)
 {
     coord c = {to.y - from.y, to.x - from.x};
 
-    if (!(c.x == 0 || c.y == 0)) {
-        fprintf(stderr, //NOLINT
-                "Invalid coords from = {%d, %d}, to = {%d, %d}, passed to %s",
-                from.y, from.x, to.y, to.x, __func__);
-    }
-    if (!(abs(c.x) == 1 || abs(c.y) == 1)) {
-        fprintf(stderr, //NOLINT
-                "Invalid coords from = {%d, %d}, to = {%d, %d}, passed to %s",
-                from.y, from.x, to.y, to.x, __func__);
+    //We need c to be of the form {+-1, 0} or {0, +-1}
+    if (!(c.x == 0 || c.y == 0) || !(abs(c.x) == 1 || abs(c.y) == 1)) {
+        log_and_exit(
+            "Invalid coords from = {%d, %d}, to = {%d, %d}, passed to %s\n",
+            from.y, from.x, to.y, to.x, __func__);
     }
     if (c.y == 0 && c.x == 1) { return dir_right; }
     if (c.y == 0 && c.x == -1) { return dir_left; }
     if (c.y == 1 && c.x == 0) { return dir_down; }
     if (c.y == -1 && c.x == 0) { return dir_up; }
 
-    fprintf(stderr, "Impossible branch reached in %s, aborting...\n", //NOLINT
-            __func__);
-    exit(1);
+    assert(false);
 }
 
 #define VERIFY_PAINT_CONDITIONS(wc, c, dir, point)                             \
@@ -328,8 +314,8 @@ void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
         case dir_left : final_pipe = "╗"; break;
         case dir_right: final_pipe = "╔"; break;
         default:
-            fprintf(stderr, //NOLINT
-                    "Invalid point direction in %s, aborting...\n", __func__);
+            log_and_exit("Invalid point direction in %s, aborting...\n",
+                         __func__);
     }
 
     coord scr_pos = get_scr_pos(c);
@@ -354,8 +340,8 @@ void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
             break;
         case dir_down: final_pipe = "╔"; break;
         default:
-            fprintf(stderr, //NOLINT
-                    "Invalid point direction in %s, aborting...\n", __func__);
+            log_and_exit("Invalid point direction in %s, aborting...\n",
+                         __func__);
     }
 
     coord scr_pos = get_scr_pos(c);
@@ -382,8 +368,8 @@ void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
             break;
         case dir_down: final_pipe = "╗"; break;
         default:
-            fprintf(stderr, //NOLINT
-                    "Invalid point direction in %s, aborting...\n", __func__);
+            log_and_exit("Invalid point direction in %s, aborting...\n",
+                         __func__);
     }
 
     coord scr_pos = get_scr_pos(c);
@@ -410,9 +396,8 @@ void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
         case dir_left : final_pipe = "╝"; break;
         case dir_right: final_pipe = "╚"; break;
         default:
-            fprintf(stderr, //NOLINT
-                    "Invalid point direction in %s, aborting...\n", __func__);
-            exit(1);
+            log_and_exit("Invalid point direction in %s, aborting...\n",
+                         __func__);
     }
 
     coord scr_pos = get_scr_pos(c);
@@ -508,9 +493,7 @@ void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
             case dir_left :
             case dir_right: s->walls[dir_down] = we; break;
             default:
-                fprintf(stderr, "Non-valid Dir value passed to %s\n", //NOLINT
-                        __func__);
-                exit(1);
+                log_and_exit("Non-valid Dir value passed to %s\n", __func__);
         }
     }
 
@@ -522,9 +505,7 @@ void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
             case dir_left :
             case dir_right: s->walls[dir_up] = we; break;
             default:
-                fprintf(stderr, "Non-valid Dir value passed to %s\n", //NOLINT
-                        __func__);
-                exit(1);
+                log_and_exit("Non-valid Dir value passed to %s\n", __func__);
         }
     }
 }

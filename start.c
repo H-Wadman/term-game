@@ -6,18 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logging.h"
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
 #include "state.h"
 #include "utf8.h"
-
-// static inline void win_cleanup(WINDOW* win)
-// {
-//     werase(win);
-//     wrefresh(win);
-//     delwin(win);
-// }
 
 #define get_and_print_dia(file, width)                                         \
     {                                                                          \
@@ -52,57 +46,49 @@ int print_diastr(char const* const str)
     char const tmpl[] = "/tmp/tmpdia.XXXXXX";
     int fd            = mkstemp((char*)tmpl);
     if (fd == -1) {
-        fprintf(stderr, //NOLINT
-                "Failed to make temporary file in %s, aborting...\n", __func__);
-        exit(1);
+        log_and_exit("Failed to make temporary file in %s, aborting...\n",
+                     __func__);
     }
     FILE* temp = fdopen(fd, "w");
     if (!temp) {
-        fprintf(stderr, //NOLINT
-                "Call to fdopen failed in %s, aborting...\n", __func__);
-        exit(1);
+        log_and_exit("Call to fdopen failed in %s, aborting...\n", __func__);
     }
     int b = fputs(str, temp);
 
     assert(b == (int)strlen(str));
     if (b != (int)strlen(str)) {
-        fprintf( //NOLINT
-            stderr,
-            "fputs did not manage to print entire string in print_diastr\n");
+        log_msgln(
+            "fputs did not manage to print entire string in print_diastr");
         return -1;
     }
 
     int err = fputs(u8"\n§\n", temp);
     if (err == EOF) {
-        fprintf(stderr, //NOLINT
-                "fputs failed in print_diastr\n");
+        log_msgln("fputs failed in print_diastr");
         return -2;
     }
     err = fflush(temp);
     if (err == EOF) {
-        fprintf(stderr, //NOLINT
-                "fflush failed in print_diastr, with errno value: %s\n",
-                strerror(errno));
+        log_msgf("fflush failed in print_diastr, with errno value: %s\n",
+                 strerror(errno));
         return -3;
     }
 
     err = print_dia(tmpl, utf8_strlen(str));
     if (err == -1) {
-        fprintf(stderr, "print_dia failed in print_diastr\n"); //NOLINT
-        return -6;                                             //NOLINT
+        log_msgln("print_dia failed in print_diastr");
+        return -6; //NOLINT
     }
 
     err = fclose(temp);
     if (err == EOF) {
-        fprintf(stderr, //NOLINT
-                "fclose failed in print_diastr\n");
+        log_msgln("fclose failed in print_diastr");
         return -4;
     }
 
     err = remove(tmpl);
     if (err == -1) {
-        fprintf(stderr, //NOLINT
-                "failed to remove file in print_diastr\n");
+        log_msgln("failed to remove file in print_diastr");
         return -5; //NOLINT
     }
 
@@ -350,7 +336,7 @@ bool valid_row(int const* board, int r)
 
 bool valid_col(int const* board, int c)
 {
-    bool digs[SUDOKU_SZ]; //NOLINT
+    bool digs[SUDOKU_SZ];
     int const sz = 9;
     memset(digs, false, sizeof digs);
 

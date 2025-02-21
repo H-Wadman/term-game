@@ -25,20 +25,24 @@ add_library(start start.c)
 add_library(state ${utilsDir}/state.c)
 add_library(vec ${utilsDir}/vec.c)
 add_library(witness ${utilsDir}/witness.c)
+add_library(logging ${utilsDir}/logging.c)
 
 #Non local libraries
 find_library(ncursesLib NAMES ncursesw ncurses)
+
+#utf8 dependencies
+target_link_libraries(utf8 PRIVATE logging)
 
 #menu_constants dependencies
 target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
 
 #menu dependencies
 target_include_directories(menu PRIVATE ${configDir})
-target_link_libraries(menu PRIVATE utf8 ${ncursesLib})
+target_link_libraries(menu PRIVATE utf8 logging ${ncursesLib})
 
 #witness dependencies
 target_include_directories(witness PRIVATE ${utilsDir})
-target_link_libraries(witness PRIVATE utf8 vec menu ${ncursesLib})
+target_link_libraries(witness PRIVATE utf8 vec menu logging ${ncursesLib})
 
 #vec dependencies
 target_include_directories(vec PRIVATE ${utilsDir})
@@ -51,7 +55,7 @@ target_include_directories(run PRIVATE ${utilsDir})
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start witness)
 
 #start dependencies
-target_include_directories(start PRIVATE ${utilsDir})
+target_include_directories(start PRIVATE logging ${utilsDir})
 target_link_libraries(start PRIVATE menu state ${ncursesLib} menu_constants)
 
 add_subdirectory(tests)

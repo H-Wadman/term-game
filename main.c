@@ -10,7 +10,11 @@
 #include "start.h"
 #include "utf8.h"
 
-void endwin_atexit() { endwin(); }
+void perform_atexit()
+{
+    endwin();
+    close_log_stream();
+}
 
 void init_color_pairs()
 {
@@ -38,7 +42,7 @@ void ncurses_set_up()
     // raw();
     keypad(stdscr, TRUE);
 
-    int err = atexit(endwin_atexit);
+    int err = atexit(perform_atexit);
     if (err != 0) {
         fprintf( //NOLINT
             stderr,
@@ -60,7 +64,7 @@ int main()
 {
     ncurses_set_up();
     initialise_menus();
-    //set_log_output(stderr);
+    set_log_output(stderr);
 
 
     Func curr = (Func){.func = show_opening};

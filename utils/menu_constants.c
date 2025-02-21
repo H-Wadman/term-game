@@ -127,12 +127,6 @@ struct Command const* const options[] = {&options_language, &options_volume,
                                          &options_colour, &options_back};
 make_menu(options, NULL, 60, -1, -1); //NOLINT
 
-// int select_options([[maybe_unused]] void* _)
-// {
-//     int i = print_menu(options_menu);
-//     return i;
-// }
-
 struct Return_command
 {
     struct Command base;
@@ -148,12 +142,6 @@ struct Return_command
                                      .on_select = impl_return_##ret_val}
 
 /********************* START MENU *********************/
-int intro(void* _ __attribute__((unused)))
-{
-    show_opening(NULL);
-
-    return COMMAND_RETURN;
-}
 
 MAKE_RETURN_COMMAND(start_play, "Play", show_glade);
 const struct Command start_options = {.label     = "Options",
@@ -196,6 +184,3 @@ void initialise_menus()
     implementation_initialise_menu(&implementation_glade_menu);
     implementation_initialise_menu(&implementation_well_menu);
 }
-
-// const int outer_menu_width = 2 * title_width / 3 + 10;
-//const int outer_menu_width = 77;

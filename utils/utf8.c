@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logging.h"
 #include "utf8.h"
 
 //! Checks if the passed in byte c is an ASCII character
@@ -63,15 +64,13 @@ int load_utf8(char* buf, WINDOW* win)
     int c = wgetch(win);
 
     if (c < 0) {
-        fprintf(stderr, //NOLINT
-                "A character with negative value has been read in wgetch\n");
-        exit(1); //NOLINT
+        log_and_exit(
+            "A character with negative value has been read in wgetch\n");
     }
 
     const int len = get_utf8_len(c);
     if (len == -1) {
-        fprintf(stderr, //NOLINT
-                "wget_utf8, first byte (= %d) did not conform to UTF-8", c);
+        log_msgf("wget_utf8, first byte (= %d) did not conform to UTF-8\n", c);
         return -1;
     }
     assert(1 <= len && len <= 4);
@@ -79,9 +78,9 @@ int load_utf8(char* buf, WINDOW* win)
     for (int i = 1; i < len; ++i) {
         c = wgetch(win);
         if (!is_continuation(c)) {
-            fprintf(stderr, //NOLINT
-                    "load_utf8: Length indicated by first byte doesn't "
-                    "correspond to length of string");
+            log_msgln(
+                "load_utf8: Length indicated by first byte doesn't correspond "
+                "to length of string");
             return -1;
         }
 
@@ -103,15 +102,13 @@ int fload_utf8(char* buf, FILE* file)
     int c = fgetc(file);
     if (c == EOF) { return c; }
     else if (c < 0) {
-        fprintf(stderr, //NOLINT
-                "A character with negative value has been read in wgetch\n");
-        exit(1); //NOLINT
+        log_and_exit(
+            "A character with negative value has been read in wgetch\n");
     }
 
     const int len = get_utf8_len(c);
     if (len == -1) {
-        fprintf(stderr, //NOLINT
-                "wget_utf8, first byte (= %d) did not conform to UTF-8", c);
+        log_msgf("wget_utf8, first byte (= %d) did not conform to UTF-8\n", c);
         return 1;
     }
     assert(1 <= len && len <= 4);
@@ -119,9 +116,9 @@ int fload_utf8(char* buf, FILE* file)
     for (int i = 1; i < len; ++i) {
         c = fgetc(file);
         if (!is_continuation(c)) {
-            fprintf(stderr, //NOLINT
-                    "file_load_utf8: Length indicated by first byte doesn't "
-                    "correspond to length of string");
+            log_msgln(
+                "file_load_utf8: Length indicated by first byte doesn't "
+                "correspond to length of string");
             return 1;
         }
 
@@ -153,7 +150,7 @@ int floadw_utf8(char* buf, FILE* file)
 
     int err = ungetc(ch, file);
     if (err == EOF) {
-        fprintf(stderr, "ungetc failed in floadw_utf8\n"); //NOLINT
+        log_msgln("ungetc failed in floadw_utf8");
         return 0;
     }
 
@@ -162,8 +159,7 @@ int floadw_utf8(char* buf, FILE* file)
         int err = fload_utf8(buf + len, file);
         if (err == EOF) { return EOF; }
         if (err == 1) {
-            fprintf(stderr, //NOLINT
-                    "fload_utf8 encountered an error in floadw_utf8\n");
+            log_msgln("fload_utf8 encountered an error in floadw_utf8");
             return 0;
         }
 

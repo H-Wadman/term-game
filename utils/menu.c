@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "build-path.h"
+#include "logging.h"
 #include "menu.h"
 #include "utf8.h"
 
@@ -37,9 +38,8 @@ void get_dialogue_path(char* buf, int sz)
 {
     int const extra_len = (int)strlen("/dialogue/");
     if (!((int)strlen(SOURCE_DIR) + extra_len < sz - 1)) {
-        fprintf(stderr, //NOLINT
-                "Buffer for dialogue path was not large enough, aborting...\n");
-        exit(1);
+        log_and_exit(
+            "Buffer for dialogue path was not large enough, aborting...\n");
     }
     strcpy(buf, SOURCE_DIR);
     strcat(buf, "/dialogue/");
@@ -74,10 +74,7 @@ void push_func(Func f)
 
 Func pop_func(void* _ __attribute__((unused)))
 {
-    if (!func_stack) {
-        fprintf(stderr, "Empty func stack popped\n"); //NOLINT
-        exit(1);
-    }
+    if (!func_stack) { log_and_exit("Empty func stack popped\n"); }
 
     Node* popped = func_stack;
 
@@ -146,18 +143,15 @@ void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
     assert(sz == (int)strlen(menu->choices[highlight]->label) +
                      (int)strlen(selection_string));
     if (sz > total_len - 1) {
-        fprintf( //NOLINT
-            stderr,
-            "Option string length exceeded total_len in "
-            "print_menu_highlight (%d and %d respectively).\n Aborting...\n",
+        log_and_exit(
+            "Option string length exceeded total_len in print_menu_highlight "
+            "(%d and %d respectively).\n Aborting...\n",
             sz + 1, total_len);
-        exit(-1);
     }
     if (sz == -2) {
-        fprintf(stderr, // NOLINT
-                "sprintf encountered an error in print_menu_highlight.\n"
-                "Aborting...");
-        exit(-1);
+        log_and_exit(
+            "sprintf encountered an error in print_menu_highlight.\n"
+            "Aborting...");
     }
 
     memset(option + sz, ' ', total_len - sz);
@@ -372,9 +366,9 @@ struct Dia_print
 #define handle_floadw_error(code, file)                                        \
     {                                                                          \
         if ((code) == 0) {                                                     \
-            fprintf(stderr,                                                    \
-                    "Error occurred while reading utf8 word from file in "     \
-                    "print_dia\n");                                            \
+            log_msgln(                                                         \
+                "Error occurred while reading utf8 word from file in "         \
+                "print_dia");                                                  \
             return -1;                                                         \
         }                                                                      \
     }
@@ -392,9 +386,8 @@ int print_next_word(WINDOW* win, struct Dia_print* dia)
     char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];
 
     int code = floadw_utf8(buf, dia->file);
-    //fprintf(stderr, "%s\n", buf);
 
-    handle_floadw_error(code, dia->file); //NOLINT
+    handle_floadw_error(code, dia->file);
 
     if (dia->line_len + utf8_strlen(buf) > dia->width) {
         dia->line_len = utf8_strlen(buf) + 1;
@@ -412,7 +405,6 @@ int print_next_word(WINDOW* win, struct Dia_print* dia)
     else {
         char end = (dia->line_len == dia->width + 1) ? '\0' : ' ';
         wprintw(win, "%s%c", buf, end);
-        //wgetch(win);
         return 0;
     }
 }
@@ -427,18 +419,12 @@ int get_dia_height(const struct Dia_print* dia)
 {
     FILE* file = fopen(dia->path, "r");
     if (!file) {
-        fprintf(stderr, //NOLINT
-                "fopen encountered an error in get_dia_height\n");
-        exit(1);
+        log_and_exit("fopen encountered an error in get_dia_height\n");
     }
     int err = fseek(file, ftell(dia->file), SEEK_SET);
     if (err != 0) {
-        fprintf(stderr, //NOLINT
-                "fseek encountered an error in get_dia_height\n");
-        exit(1);
+        log_and_exit("fseek encountered an error in get_dia_height\n");
     }
-
-    //char buf[ASCII_BUF_SZ * MAX_UTF8_WORD_LEN];
 
     int word_len = 0;
     int height   = 1;
@@ -537,19 +523,17 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
 int print_dia(const char* file_path, int width)
 {
     if (width + 2 > COLS) {
-        fprintf(stderr, //NOLINT
-                "Dialogue with width wider than COLS (columns) passed to "
-                "print_dia\n");
+        log_msgln(
+            "Dialogue with width wider than COLS (columns) passed to "
+            "print_dia\n");
     }
     FILE* f = fopen(file_path, "r");
 
     if (!f) {
-        fprintf( //NOLINT
-            stderr,
+        log_and_exit(
             "Error ocurred while opening file '%s' in print_dia with errno: "
             "%s\n",
             file_path, strerror(errno));
-        exit(1);
     }
     struct Dia_print dia = {f, .path = file_path, .line = 1, .line_len = 0,
                             .width = width};
@@ -557,11 +541,15 @@ int print_dia(const char* file_path, int width)
     while (true) {
         Print_dia_win_res code = print_dia_win(dia);
         if (code.error) {
-            fclose(f); //NOLINT
+            int err = fclose(f);
+            if (err) {
+                log_msgf("fclose failed in %s with error: '%s'", __func__,
+                         strerror(errno));
+            }
             return -1;
         }
         else if (code.res == 1) {
-            fclose(f); //NOLINT
+            (void)fclose(f);
             return 0;
         }
     }
