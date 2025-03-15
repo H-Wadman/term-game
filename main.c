@@ -8,7 +8,6 @@
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
-#include "utf8.h"
 
 void perform_atexit()
 {
@@ -23,6 +22,8 @@ void init_color_pairs()
     init_pair(3, COLOR_RED, COLOR_BLACK);
 }
 
+//! \brief Sets the locale, initialises ncurses with common defaults, and
+//! registers a function to be called on exit
 void ncurses_set_up()
 {
     const char* locale = setlocale(LC_ALL, "");
@@ -67,6 +68,7 @@ int main()
     set_log_output(stderr);
 
 
+    //TODO: Transform into union
     Func curr = (Func){.func = show_opening};
     while (curr.func) { curr = curr.func(&curr); }
 

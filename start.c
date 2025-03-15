@@ -234,7 +234,7 @@ Func well_raise_bucket_func(void* _ __attribute__((unused)))
     print_diastr("There's an old rusty key at the bottom of the bucket.");
     print_diastr("Grab it?");
 
-    int res = quick_print_menu(2, "Yes", "No");
+    int res = quick_print_menu(COLS / 8, 2, "Yes", "No"); //NOLINT(*magic*)
     if (res == 0) { player_has_key_set(); }
 
     return (Func){.func = show_well};

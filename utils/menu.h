@@ -1,44 +1,103 @@
+/*!
+ * \file menu.h
+ * \brief Contains declarations relating to menus, such as the Func,
+ * Command and Menu structs
+ *
+ * This header file contains declarations relating to \ref menu.c as well as
+ * macros for forward and normal declarations of menu structs
+ *
+ * In this documentation the following terminology will be used:
+ * - "choices": refers to the options of a menu. On screen each and
+ * every choice will appear on a separate line, and the width of the menu will
+ * be at least the length of the longest choice string
+ * - "banner": a two-dimensional char array that can be displayed alongside a
+ * menus choices, for example unicode-art of a cat or a stylized ASCII-font
+ * declaring the name of the menu
+ */
+
 #ifndef MENU_H
 #define MENU_H
 #define choices_len(arr) ((int)(sizeof(arr) / sizeof(char*)))
 #include <ncurses.h>
 
-/*! \file menu.h
- * \brief Contains declarations relating to menu.c
+/*!
+ * \brief Recursive function object at the center of the games functionality
  *
- * This header files contains declarations relating to menu.c as well as a macro
- * for declaring
+ * The Func struct is simply a struct defined to circumvent the issues of
+ * declaring a function with void* args that returns a function of the same
+ * type.
+ *
+ * The game starts by calling the first Func->func printing the opening
+ * sequence. When that sequence has finished it will return a new Func that will
+ * determine what happens next and then return the next Func to be used once it
+ * has finished
  */
-
-
 typedef struct Func
 {
     struct Func (*func)(void*);
 } Func;
 
+/*!
+ * \brief Command pattern for menus
+ *
+ * Specifies a label to be shown when a menu is printed, as well as what to do
+ * when the options with that label is selected.
+ *
+ * On selection \ref on_select will be called with a pointer to the Command
+ * itself as an argument. This permits you to pass extra arguments to on_select
+ * via a struct of the form { Command _, extra args...}
+ */
 typedef struct Command
 {
     Func (*on_select)(void*);
     char const* label;
 } Command;
 
+//! Pushes a func on to the global \ref func_stack
 void push_func(Func f);
+//! Pops a func of the global \ref func_stack
 Func pop_func(void*);
 
-/*! \brief structure to hold menu information
+/*!
+ * \brief Holds menu information
  *
+ * This structure is used to describe menus and is used by the
+ * functions declared in \ref menu.h.
+ *
+ * Menu structs should rarely be created directly and rather the macros \ref
+ * make_menu and \ref make_menu_verbose should be preferred. Please see their
+ * documentation for options and end use.
  */
 typedef struct Menu
 {
+    //! An array of pointers to \ref Command
     struct Command const** choices;
+    //! The number of choices (i.e. the length of *choices)
     int choices_height;
+    //! The minimal width of the menu
     int choices_width;
+    //! 2D UTF-8 char array printed above the menu (can be null)
     char const** banner;
+    //! Specifies the length of banner
     int banner_height;
+    //! Specifies the length of banner[i]
     int banner_width;
+    //! x-coordinate of the menus upper left corner
     int start_x;
+    //! y-coordinate of the menus upper left corner
     int start_y;
 } Menu;
+
+/* <--- Menu members ---> */
+/*!
+ * \var Menu::choices
+ * The Command array details the available choices for the menu (in the form
+ * of strings), as well as the function that should be run on select.
+ *
+ * \var Menu::choices_width
+ * If all choice labels are shorter than this, the menu is
+ * padded with whitespace.
+ */
 
 /*! \brief structure for dialogues
  *
@@ -64,7 +123,7 @@ enum Justification
 
 void win_cleanup(WINDOW* win);
 
-/*! \brief Macro to create a menu structure
+/*! \brief Create a menu structure
  *
  *  This macro creates a menu structure to be used with other functions in this
  * file for printing, etc.
@@ -80,23 +139,24 @@ void win_cleanup(WINDOW* win);
  * consist of the same number of unicode code points May be left NULL for no
  * banner.
  *
- * \param min_width A minimum width for the choices box. Will be exceeded if the
- * length of the options demands it
+ * \param min_choice_width A minimum width for the choices box. Will be exceeded
+ * if the length of the options demands it
  *
  *  \param justification A constant of the Justification enum that indicates if
- * the text should be left justified, right justified, or centered.
+ * the text should be left justified, right justified, or centered. (Not yet
+ * implemented)
  *
  * \param left_pad A unicode code_point (in the form of a null-terminated
- * string) to use for left padding
+ * string) to use for left padding (Not yet implemented)
  *
- * \param right_pad A unicode code_point (in the
- * form of a null-terminated string) to use for right padding
+ * \param right_pad A unicode code_point (in the form of a null-terminated
+ * string) to use for right padding (Not yet implemented)
  *
- * \param start_x The x-coordinate for the starting point of the menu. If
- * negative will be set such that menu is centered on screen.
+ * \param start_x The x-coordinate for the upper left corner of the menu. If
+ * negative will be set such that menu is horizontally centered on screen.
  *
- * \parm start_y The y-coordinate for the starting point of the menu. If
- * negative will be set such that menu is centered on screen.
+ * \param start_y The y-coordinate for the upper left corner of the menu. If
+ * negative will be set such that menu is vertically centered on screen.
  */
 
 #define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
@@ -114,6 +174,34 @@ void win_cleanup(WINDOW* win);
     const struct Menu* const menu_name##_menu =                                \
         &implementation_##menu_name##_menu
 
+/*! \brief Convenient macro for createing a menu structure
+ *
+ *  This macro creates a menu structure to be used with other functions in this
+ * file for printing, etc.
+ *
+ * For more options, and more detailed descriptions, see \ref make_menu_verbose,
+ * although this macro should be preferred
+ *
+ *  \param name This will be the name of the menu and also determines the
+ * name of the struct created (will be ${menu_name}_menu). There has to be a
+ * global char* array named the same thing containing the menu choices, e.g.
+ * const char* const example[3] = [ "one", "two", "three"] has to be defined
+ * when creating example_menu
+ *
+ *  \param banner The name of a global char* array containing the banner (ascii
+ * art) to be printed above the menu's choices. Every string in the array has to
+ * consist of the same number of unicode code points May be left NULL for no
+ * banner.
+ *
+ * \param min_width A minimum width for the menu choices. Will be exceeded if
+ * the length of the options demands it
+ *
+ * \param start_x The x-coordinate for the upper left corner of the menu. If
+ * negative will be set such that menu is horizontally centered on screen.
+ *
+ * \param start_y The y-coordinate for the upper left corner of the menu. If
+ * negative will be set such that menu is vertically centered on screen.
+ */
 #define make_menu(name, banner, min_width, start_x, start_y)                   \
     make_menu_verbose(name, banner, min_width, left_just, " ", " ", start_x,   \
                       start_y)
@@ -125,13 +213,11 @@ void get_dialogue_path(char* buf, int sz);
 
 void implementation_initialise_menu(struct Menu* menu);
 
-//! Prints the passed in menu to the screen and returns the number of the first
-//! selected choice
+//! Prints a menu with a \ref Command::on_select executed on select
 Func print_menu(const struct Menu* menu);
 
-//! Prints the passed in strings as a menu to screen
-//! and returns the index of the selected choice
-int quick_print_menu(int count, ...);
+//! Conveniently print a minimalistic menu
+int quick_print_menu(int width, int count, ...);
 
 //! Prints the passed in dialogue file to screen with indicated width
 int print_dia(const char* file_path, int width);

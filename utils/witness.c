@@ -1,3 +1,9 @@
+/*!
+ * \file witness.c
+ * \brief Implementation file for witness.h
+ *
+ *
+ */
 #include <assert.h>
 #include <ncurses.h>
 #include <stdlib.h>
@@ -7,14 +13,9 @@
 #include "menu.h"
 #include "utf8.h"
 #include "vec.h"
+#include "witness.h"
 
-enum Witness_enum
-{
-    we_dot,
-    we_filled,
-    we_empty
-};
-
+//! Function for converting enum to string literal
 char const* we_enum_to_str(enum Witness_enum we)
 {
     switch (we) {
@@ -24,6 +25,7 @@ char const* we_enum_to_str(enum Witness_enum we)
     }
 }
 
+//! Direction
 typedef enum Dir
 {
     dir_up,
@@ -32,6 +34,7 @@ typedef enum Dir
     dir_left
 } Dir;
 
+//! Function for converting enum to string literal
 char const* dir_to_str(Dir d)
 {
     switch (d) {
@@ -42,6 +45,7 @@ char const* dir_to_str(Dir d)
     }
 }
 
+//! Returns the opposite direction of the one passed in
 Dir opposite(Dir d)
 {
     switch (d) {
@@ -53,12 +57,7 @@ Dir opposite(Dir d)
     }
 }
 
-typedef struct Group
-{
-    enum color color;
-    char symbol[ASCII_BUF_SZ];
-} Group;
-
+//! Example groups to be used in the game
 Group const groups[] = {
     {.color = col_default,  .symbol = ""},
     { .color = col_yellow, .symbol = "✪"},
@@ -66,34 +65,60 @@ Group const groups[] = {
     {    .color = col_red, .symbol = "֍"}
 };
 
-typedef struct Square
-{
-    Group group;
-    enum Witness_enum walls[4];
-} Sq;
-
-typedef struct Witness_command
-{
-    Command c;
-    Sq* board;
-    int height;
-    int width;
-    Vec_coord pos;
-    coord end;
-} Witness_command;
-
+/*!
+ * \brief Returns the coordinate position in the witness window for the *corner*
+ * at coordinate c
+ *
+ * \param[in] c Coordinate calculated on the board
+ *
+ * \returns Equivalent coordinate on the screen
+ *
+ * For example, the upper left corner of the square in the _first_ row, _second_
+ * column is denoted (0, 1). It's position is get_scr_pos((0, 1)) = (0, 4)
+ */
 coord get_scr_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.y}; }
 
+/*!
+ * \brief Checks if a coordinate refers to a valid square within a witness board
+ *
+ * \param[in] wc The witness command that contains the witness board in use
+ * \param[in] c The coord to check for validity
+ *
+ * \returns true if the coord refers to a valid square on the board, false
+ * otherwise
+ */
 bool wit_coord_valid_sq(Witness_command* wc, coord c)
 {
     return c.y >= 0 && c.x >= 0 && c.y < wc->height && c.x < wc->width;
 }
 
+/*!
+ * \brief Checks if a coordinate refers to a valid grid intersection within a
+ * witness board
+ *
+ * Note that (0, 0) refers to the upper left corner of the square with the same
+ * coordinates. (1, 1) refers to the lower right corner of the same square, that
+ * is the upper left corner of the square with coordinates (1, 1).
+ *
+ * \param[in] wc The witness command that contains the witness board in use
+ * \param[in] c The coord to check for validity
+ *
+ * \returns true if the coord refers to
+ */
 bool wit_coord_valid_grid(Witness_command* wc, coord c)
 {
     return c.y >= 0 && c.x >= 0 && c.y <= wc->height && c.x <= wc->width;
 }
 
+/*!
+ * \brief Retrieves a copy of the square at the specified coordinate
+ *
+ * \param[in] wc The witness command that holds the board to access
+ * \param[in] c The coordinate of the square we want to read
+ *
+ * \returns A copy of the specified square (in other words wc->board[c.y *
+ * wc->width + c.x * wc->height])
+ */
 Sq get(Witness_command* wc, coord c)
 {
     if (!wit_coord_valid_sq(wc, c)) {
@@ -105,6 +130,7 @@ Sq get(Witness_command* wc, coord c)
     return wc->board[c.y * wc->width + c.x];
 }
 
+//! Pointer version of \ref get
 Sq* get_p(Witness_command* wc, coord c)
 {
     if (!wit_coord_valid_sq(wc, c)) {
@@ -116,6 +142,16 @@ Sq* get_p(Witness_command* wc, coord c)
     return &wc->board[c.y * wc->width + c.x];
 }
 
+/*!
+ * \brief Print a part of the witness *board* (i.e. just the walls)
+ *
+ * Only one row of characters will be printed. To print the entire board
+ * (including paths and groups) use \ref paint_witness_board
+ *
+ * \param[out] win The window to print on
+ * \param[in] wc The Witness_command specifying the dimensions of the board
+ * \param[in] line The index of the line to print
+ */
 void print_witness_line(WINDOW* win, Witness_command* wc, int line)
 {
     wmove(win, line, 0);
@@ -147,6 +183,8 @@ void print_witness_line(WINDOW* win, Witness_command* wc, int line)
     }
 }
 
+//! Return the coordinate obtained by stepping one step in direction d from
+//! coord c
 coord step(coord c, Dir d)
 {
     switch (d) {
@@ -158,8 +196,20 @@ coord step(coord c, Dir d)
     }
 }
 
-//Returns coords such that when d is up/down cs[0] is to the left and cs[1] is
-//to the right and when d is left/right cs[0] is up and cs[1] is down
+/*!
+ * \brief Returns the coordinates of the squares passed by when affecting a
+ * movement
+ *
+ * Loads the coordinates of the squares passed by when walking from coord c in
+ * direction d
+ *
+ * \param[in]  c The coordinate (of a grid position, not a square)
+ * \param[out] cs A coord buffer to load into
+ * \param[in]  d The direction to go from c
+ *
+ * The coords are loaded such that when d is up/down cs[0] is to the left and
+ * cs[1] is to the right and when d is left/right cs[0] is up and cs[1] is down
+ */
 void get_walls(coord c, coord cs[2], Dir d)
 {
     switch (d) {
@@ -183,6 +233,16 @@ void get_walls(coord c, coord cs[2], Dir d)
     }
 }
 
+/*!
+ * \brief Returns all the squares connected to a specific square
+ *
+ * \param[in] wc The witness whose board we wish to inspect
+ * \param[in] c The coordinate of the square to inspect
+ *
+ * \returns A vector of coordinates of squares that are connected to the one
+ * specified (i.e have not been sectioned off from each other by the players
+ * path)
+ */
 Vec_coord get_area(Witness_command* wc, coord c)
 {
     int const init_cap   = 16;
@@ -208,6 +268,13 @@ Vec_coord get_area(Witness_command* wc, coord c)
     return res;
 }
 
+/*!
+ * \brief Verifies if a witness puzzle has been solved
+ *
+ * Checks if the witness puzzle has been correctly divided and if the player has
+ * reached the end (notably does not verify if all points have been acquired
+ * yet).
+ */
 bool witness_is_solved(Witness_command* wc)
 {
     if (vec_back(wc->pos).x != wc->end.x || vec_back(wc->pos).y != wc->end.y) {
@@ -243,6 +310,15 @@ bool witness_is_solved(Witness_command* wc)
     return true;
 }
 
+/*!
+ * \brief Create a window suitable for printing a witness puzzle
+ *
+ * Creates a centered window exactly large enough to hold a witness board of the
+ * size specified in wc.
+ *
+ * \param[in] wc The Witness_command whose height and width members will
+ * determine the window size
+ */
 WINDOW* create_witness_win(Witness_command* wc)
 {
     int const ht = 1 + 2 * wc->height;
@@ -254,6 +330,12 @@ WINDOW* create_witness_win(Witness_command* wc)
     return win;
 }
 
+/*!
+ * \brief Paint the witness board, colored tiles, and the players path
+ *
+ * \param[in]  wc The witness puzzle to print
+ * \param[out] win The window to print on
+ */
 void paint_witness_board(Witness_command* wc, WINDOW* win)
 {
     for (int i = 0; i <= wc->height * 2; ++i) {
@@ -273,7 +355,16 @@ void paint_witness_board(Witness_command* wc, WINDOW* win)
     }
 }
 
-//Has to pass coords directly below/above or to the right/left of each other
+/*!
+ * \brief Returns the direction needed to go from one coord to an adjacent one
+ *
+ * \param[in] from The coord to go from
+ * \param[in] to A coord adjacent to `from` to go to
+ *
+ * \returns The direction from `from` to `to`
+ *
+ * If `from` and `to` are not adjacent this function will crash
+ */
 Dir get_direction(coord from, coord to)
 {
     coord c = {to.y - from.y, to.x - from.x};
@@ -298,6 +389,19 @@ Dir get_direction(coord from, coord to)
     assert(wit_coord_valid_grid(wc, step(step(c, dir), point)));               \
     assert((point) != opposite(dir));
 
+/*!
+ * \brief Paint an up movement from the player
+ *
+ * This function is mainly an implementation detail of \ref paint
+ *
+ * \param[in]  wc     The witness we are currently painting
+ * \param[out] win    Window to paint on
+ * \param[in]  point  The direction that the player took after the current up
+ * motion
+ *
+ * `point` has to be left, right or up. If it is `dir_down` then this function
+ * will log an error and crash.
+ */
 void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_up, point);
@@ -324,6 +428,7 @@ void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y - 1, scr_pos.x, "║");
 }
 
+//! Function analogous to \ref paint_up
 void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_left, point);
@@ -352,6 +457,7 @@ void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y, scr_pos.x - 4, final_pipe);
 }
 
+//! Function analogous to \ref paint_up
 void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_right, point);
@@ -380,6 +486,7 @@ void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y, scr_pos.x + 4, final_pipe);
 }
 
+//! Function analogous to \ref paint_up
 void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_down, point);
@@ -406,6 +513,15 @@ void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y + 1, scr_pos.x, "║");
 }
 
+/*!
+ * \brief Paints the path of the player in the witness puzzle
+ *
+ * \param[in]  move   The direction the player moved in
+ * \param[in]  wc     The witness puzzle in question
+ * \param[out] win    The window to print on
+ * \param[in]  c      The coord the player moved from
+ * \param[in]  point  The direction the player moved afterward
+ */
 void paint(Dir move, Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     switch (move) {
@@ -416,6 +532,12 @@ void paint(Dir move, Witness_command* wc, WINDOW* win, coord c, Dir point)
     }
 }
 
+/*!
+ * \brief Print the last step the player took (i.e. pointing nowhere)
+ *
+ * \param[in]  wc     The witness puzzle in question
+ * \param[out] win    The window to print on
+ */
 void paint_last(Witness_command* wc, WINDOW* win)
 {
     Vec_coord v   = wc->pos;
@@ -438,6 +560,16 @@ void paint_last(Witness_command* wc, WINDOW* win)
     }
 }
 
+/*!
+ * \brief Paint the entire path that the player has taken in a witness puzzle
+ *
+ * \param[in]  wc     The witness puzzle we are working with
+ * \param[out] win    The window to paint on
+ * \param[in]  color  The color to print the path in
+ *
+ * The `color` parameter has to be a valid and previously initialised ncurses
+ * color pair.
+ */
 void paint_path(Witness_command* wc, WINDOW* win, enum color color)
 {
     if (wc->pos.sz == 1) { return; }
@@ -471,6 +603,15 @@ void print_vec_deb(Vec_coord v)
 }
 */
 
+/*!
+ * \brief Verifies if the player is moving back from where he came
+ *
+ * \param[in] wc    The witness puzzle we are concerned about
+ * \param[in] move  The direction the player is moving in
+ *
+ * \returns True, if the player is backtracking (i.e. if last move was up and
+ * current move is down)
+ */
 bool is_backtrack(Witness_command* wc, Dir move)
 {
     if (wc->pos.sz < 2) { return false; }
@@ -479,6 +620,16 @@ bool is_backtrack(Witness_command* wc, Dir move)
                                  wc->pos.data[wc->pos.sz - 2]);
 }
 
+/*!
+ * \brief Sets the appropriate walls for the next move
+ *
+ * Takes the current position of the player and places down the walls that would
+ * be affected by a step in direction `d`
+ *
+ * \param[in,out] wc The active witness puzzle
+ * \param[in]     d  The direction to step in
+ * \param[in]     we The status to which the passe by walls will be set
+ */
 void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
 {
     coord cs[2];
@@ -510,7 +661,18 @@ void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
     }
 }
 
-//Expects backtrack to be possible, undefined otherwise
+//Expects backtrack to be possible (i.e the player is not in the starting
+//position), undefined otherwise
+
+/*!
+ * \brief Makes the player take one step back
+ *
+ * \param[in,out] wc The witness puzzle where we make the player take on step
+ * back
+ *
+ * This function expects a backtrack to be possible, i.e. the player to not be
+ * in the starting position. If not the behaviour is undefined.
+ */
 void backtrack(Witness_command* wc)
 {
     Dir d = get_direction(vec_back(wc->pos), wc->pos.data[wc->pos.sz - 2]);
@@ -518,6 +680,13 @@ void backtrack(Witness_command* wc)
     vec_pop(&wc->pos);
 }
 
+/*!
+ * \brief
+ *
+ * \param[in,out] this A pointer to a \ref Witness_command to play
+ *
+ * \returns The Func \ref func_pop "popped" of the top of the \ref func_stack
+ */
 Func play_witness(void* this)
 {
     Witness_command* wc = (Witness_command*)this;
@@ -547,6 +716,7 @@ Func play_witness(void* this)
                 move     = true;
                 next_dir = dir_right;
                 break;
+            //TODO: Add space -> backtrack
             default:;
         }
 

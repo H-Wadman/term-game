@@ -3,17 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "color.h"
-#include "menu.h"
-#include "utf8.h"
 #include "vec.h"
-
-enum Witness_enum
-{
-    we_dot,
-    we_filled,
-    we_empty,
-};
+#include "witness.h"
 
 typedef enum Dir
 {
@@ -22,28 +13,6 @@ typedef enum Dir
     dir_down,
     dir_left
 } Dir;
-
-typedef struct Group
-{
-    enum color color;
-    char symbol[ASCII_BUF_SZ];
-} Group;
-
-typedef struct Square
-{
-    Group group;
-    enum Witness_enum walls[4];
-} Sq;
-
-typedef struct Witness_command
-{
-    Command c;
-    Sq* board;
-    int height;
-    int width;
-    Vec_coord pos;
-    coord end;
-} Witness_command;
 
 bool wit_coord_valid_sq(Witness_command* wc, coord c);
 bool wit_coord_valid_grid(Witness_command* wc, coord c);

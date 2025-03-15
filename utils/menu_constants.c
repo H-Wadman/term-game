@@ -1,14 +1,11 @@
 
-/*! \file menu.c
+/*!
+ * \file menu_constants.c
  *
- * \brief Functions and constants pertaining to printing the main menu
+ * \brief Declarations for menu instances used in the game
  *
- * A file that contains the string constants used for printing to screen,
- * functions that will paint menus and handle input. This documentation will
- * refer to banners and options. A banner is most commonly a larger ascii art
- * indicating the name of the current menu, whereas options are just a series of
- * strings that indicate the possible choices in the menu. As an umbrella term
- * for these "menu component" will be used
+ * Contains definitions of banners and choices for menus appearing in the game,
+ * as well as the definitions of those menus.
  */
 
 #include <limits.h>
@@ -177,6 +174,9 @@ struct Command const* const well[] = {&well_raise_bucket, &well_back};
 make_menu(well, well_art, 50, -1, -1); //NOLINT
 
 /*****************************************************/
+
+//! Initialises all the runtime information of the menus defined in \ref
+//! menu_constants.c
 void initialise_menus()
 {
     implementation_initialise_menu(&implementation_start_menu);

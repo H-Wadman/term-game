@@ -1,5 +1,7 @@
 # TODO
 PRIORITY ONE: - Do documentation in general and learn doxygen
+PRIORITY TWO: - Let highlights be passed to menu functions so that Commands can restore the right selection afterward
+PRIORITY THREE: Redefine Command to not include label (?)
 Box drawing around options also goes weird needs investigation
     - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu + Debian))
 - Menus:

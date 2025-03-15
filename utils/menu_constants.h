@@ -5,11 +5,12 @@
 #define COMMAND_RETURN INT_MIN
 #include "menu.h"
 
-/*! \file menu.h
- * \brief Contains declarations relating to menu.c
+/*! \file menu_constants.h
+ * \brief Declarations pertaining to menu literals defined in \ref
+ * menu_constants.c
  *
- * This header files contains declarations relating to menu.c as well as a macro
- * for declaring
+ * Contains declarations of menu instances, as well as a initialisation function
+ * to be called before any other menu related functions.
  */
 
 extern_menu(start);

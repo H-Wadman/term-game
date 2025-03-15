@@ -1,3 +1,11 @@
+/*!
+ * \file menu.c
+ * \brief Implementation file for \ref menu.h
+ *
+ * This file contains the implementation details of the functions declared in
+ * the \ref menu.h file. Unless you are debugging, it is probably a better place
+ * to look for interesting/useful functions.
+ */
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -28,11 +36,11 @@ int const menu_box_width_offset = 2 + selection_offset;
 
 /*! Loads the path to the dialogue directory
  *
- *  \param buf A character buffer in which the path to the dialogue directory
- * will be stored.
+ *  \param[out] buf A character buffer in which the path to the dialogue
+ * directory will be stored.
  *
- * \param sz An int specifying the size of the receiving buffer. If the receing
- * buffer is too small, the program will abort
+ * \param[in] sz An int specifying the size of the receiving buffer. If the
+ * receing buffer is too small, the program will abort
  */
 void get_dialogue_path(char* buf, int sz)
 {
@@ -45,21 +53,24 @@ void get_dialogue_path(char* buf, int sz)
     strcat(buf, "/dialogue/");
 }
 
-/*! \brief Prints the banner of a menu to the window
- *
- * \param menu A menu struct
- * \param menu_win The window for the choices of the menu
- *
- * \returns The window on which the banner is printed
- */
-
-
+//! Func linked list structure
 typedef struct Node
 {
     struct Node* next;
     Func val;
 } Node;
 
+/*!
+ * Global func stack for storing funcs that are to be restored later.
+ *
+ * If for example you have a func that prints some options, and that can be
+ * called from state A, B and C, you could store a func that will restore the
+ * correct state out of A, B and C and then have the options menu return the
+ * func on the stack whenever it is done (i.e the \ref Command of the exit
+ * option has \ref pop_func as it's on_select member).
+ *
+ * This variable should be manipulated using \ref push_func and \ref pop_func
+ */
 static Node* func_stack = NULL; //NOLINT
 
 void push_func(Func f)
@@ -86,6 +97,14 @@ Func pop_func(void* _ __attribute__((unused)))
     return res;
 }
 
+/*!
+ * \brief Prints the banner of a menu to the window
+ *
+ * \param[in] menu A menu struct
+ * \param[in] menu_win The window for the choices of the menu
+ *
+ * \returns A new window on which the banner is printed
+ */
 WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
 {
     if (!menu->banner) { return NULL; }
@@ -104,6 +123,7 @@ WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
     return banner_win;
 }
 
+//TODO: Can probably be removed (check commented refresh banner)
 void refresh_banner(WINDOW* banner_win, const struct Menu* menu,
                     WINDOW* menu_win)
 {
@@ -119,6 +139,8 @@ void refresh_banner(WINDOW* banner_win, const struct Menu* menu,
     wrefresh(banner_win);
 }
 
+//! Convenience function to remove all artifacts of a window and release its
+//! resources
 void win_cleanup(WINDOW* win)
 {
     werase(win);
@@ -126,6 +148,15 @@ void win_cleanup(WINDOW* win)
     delwin(win);
 }
 
+//TODO: REMOVE X_ALIGN FROM INTERFACE
+/*!
+ * \brief Prints the choice labels of a menu, highlighting the specified option
+ *
+ * \param[out] menu_win Window to print on
+ * \param[in] menu Menu struct with choices to print
+ * \param[in] highlight the number of the choice to be printed (0 indexed)
+ * \param[in] x_align Offset from the windows left border
+ */
 void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
                           int highlight, int x_align)
 {
@@ -163,7 +194,17 @@ void print_menu_highlight(WINDOW* menu_win, const struct Menu* menu,
     free(option);
 }
 
-bool refresh_menu_win(WINDOW* menu_win, const struct Menu* menu, int highlight)
+/*!
+ * \brief Prints the menu on the specified window
+ *
+ * This function clears the WINDOW and prints the menu on it, with the correct
+ * choice highlighted.
+ *
+ * \param[out] menu_win Window to print on
+ * \param[in] menu Menu to print
+ * \param[in] highlight The choice to be highlighted
+ */
+void refresh_menu_win(WINDOW* menu_win, const struct Menu* menu, int highlight)
 {
     // Printing menu box
     wattroff(menu_win, A_STANDOUT);
@@ -178,14 +219,14 @@ bool refresh_menu_win(WINDOW* menu_win, const struct Menu* menu, int highlight)
 
     print_menu_highlight(menu_win, menu, highlight, x_align);
     wrefresh(menu_win);
-
-    return true;
 }
 
-/*! \brief Calculates the width of a menu
+/*!
+ * \brief Calculate the width of a menu
  *
- *  \param menu A menu struct whose width (in unicode points) is to be
- * calculated \returns The width of the menu as number of unicode points
+ * \param[in] menu A menu struct whose width is to be
+ *  calculated
+ * \returns The width of the menu as number of unicode points
  */
 int get_menu_width(struct Menu const* menu)
 {
@@ -198,11 +239,12 @@ int get_menu_width(struct Menu const* menu)
     return max > menu->choices_width ? max : menu->choices_width;
 }
 
-/*! \brief Calculates the width of a banner
+/*!
+ * \brief Calculates the width of a banner
  *
- * \param banner An array of strings
- * \param size and integer denoting the size of banner
- * \returns The width of the banner
+ * \param[in] banner An array of strings
+ * \param[in] size the size of banner
+ * \returns The width of the banner in unicode points
  */
 int get_banner_width(const char* const* banner, int size)
 {
@@ -214,9 +256,14 @@ int get_banner_width(const char* const* banner, int size)
     return max;
 }
 
-/*! Prints the passed in menu according to its parameters and then blocks until
- * a choice has been selected. Afterwards an integer corresponding to the menu
- * choice selected (its index in the menu's choice array)
+/*!
+ * Prints the passed in menu according to its parameters and then blocks until
+ * a choice has been selected. At that point, the \ref Command::on_select
+ * associated with the choice is executed, and the returned Func is passed back
+ * to the caller
+ *
+ * \param[in] menu Menu to be printed
+ * \returns The \ref Func returned by the selected choice
  */
 Func print_menu(const struct Menu* menu)
 {
@@ -257,13 +304,19 @@ Func print_menu(const struct Menu* menu)
             default:;
         }
         refresh_menu_win(menu_win, menu, option);
-        refresh_banner(title_win, menu, menu_win);
+        //TODO: Can probably be removed
+        //refresh_banner(title_win, menu, menu_win);
     }
 }
 
-/*! Prints the passed in menu according to its parameters and then blocks until
- * a choice has been selected. Afterwards an integer corresponding to the menu
- * choice selected (its index in the menu's choice array)
+/*!
+ * Prints the passed in menu according to its parameters and then blocks until
+ * a choice has been selected. Afterwards an integer corresponding to choice
+ * selectes is returned.
+ *
+ * \param[in] menu The menu to print
+ * \returns An index in the range [0, menu.choices_height) indicating the
+ *  selected choice
  */
 int print_menu_old(const struct Menu* menu)
 {
@@ -300,7 +353,16 @@ int print_menu_old(const struct Menu* menu)
     }
 }
 
-int quick_print_menu(int count, ...)
+/*!
+ * Prints the passed in strings as a menu to screen and returns the index of the
+ * selected choice
+ *
+ * \param[in] count The number of variadic arguments passed
+ * \param[in] ... Strings to be used as labels for the menu options
+ *
+ * \returns An integer in the range [0, count) indicating the selected choice
+ */
+int quick_print_menu(int width, int count, ...)
 {
     assert(count > 0);
 
@@ -320,7 +382,7 @@ int quick_print_menu(int count, ...)
         choices[i]->on_select = NULL;
     }
 
-    Menu m = {(Command const**)choices, count, 0, NULL, 0, 0, -1, -1};
+    Menu m = {(Command const**)choices, count, width, NULL, 0, 0, -1, -1};
     implementation_initialise_menu(&m);
 
     int res = print_menu_old(&m);
@@ -330,6 +392,14 @@ int quick_print_menu(int count, ...)
     return res;
 }
 
+/*!
+ * \brief Initialise menu with information only available at runtime
+ *
+ * This function calculates the width of the menu, and centers the menu if it's
+ * start position is not set
+ *
+ * \param[in,out] menu Menu to initialise
+ */
 void implementation_initialise_menu(struct Menu* menu)
 {
     menu->choices_width = get_menu_width(menu);
@@ -354,12 +424,23 @@ void implementation_initialise_menu(struct Menu* menu)
     }
 }
 
+/*!
+ * \brief Holds necessary information when a dialogue is being printed
+ *
+ * This structure is used only when printing a dialogue. It contains information
+ * that will be continually used and updated until the printing is done.
+ */
 struct Dia_print
 {
+    //! File pointer to dialogue
     FILE* file;
+    //! The path to the dialogue
     const char* path;
+    //! The current line
     int line;
+    //! The current horizontal position
     int line_len;
+    //! Width of the dialogue window
     int width;
 };
 
@@ -373,13 +454,21 @@ struct Dia_print
         }                                                                      \
     }
 
-/*! \brief Prints the next word of a dia_print struct to screen and updates it
+/*!
+ * \brief Prints the next word of a dia_print struct to screen and updates it
  * accordingly
  *
- *  \param A dia_print struct containing win, file and position information
- *  \returns A 0 (or 1/2 for EOF/§ respectively) indicating if the end of a
- * dialogue window has been reached (or not), that is if a EOF or § has been
- * encountered in the file. \returns -1 on error
+ * \param[out] win The window to print on
+ *
+ *  \param[in,out] dia A dia_print struct containing win, file and position
+ * information
+ *
+ *  \returns A number indicating status
+ *
+ * \retval -1 Error
+ * \retval 0 Word printed
+ * \retval 1 EOF reached
+ * \retval 2 § read
  */
 int print_next_word(WINDOW* win, struct Dia_print* dia)
 {
@@ -409,9 +498,11 @@ int print_next_word(WINDOW* win, struct Dia_print* dia)
     }
 }
 
-/*! \brief Calculates the height needed to print a dialogue
+/*!
+ * \brief Calculates the height needed to print a dialogue
  *
  *  \param A dia_print struct
+ *
  *  \returns The number of lines needed to print a dialogue window given the
  * specified width
  */
@@ -459,7 +550,8 @@ typedef struct print_dia_win_res
     int res;
 } Print_dia_win_res;
 
-/*! \brief Prints a dialogue to screen
+/*!
+ * \brief Prints a dialogue to screen
  *
  * Note: It is the responsibility of the caller that the width of the dialogue
  * is larger than any word contained in the dialogue
@@ -506,7 +598,8 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
     return res;
 }
 
-/*! This function will print a dialogue to screen, according to the content of a
+/*!
+ * This function will print a dialogue to screen, according to the content of a
  * specified file, and a specified width In order for the dialogue file to
  * function properly, the file should contain text (UTF8) and all "dialogue
  * bubbles" should be finished with a '§' character on a new line(even the last
@@ -514,6 +607,7 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
  *
  * \param file_path A string containing a path to the file containing the
  *  dialogue
+ *
  * \param width An int stating the width of the dialogue to print; it
  * is the responsibility of the caller that the width of any word in the
  * dialogue (counted as unicode code points) does not exceed this width

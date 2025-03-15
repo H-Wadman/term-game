@@ -1,7 +1,10 @@
-/*! \file utf8.c
- * \brief UTF-8 string handling and io
+/*!
+ * \file utf8.c
+ * \brief Implementation file to \ref utf8.h
  *
- *  A file containing functions related to UTF-8 string handling and io.
+ * This file contains the implementation details of the functions declared in
+ * the \ref utf8.h file. Unless you are debugging, \ref utf8.h "it" is probably
+ * a better place to look for interesting/useful functions.
  */
 
 #include <assert.h>
@@ -15,16 +18,29 @@
 #include "logging.h"
 #include "utf8.h"
 
-//! Checks if the passed in byte c is an ASCII character
-extern bool is_ascii(unsigned int c); //NOLINT
+//! Checks if the passed in byte is an ASCII character
+static inline bool is_ascii(unsigned int c)
+{
+    return ASCII_MIN <= c && c <= ASCII_MAX;
+}
 
 //! Checks if the passed in byte c is a continuation byte in the UTF-8 format
-extern bool is_continuation(unsigned int c); //NOLINT
+static inline bool is_continuation(unsigned int c)
+{
+#define BIT1 0b10000000U
+#define BIT2 0b01000000U
 
-/*! \brief Reads the length in bytes of a UTF-8 unicode code point from the
+    return (BIT1 & c) != 0 && (BIT2 & c) == 0;
+#undef BIT1
+#undef BIT2
+}
+
+/*!
+ * \brief Reads the length in bytes of a UTF-8 unicode code point from the
  * first byte
  *
- * \param c The first byte of a UTF-8 unicode code point
+ * \param[in] c The first byte of a UTF-8 unicode code point
+ *
  * \returns An integer in the range [1, 4] indicating the length in bytes of the
  * unicode code point, or -1 on error
  */
@@ -55,8 +71,15 @@ int get_utf8_len(unsigned int c)
 
 /*!
  * Reads a UTF-8 character from an ncurses window into a char buffer
- * \param buf A character buffer in which the unicode code point will be written
- * \param win A ncurses window from which the unicode code point will be read
+ *
+ * \param[out] buf A character buffer in which the unicode code point will be
+ * written
+ * \param[in] win A ncurses window from which the unicode code point will be
+ * read
+ *
+ * The buf parameter has to be at least of length \ref ASCII_BUF_SZ. A NUL
+ * character will be appended after the UTF-8 character.
+ *
  * \returns 0 on success -1 on failure
  */
 int load_utf8(char* buf, WINDOW* win)
@@ -93,8 +116,15 @@ int load_utf8(char* buf, WINDOW* win)
 
 /*!
  * Reads a UTF-8 character from a file pointer into a char buffer
- * \param buf A character buffer in which the unicode code point will be written
- * \param file A file pointer from which the unicode code point will be read
+ *
+ * \param[out] buf A character buffer in which the unicode code point will be
+ * written
+ * \param[in,out] file A file pointer from which the unicode code point will be
+ * read
+ *
+ * The buf parameter has to be at least of length \ref ASCII_BUF_SZ. A NUL
+ * character will be appended after the UTF-8 character.
+ *
  * \returns 0 on success, EOF on EOF and 1 on failure
  */
 int fload_utf8(char* buf, FILE* file)
@@ -132,12 +162,22 @@ int fload_utf8(char* buf, FILE* file)
 /*!
  * Reads a UTF-8 word from a file pointer into a char buffer.
  * The function will skip any initial whitespace.
- * \param buf A character buffer in which the unicode code point will be written
- * \param file A file pointer from which the unicode code point will be read
+ *
+ * \param[out] buf A character buffer in which the unicode code point will be
+ * written
+ *
+ * \param[in,out] file A file pointer from which the unicode code point will be
+ * read
+ *
  * \returns The whitespace that ended the word on success (could also be EOF)
- * and 0 on failure
- * If file stream is exhausted or only whitespace is left in the file buffer
- * \param a NUL character will be placed at buf[0]
+ *  and 0 on failure
+ *
+ * If, when the function is called, the file stream is exhausted or only
+ * whitespace is left in the file buffer
+ * a NUL character will be placed at buf[0]
+ *
+ * **It is the responsibility of the caller** that buf is long enough to contain
+ * any word that might be read *plus a NUL character*.
  */
 int floadw_utf8(char* buf, FILE* file)
 {
@@ -175,7 +215,9 @@ int floadw_utf8(char* buf, FILE* file)
 /*!
  * Reads a UTF-8 character from the specified window and returns a malloced
  * string containing it
- * \param win The window from which to read the UTF-8 character
+ *
+ * \param[in] win The window from which to read the UTF-8 character
+ *
  * \returns A pointer to the malloced string on success, NULL on failure
  */
 const char* wget_utf8(WINDOW* win)
@@ -195,7 +237,10 @@ const char* wget_utf8(WINDOW* win)
 
 /*!
  * Returns the length of a UTF-8 string in unicode code points
- * \param str The string whose length will be calculated
+ *
+ * \param[in] str The string whose length will be calculated
+ *
+ * \returns The length of a UTF-8 string in terms of unicode points
  */
 int utf8_strlen(const char* str)
 {
