@@ -1,15 +1,13 @@
 # TODO
-PRIORITY ONE: - Do documentation in general and learn doxygen
-PRIORITY TWO: - Let highlights be passed to menu functions so that Commands can restore the right selection afterward
-PRIORITY THREE: Redefine Command to not include label (?)
+PRIORITY: - [] Let highlights be passed to menu functions so that Commands can restore the right selection afterward
+PRIORITY: - [] Redefine Command to not include label (?)
+PRIORITY: - [] Allow main to handle Func and Func*
+PRIORITY: - [] Global input function to handle things like ESC, opening a menu anywhere
+
 Box drawing around options also goes weird needs investigation
     - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu + Debian))
 - Menus:
-    - Reorganise generalised menu options
-        - Check if macros can be moved from menu.h to menu\_constants.h or even menu\_constants.c as that will reduce global macro definitions
-        - Update/create documentation, especially those pertaining to generalised menus and things like naming convention for enum of choices
-        - Automatically include enum return type somewhere, as in order to force enum definition?
-    - Finish promised menu funcionality (justify + left/right pad (+ optional box?))
+    - [] Finish promised menu funcionality (justify + left/right pad (+ optional box?))
     - Generalised menu functions should almost certainly be decoupled further and allow for greater freedom in placement
     - Eventual banner should be able to be moved with the optionsbox
     - Rework print_menu_old and print_menu to work together
@@ -19,7 +17,7 @@ Box drawing around options also goes weird needs investigation
 - Add visible cursor support
 - Make it possible to only print a menu, and then to select it, and only then interact with it
 - Make it so that checking for enter on mac/unix works the same (although worked on WSL, so might be fine?)
-- Set up cmake + a header file in order to get hte build path
-- get_banner_width currently doesn't take things like trailing whitespade (\n) into account
+- get_banner_width currently doesn't take things like trailing whitespace (\n) into account
 - Remove test_sudoku once the sudoku part has been properly added to the game
 - Unify sudoku board
+- Remove logging
