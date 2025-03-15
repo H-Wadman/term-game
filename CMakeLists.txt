@@ -12,8 +12,8 @@ else ()
   add_link_options(-fsanitize=address,undefined)
 endif ()
 
-set(utilsDir ${CMAKE_CURRENT_SOURCE_DIR}/utils)
-set(configDir ${CMAKE_CURRENT_SOURCE_DIR}/cmake-cfg)
+set(utilsDir ${CMAKE_CURRENT_LIST_DIR}/utils)
+set(configDir ${CMAKE_CURRENT_LIST_DIR}/cmake-cfg)
 
 configure_file(${configDir}/build-path.h.in ${configDir}/build-path.h)
 
@@ -30,32 +30,25 @@ add_library(logging ${utilsDir}/logging.c)
 #Non local libraries
 find_library(ncursesLib NAMES ncursesw ncurses)
 
+include_directories(${utilsDir})
+
 #utf8 dependencies
 target_link_libraries(utf8 PRIVATE logging)
 
 #menu_constants dependencies
-target_include_directories(menu_constants PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(menu_constants PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 #menu dependencies
 target_include_directories(menu PRIVATE ${configDir})
 target_link_libraries(menu PRIVATE utf8 logging ${ncursesLib})
 
 #witness dependencies
-target_include_directories(witness PRIVATE ${utilsDir})
 target_link_libraries(witness PRIVATE utf8 vec menu logging ${ncursesLib})
 
-#vec dependencies
-target_include_directories(vec PRIVATE ${utilsDir})
-
-#state dependencies
-target_include_directories(start PRIVATE ${utilsDir})
-
 #run dependencies
-target_include_directories(run PRIVATE ${utilsDir})
 target_link_libraries(run PRIVATE ${ncursesLib} utf8 menu menu_constants start witness)
 
 #start dependencies
-target_include_directories(start PRIVATE logging ${utilsDir})
 target_link_libraries(start PRIVATE menu state ${ncursesLib} menu_constants)
 
 add_subdirectory(tests)
