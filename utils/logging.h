@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdnoreturn.h>
 
 //!Logging library providing a few convenience functions as well as avoiding
 //!littering code with NOLINT statements
@@ -12,7 +13,7 @@ void log_msgln(char const* msg);
 
 void log_msgf(char const* fmt, ...);
 
-void log_and_exit(char const* fmt, ...);
+void noreturn log_and_exit(char const* fmt, ...);
 
 struct log_def_args
 {

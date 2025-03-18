@@ -381,6 +381,7 @@ Dir get_direction(coord from, coord to)
     if (c.y == -1 && c.x == 0) { return dir_up; }
 
     assert(false);
+    log_and_exit("Fatal error encountered in %s.\n Aborting...", __func__);
 }
 
 #define VERIFY_PAINT_CONDITIONS(wc, c, dir, point)                             \
