@@ -1,7 +1,7 @@
 /*!
  * \file menu.h
- * \brief Contains declarations relating to menus, such as the Func,
- * Command and Menu structs
+ * \brief Contains declarations relating to menus, such as the Command,
+ * Option and Menu structs
  *
  * This header file contains declarations relating to \ref menu.c as well as
  * macros for forward and normal declarations of menu structs
@@ -21,42 +21,63 @@
 #include <ncurses.h>
 
 /*!
- * \brief Recursive function object at the center of the games functionality
+ * \brief Recursive command at the center of the games functionality
  *
- * The Func struct is simply a struct defined to circumvent the issues of
- * declaring a function with void* args that returns a function of the same
- * type.
+ * The Command struct is a struct defined to both serve as the "base class" for
+ * the command design pattern as well as to circumvent the issues of declaring
+ * a function with a recursive return type.
  *
- * The game starts by calling the first Func->func printing the opening
- * sequence. When that sequence has finished it will return a new Func that will
- * determine what happens next and then return the next Func to be used once it
- * has finished
- */
-typedef struct Func
-{
-    struct Func (*func)(void*);
-} Func;
-
-/*!
- * \brief Command pattern for menus
- *
- * Specifies a label to be shown when a menu is printed, as well as what to do
- * when the options with that label is selected.
- *
- * On selection \ref on_select will be called with a pointer to the Command
- * itself as an argument. This permits you to pass extra arguments to on_select
- * via a struct of the form { Command _, extra args...}
+ * The game starts by calling the first \ref Command::execute printing the
+ * opening sequence. When that sequence has finished it will return a new
+ * Command that will call \ref Command::execute "execute" to advance the game
+ * state and return the Command that determines what happens next, and so on.
  */
 typedef struct Command
 {
-    Func (*on_select)(void*);
-    char const* label;
+    //! The "member function" associated with the Command
+    struct Command* (*execute)(void*);
+    bool persistent;
 } Command;
 
-//! Pushes a func on to the global \ref func_stack
-void push_func(Func f);
-//! Pops a func of the global \ref func_stack
-Func pop_func(void*);
+/* <--- Command members ---> */
+/*!
+ * \var Command::execute
+ * This function will be used as a means to execute an arbitrary function that
+ * returns a Command*.
+ *
+ * *Note: A sizeable part of this is simply an explanation in context of the
+ * command dessign pattern*
+ *
+ * The general idea is as follows: we want to run the game by executing a loop
+ * that calls functions that advance the game and then return the next function
+ * to be called. However, most functions will require arguments in order to be
+ * flexible or do what we want, and in the main loop we have to have the same
+ * signature for every function.
+ */
+
+/*!
+ * \brief Option for menus
+ *
+ * Specifies a label to be shown when a menu is printed, as well as command to
+ * execute when the options with that label is selected.
+ *
+ * On selection \ref command::execute will be called with a pointer to the
+ * Option itself as an argument. This permits you to pass extra arguments to
+ * on_select via a struct of the form { Option _, extra args...}
+ */
+typedef struct Option
+{
+    //TODO: Rework into command
+    //! Command to be executed
+    Command* command;
+    //! Label on the menu button corresponding to this option
+    char const* label;
+} Option;
+
+//! Pushes a command on to the global \ref func_stack
+void push_command(Command* f);
+//! Pops a command of the global \ref func_stack
+Command* pop_command(void*);
 
 /*!
  * \brief Holds menu information
@@ -70,8 +91,8 @@ Func pop_func(void*);
  */
 typedef struct Menu
 {
-    //! An array of pointers to \ref Command
-    struct Command const** choices;
+    //! An array of pointers to \ref Option
+    struct Option const** choices;
     //! The number of choices (i.e. the length of *choices)
     int choices_height;
     //! The minimal width of the menu
@@ -91,7 +112,7 @@ typedef struct Menu
 /* <--- Menu members ---> */
 /*!
  * \var Menu::choices
- * The Command array details the available choices for the menu (in the form
+ * The Option array details the available choices for the menu (in the form
  * of strings), as well as the function that should be run on select.
  *
  * \var Menu::choices_width
@@ -162,7 +183,7 @@ void win_cleanup(WINDOW* win);
 #define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
                           justification, left_pad, right_pad, x, y)            \
     static struct Menu implementation_##menu_name##_menu = {                   \
-        .choices        = (struct Command const**)(menu_name),                 \
+        .choices        = (struct Option const**)(menu_name),                  \
         .choices_height = choices_len(menu_name),                              \
         .choices_width  = (min_choice_width),                                  \
         .banner         = (const char**)(menu_banner),                         \
@@ -174,7 +195,7 @@ void win_cleanup(WINDOW* win);
     const struct Menu* const menu_name##_menu =                                \
         &implementation_##menu_name##_menu
 
-/*! \brief Convenient macro for createing a menu structure
+/*! \brief Convenient macro for creating a menu structure
  *
  *  This macro creates a menu structure to be used with other functions in this
  * file for printing, etc.
@@ -206,6 +227,25 @@ void win_cleanup(WINDOW* win);
     make_menu_verbose(name, banner, min_width, left_just, " ", " ", start_x,   \
                       start_y)
 
+/*!
+ * \brief Menu class derived from \ref Command
+ *
+ * Contains the information necessary for the printing of a menu.
+ */
+typedef struct Menu_command
+{
+    //! Base class - see \Command documentation
+    Command command;
+    struct Menu const* menu;
+    int highlight;
+} Menu_command;
+
+#define make_menu_command(menu_name)                                           \
+    Menu_command const show_##menu_name = {                                    \
+        .command   = (Command){.execute = show_menu},                          \
+        .menu      = menu_name##_menu,                                         \
+        .highlight = 0};
+
 #define extern_menu(name) extern const struct Menu* const name##_menu
 
 //! Loads the path to the dialogue directory into buf
@@ -213,8 +253,8 @@ void get_dialogue_path(char* buf, int sz);
 
 void implementation_initialise_menu(struct Menu* menu);
 
-//! Prints a menu with a \ref Command::on_select executed on select
-Func print_menu(const struct Menu* menu);
+//! Prints a menu with a \ref Option::on_select executed on select
+Command* print_menu(const struct Menu* menu, int select);
 
 //! Conveniently print a minimalistic menu
 int quick_print_menu(int width, int count, ...);

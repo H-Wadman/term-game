@@ -10,6 +10,7 @@
 
 #include <limits.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "menu.h"
 #include "menu_constants.h"
@@ -106,70 +107,110 @@ const char* const well_art[] = {
 // clang-format on
 
 /********************** COMMANDS **********************/
-Func command_exit(void* _ __attribute__((unused)))
-{
-    return (Func){.func = NULL};
-};
 
-//int no_op([[maybe_unused]] void* _) { return 0; }
+//Auxiliary definitions
+
+/*!
+ * \Brief \ref Command extension designed for immediately returning a value
+ *
+ * This structure is mainly useful in combination with \Option "Options".
+ * \ref MAKE_RETURN_COMMAND is defined in order to simplify creating
+ * Options with corresponding Return_commands.
+ */
+typedef struct Return_command
+{
+    Command this;
+    Command* return_value;
+} Return_command;
+
+Command* return_command(void* this)
+{
+    return ((Return_command*)this)->return_value;
+}
+
+/*!
+ * \brief Make an Options that returns a Command*
+ *
+ * The Command* will be returned by \ref Option::command::execute
+ * \param opt_name Name of the \ref Option to be created.
+ * \param label_val The label of the \Option to be created.
+ * \param ret_val_name Decides the name of the Return_command to be created. Has
+ *    to be valid characters in an identifier. Any such name that does not clash
+ *    with another call to MAKE_RETURN_COMMAND is fine, but is usually be the
+ *    same as ret_val without any operators.
+ * \param ret_val (Command*) The return value of Option::command::execute
+ */
+#define MAKE_RETURN_COMMAND(opt_name, label_val, ret_val_name, ret_val)        \
+    struct Return_command const impl_return_##ret_val_name = {                 \
+        (Command){.execute = return_command, .persistent = true},              \
+        .return_value = (ret_val) \
+    };                                            \
+                                                                               \
+    const struct Option opt_name = {                                           \
+        .label   = (label_val),                                                \
+        .command = (Command*)&impl_return_##ret_val_name};
+
+/********************* STANDARD COMMANDS *********************/
+/********************** SHOULD BE CONST **********************/
+
+// = no-op for menus, exit for main function
+static Command const null_command = {.execute = NULL};
+
+static Command const pop = {.execute = pop_command};
+
+static Return_command const exit_game = {(Command){.execute = return_command},
+                                         .return_value =
+                                             (Command*)&null_command};
 
 /**************** START MENU -> OPTIONS ****************/
-const struct Command options_language = {.label     = "Language",
-                                         .on_select = NULL};
-const struct Command options_volume   = {.label = "Volume", .on_select = NULL};
-const struct Command options_colour   = {.label = "Colour", .on_select = NULL};
-const struct Command options_back = {.label = "Back", .on_select = pop_func};
+const struct Option options_language = {.label   = "Language",
+                                        .command = (Command*)&null_command};
+const struct Option options_volume   = {.label   = "Volume",
+                                        .command = (Command*)&null_command};
+const struct Option options_colour   = {.label   = "Colour",
+                                        .command = (Command*)&null_command};
+const struct Option options_back = {.label = "Back", .command = (Command*)&pop};
 
-struct Command const* const options[] = {&options_language, &options_volume,
-                                         &options_colour, &options_back};
+struct Option const* const options[] = {&options_language, &options_volume,
+                                        &options_colour, &options_back};
 make_menu(options, NULL, 60, -1, -1); //NOLINT
-
-struct Return_command
-{
-    struct Command base;
-    Func return_value;
-};
-
-#define MAKE_RETURN_COMMAND(cmd_name, label_val, ret_val)                      \
-    Func impl_return_##ret_val(void* _ __attribute__((unused)))                \
-    {                                                                          \
-        return (Func){ret_val};                                                \
-    }                                                                          \
-    const struct Command cmd_name = {.label     = (label_val),                 \
-                                     .on_select = impl_return_##ret_val}
 
 /********************* START MENU *********************/
 
-MAKE_RETURN_COMMAND(start_play, "Play", show_glade);
-const struct Command start_options = {.label     = "Options",
-                                      .on_select = show_options};
-const struct Command start_exit = {.label = "Exit", .on_select = command_exit};
+MAKE_RETURN_COMMAND(start_play, "Play", show_glade, (Command*)&show_glade);
+//make_menu_command(options);
 
-struct Command const* const start[] = {&start_play, &start_options,
-                                       &start_exit};
+
+const struct Option start_options = {.label   = "Options", //NOLINT
+                                     .command = (Command*)&show_options};
+const struct Option start_exit    = {.label   = "Exit",
+                                     .command = (Command*)&exit_game};
+
+struct Option const* const start[] = {&start_play, &start_options, &start_exit};
 
 make_menu(start, title, 77, -1, -1); //NOLINT
 
 /********************** GLADE **********************/
 
-const struct Command glade_cabin = {.label     = "Cabin",
-                                    .on_select = command_exit};
+const struct Option glade_cabin = {.label   = "Cabin",
+                                   .command = (Command*)&exit_game};
 
-MAKE_RETURN_COMMAND(glade_well, "Well", show_well);
+MAKE_RETURN_COMMAND(glade_well, "Well", show_well, (Command*)&show_well);
 
-const struct Command glade_forest   = {.label     = "Forest",
-                                       .on_select = command_exit};
-struct Command const* const glade[] = {&glade_cabin, &glade_well,
-                                       &glade_forest};
+const struct Option glade_forest   = {.label   = "Forest",
+                                      .command = (Command*)&exit_game};
+struct Option const* const glade[] = {&glade_cabin, &glade_well, &glade_forest};
 
 make_menu(glade, questionmark, 100, -1, -1); //NOLINT
 
 /************************ WELL ************************/
 
-MAKE_RETURN_COMMAND(well_raise_bucket, "Raise bucket", well_raise_bucket_func);
-const struct Command well_back = {.label = "Back", .on_select = pop_func};
+MAKE_RETURN_COMMAND(well_raise_bucket, "Raise bucket",
+                    well_raise_bucket_command,
+                    (Command*)&well_raise_bucket_command);
+const struct Option well_back = {.label = "Back", .command = (Command*)&pop};
 
-struct Command const* const well[] = {&well_raise_bucket, &well_back};
+struct Option const* const well[] = {&well_raise_bucket, &well_back};
 
 make_menu(well, well_art, 50, -1, -1); //NOLINT
 

@@ -69,8 +69,14 @@ int main()
 
 
     //TODO: Transform into union
-    Func curr = (Func){.func = show_opening};
-    while (curr.func) { curr = curr.func(&curr); }
+    Command* curr    = (Command*)malloc(sizeof(Command));
+    curr->execute    = show_opening;
+    curr->persistent = false;
+    while (curr->execute) {
+        Command* old = curr;
+        curr         = curr->execute(curr);
+        if (!old->persistent) { free(old); }
+    }
 
     return 0;
 }

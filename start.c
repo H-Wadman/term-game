@@ -21,17 +21,11 @@
         print_dia(buf, (width));                                               \
     }
 
-typedef struct Sudoku_command
-{
-    Command c;
-    int board[9][9]; //NOLINT
-} Sudoku_command;
-
 //len of str should fit in an int
 
 /*! \brief This function prints the string passed in as a dialogue
  *
- * This funcion will print a dialogue with an identical result to print_dia,
+ * This commandion will print a dialogue with an identical result to print_dia,
  * however instead of printing the contents of a file, it will print the passed
  * in string.
  *
@@ -96,50 +90,70 @@ int print_diastr(char const* const str)
     return 0;
 }
 
-Func show_opening(void* _ __attribute__((unused)))
+Command* show_opening(void* _ __attribute__((unused)))
 {
     get_and_print_dia("opening.txt", COLS / 3);
-    return (Func){.func = show_main_menu};
+    Menu_command* res       = (Menu_command*)malloc(sizeof(Menu_command));
+    res->command.execute    = show_menu;
+    res->menu               = start_menu;
+    res->highlight          = 0;
+    res->command.persistent = false;
+    return (Command*)res;
 }
 
-//This type of function with call to print_menu and return in order to avoid
-//arguments should be made obsolete
-Func show_options(void* _ __attribute__((unused)))
+Command* show_menu(void* this)
 {
-    push_func((Func){show_main_menu});
-    Func op = print_menu(options_menu);
+    Menu_command* mc = (Menu_command*)this;
+    Command* option  = print_menu(mc->menu, mc->highlight);
+
+    return option;
+}
+
+Command* show_options_execute(void* _ __attribute__((unused)))
+{
+    Menu_command* start       = (Menu_command*)malloc(sizeof(Menu_command));
+    start->command.execute    = show_menu;
+    start->menu               = start_menu;
+    start->highlight          = 0;
+    start->command.persistent = false;
+    push_command((Command*)start);
+    Command* op = print_menu(options_menu, 0);
     return op;
 }
 
-Func show_main_menu(void* _ __attribute__((unused)))
-{
-    Func op = print_menu(start_menu);
-    return op;
-}
+Command const show_options = {.execute    = show_options_execute,
+                              .persistent = true};
 
-Func show_glade(void* _ __attribute__((unused)))
+Command* show_glade_execute(void* _ __attribute__((unused)))
 {
     if (!player_visited_glade_val()) {
         get_and_print_dia("intro.txt", COLS / 2);
         player_visited_glade_set();
     }
-    Func op = print_menu(glade_menu);
+    Command* op = print_menu(glade_menu, 0);
 
     return op;
 }
 
-Func show_well(void* _ __attribute__((unused)))
+Command const show_glade = {.execute = show_glade_execute, .persistent = true};
+
+Command* show_well_execute(void* _ __attribute__((unused)))
 {
-    push_func((Func){show_glade});
+    Command* res    = (Command*)malloc(sizeof(Command));
+    res->execute    = show_glade_execute;
+    res->persistent = false;
+    push_command(res);
     if (player_visited_well_val()) {
         get_and_print_dia("well.txt", COLS / 2);
         player_visited_well_set();
     }
 
-    Func op = print_menu(well_menu);
+    Command* op = print_menu(well_menu, 0);
 
     return op;
 }
+
+Command const show_well = {.execute = show_well_execute, .persistent = true};
 
 // clang-format off
     char const* const bucket[] = {
@@ -151,7 +165,7 @@ Func show_well(void* _ __attribute__((unused)))
     };
 // clang-format on
 
-void wpaint_bucket(WINDOW* win, int const y)
+static void wpaint_bucket(WINDOW* win, int const y)
 {
     int const max_x = getmaxx(win);
 
@@ -164,7 +178,7 @@ void wpaint_bucket(WINDOW* win, int const y)
     wrefresh(win);
 }
 
-void wpaint_rope(WINDOW* win, int count, int piece_len, int bucket_width)
+static void wpaint_rope(WINDOW* win, int count, int piece_len, int bucket_width)
 {
     for (int i = 0; i < count; ++i) {
         int const curr = piece_len * i;
@@ -175,8 +189,8 @@ void wpaint_rope(WINDOW* win, int count, int piece_len, int bucket_width)
     }
 }
 
-int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
-                     int bucket_height)
+static int bucket_iteration(WINDOW* win, int count, int piece_len,
+                            int bucket_width, int bucket_height)
 {
     werase(win);
     wpaint_rope(win, count, piece_len, bucket_width);
@@ -200,11 +214,11 @@ int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
     return count;
 }
 
-Func well_raise_bucket_func(void* _ __attribute__((unused)))
+static Command* well_raise_bucket_execute(void* _ __attribute__((unused)))
 {
     if (player_has_key_val()) {
         print_diastr("You've already got the key!");
-        return (Func){.func = show_well};
+        return (Command*)&show_well;
     }
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
@@ -237,8 +251,11 @@ Func well_raise_bucket_func(void* _ __attribute__((unused)))
     int res = quick_print_menu(COLS / 8, 2, "Yes", "No"); //NOLINT(*magic*)
     if (res == 0) { player_has_key_set(); }
 
-    return (Func){.func = show_well};
+    return (Command*)&show_well;
 }
+
+Command const well_raise_bucket_command = {.execute = well_raise_bucket_execute,
+                                           .persistent = true};
 
 char const* const sudoku_board[] = {
     "╔═══╦═══╦═══╦═══╦═══╦═══╦═══════════╗",
@@ -396,7 +413,7 @@ bool sudoku_is_solved(int const* board)
     return true;
 }
 
-void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
+void play_sudoku(WINDOW* suk_win, Sudoku* sc)
 {
     int y = 0;
     int x = 0;
@@ -473,14 +490,16 @@ void sudoku_test()
     //NOLINTEND
 }
 
-Func paint_sudoku(void* this)
+static Command const pop = {.execute = pop_command};
+
+Command* paint_sudoku(void* this)
 {
 #ifndef NDEBUG
     sudoku_test();
 #endif
 
-    Sudoku_command* sc = (Sudoku_command*)this;
-    WINDOW* suk_win    = paint_sudoku_board((int*)sc->board);
+    Sudoku* sc      = (Sudoku*)this;
+    WINDOW* suk_win = paint_sudoku_board((int*)sc->board);
 
     play_sudoku(suk_win, sc);
 
@@ -488,39 +507,40 @@ Func paint_sudoku(void* this)
     wrefresh(suk_win);
     delwin(suk_win);
 
-    return (Func){.func = NULL};
+    return (Command*)&pop;
 }
 
+//TODO: Remove
 void test_sudoku()
 {
     //NOLINTBEGIN
-    Sudoku_command sc_solved __attribute__((unused)) = {
-        .c     = (Command){.label = NULL, .on_select = NULL},
-        .board = {
-                           {0, 8, 5, 4, 7, 9, 1, 3, 2},
-                           {7, 3, 4, 1, 6, 2, 5, 9, 8},
-                           {2, 1, 9, 5, 3, 8, 7, 6, 4},
-                           {9, 2, 6, 3, 4, 5, 8, 7, 1},
-                           {8, 5, 1, 7, 2, 6, 3, 4, 9},
-                           {4, 7, 3, 8, 9, 1, 2, 5, 6},
-                           {3, 4, 2, 6, 8, 7, 9, 1, 5},
-                           {5, 6, 8, 9, 1, 3, 4, 2, 7},
-                           {1, 9, 7, 2, 5, 4, 6, 8, 3},
-                           }
+    Sudoku sc_solved __attribute__((unused)) = {
+        .command = (Command){.execute = paint_sudoku},
+        .board   = {
+                             {0, 8, 5, 4, 7, 9, 1, 3, 2},
+                             {7, 3, 4, 1, 6, 2, 5, 9, 8},
+                             {2, 1, 9, 5, 3, 8, 7, 6, 4},
+                             {9, 2, 6, 3, 4, 5, 8, 7, 1},
+                             {8, 5, 1, 7, 2, 6, 3, 4, 9},
+                             {4, 7, 3, 8, 9, 1, 2, 5, 6},
+                             {3, 4, 2, 6, 8, 7, 9, 1, 5},
+                             {5, 6, 8, 9, 1, 3, 4, 2, 7},
+                             {1, 9, 7, 2, 5, 4, 6, 8, 3},
+                             }
     };
-    Sudoku_command sc = {
-        .c     = (Command){.label = NULL, .on_select = NULL},
-        .board = {
-                           {6, 0, 0, 0, 7, 9, 0, 3, 2},
-                           {0, 0, 0, 0, 6, 0, 5, 0, 0},
-                           {2, 0, 9, 0, 0, 8, 7, 0, 0},
-                           {9, 0, 6, 3, 0, 5, 0, 0, 1},
-                           {8, 5, 0, 0, 0, 0, 3, 0, 0},
-                           {4, 7, 3, 0, 0, 1, 2, 5, 0},
-                           {0, 4, 2, 6, 8, 0, 9, 0, 0},
-                           {0, 0, 0, 0, 1, 3, 4, 2, 7},
-                           {0, 9, 0, 2, 0, 0, 6, 0, 0},
-                           }
+    Sudoku sc = {
+        .command = (Command){.execute = paint_sudoku},
+        .board   = {
+                             {6, 0, 0, 0, 7, 9, 0, 3, 2},
+                             {0, 0, 0, 0, 6, 0, 5, 0, 0},
+                             {2, 0, 9, 0, 0, 8, 7, 0, 0},
+                             {9, 0, 6, 3, 0, 5, 0, 0, 1},
+                             {8, 5, 0, 0, 0, 0, 3, 0, 0},
+                             {4, 7, 3, 0, 0, 1, 2, 5, 0},
+                             {0, 4, 2, 6, 8, 0, 9, 0, 0},
+                             {0, 0, 0, 0, 1, 3, 4, 2, 7},
+                             {0, 9, 0, 2, 0, 0, 6, 0, 0},
+                             }
     };
     //NOLINTEND
 
