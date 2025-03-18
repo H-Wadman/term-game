@@ -53,27 +53,27 @@ void get_dialogue_path(char* buf, int sz)
     strcat(buf, "/dialogue/");
 }
 
-//! Func linked list structure
+//! Command linked list structure
 typedef struct Node
 {
     struct Node* next;
-    Func val;
+    Command val;
 } Node;
 
 /*!
- * Global func stack for storing funcs that are to be restored later.
+ * Global command stack for storing commands that are to be restored later.
  *
- * If for example you have a func that prints some options, and that can be
- * called from state A, B and C, you could store a func that will restore the
+ * If for example you have a command that prints some options, and that can be
+ * called from state A, B and C, you could store a command that will restore the
  * correct state out of A, B and C and then have the options menu return the
- * func on the stack whenever it is done (i.e the \ref Command of the exit
- * option has \ref pop_func as it's on_select member).
+ * command on the stack whenever it is done (i.e the \ref Option of the exit
+ * option has \ref pop_command as it's on_select member).
  *
- * This variable should be manipulated using \ref push_func and \ref pop_func
+ * This variable should be manipulated using \ref push_command and \ref pop_func
  */
 static Node* func_stack = NULL; //NOLINT
 
-void push_func(Func f)
+void push_command(Command f)
 {
     Node* curr = (Node*)malloc(sizeof(Node));
 
@@ -83,15 +83,15 @@ void push_func(Func f)
     func_stack = curr;
 }
 
-Func pop_func(void* _ __attribute__((unused)))
+Command pop_command(void* _ __attribute__((unused)))
 {
-    if (!func_stack) { log_and_exit("Empty func stack popped\n"); }
+    if (!func_stack) { log_and_exit("Empty command stack popped\n"); }
 
     Node* popped = func_stack;
 
     func_stack = func_stack->next;
 
-    Func res = popped->val;
+    Command res = popped->val;
     free(popped);
 
     return res;
@@ -258,14 +258,14 @@ int get_banner_width(const char* const* banner, int size)
 
 /*!
  * Prints the passed in menu according to its parameters and then blocks until
- * a choice has been selected. At that point, the \ref Command::on_select
- * associated with the choice is executed, and the returned Func is passed back
+ * a choice has been selected. At that point, the \ref Option::on_select
+ * associated with the choice is executed, and the returned Command is passed back
  * to the caller
  *
  * \param[in] menu Menu to be printed
- * \returns The \ref Func returned by the selected choice
+ * \returns The \ref Command returned by the selected choice
  */
-Func print_menu(const struct Menu* menu)
+Command print_menu(const struct Menu* menu)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
@@ -290,11 +290,11 @@ Func print_menu(const struct Menu* menu)
                 break;
             case KEY_DOWN : option = (option + 1) % menu->choices_height; break;
             case LINE_FEED: {
-                struct Command const* const curr = menu->choices[option];
+                struct Option const* const curr = menu->choices[option];
                 if (curr->on_select) {
                     option = 0;
                     refresh_menu_win(menu_win, menu, option);
-                    Func res = curr->on_select((void*)curr);
+                    Command res = curr->on_select((void*)curr);
                     win_cleanup(menu_win);
                     win_cleanup(title_win);
 
@@ -369,11 +369,11 @@ int quick_print_menu(int width, int count, ...)
     va_list va = NULL;
     va_start(va, count);
 
-    //Could be optimised by just allocating a Command* and filling it with
+    //Could be optimised by just allocating a Option* and filling it with
     //commands, then creating an array and filling that with pointers to
     //individual elements, thus saving on mallocs
-    Command** choices = (Command**)malloc(count * sizeof(Command*));
-    for (int i = 0; i < count; ++i) { choices[i] = malloc(sizeof(Command)); }
+    Option** choices = (Option**)malloc(count * sizeof(Option*));
+    for (int i = 0; i < count; ++i) { choices[i] = malloc(sizeof(Option)); }
 
     assert(count > 0);
     for (int i = 0; i < count; ++i) {
@@ -382,7 +382,7 @@ int quick_print_menu(int width, int count, ...)
         choices[i]->on_select = NULL;
     }
 
-    Menu m = {(Command const**)choices, count, width, NULL, 0, 0, -1, -1};
+    Menu m = {(Option const**)choices, count, width, NULL, 0, 0, -1, -1};
     implementation_initialise_menu(&m);
 
     int res = print_menu_old(&m);

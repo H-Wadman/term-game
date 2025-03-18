@@ -23,7 +23,7 @@
 
 typedef struct Sudoku_command
 {
-    Command c;
+    Option c;
     int board[9][9]; //NOLINT
 } Sudoku_command;
 
@@ -31,7 +31,7 @@ typedef struct Sudoku_command
 
 /*! \brief This function prints the string passed in as a dialogue
  *
- * This funcion will print a dialogue with an identical result to print_dia,
+ * This commandion will print a dialogue with an identical result to print_dia,
  * however instead of printing the contents of a file, it will print the passed
  * in string.
  *
@@ -96,47 +96,47 @@ int print_diastr(char const* const str)
     return 0;
 }
 
-Func show_opening(void* _ __attribute__((unused)))
+Command show_opening(void* _ __attribute__((unused)))
 {
     get_and_print_dia("opening.txt", COLS / 3);
-    return (Func){.func = show_main_menu};
+    return (Command){.command = show_main_menu};
 }
 
 //This type of function with call to print_menu and return in order to avoid
 //arguments should be made obsolete
-Func show_options(void* _ __attribute__((unused)))
+Command show_options(void* _ __attribute__((unused)))
 {
-    push_func((Func){show_main_menu});
-    Func op = print_menu(options_menu);
+    push_command((Command){show_main_menu});
+    Command op = print_menu(options_menu);
     return op;
 }
 
-Func show_main_menu(void* _ __attribute__((unused)))
+Command show_main_menu(void* _ __attribute__((unused)))
 {
-    Func op = print_menu(start_menu);
+    Command op = print_menu(start_menu);
     return op;
 }
 
-Func show_glade(void* _ __attribute__((unused)))
+Command show_glade(void* _ __attribute__((unused)))
 {
     if (!player_visited_glade_val()) {
         get_and_print_dia("intro.txt", COLS / 2);
         player_visited_glade_set();
     }
-    Func op = print_menu(glade_menu);
+    Command op = print_menu(glade_menu);
 
     return op;
 }
 
-Func show_well(void* _ __attribute__((unused)))
+Command show_well(void* _ __attribute__((unused)))
 {
-    push_func((Func){show_glade});
+    push_command((Command){show_glade});
     if (player_visited_well_val()) {
         get_and_print_dia("well.txt", COLS / 2);
         player_visited_well_set();
     }
 
-    Func op = print_menu(well_menu);
+    Command op = print_menu(well_menu);
 
     return op;
 }
@@ -200,11 +200,11 @@ int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
     return count;
 }
 
-Func well_raise_bucket_func(void* _ __attribute__((unused)))
+Command well_raise_bucket_command(void* _ __attribute__((unused)))
 {
     if (player_has_key_val()) {
         print_diastr("You've already got the key!");
-        return (Func){.func = show_well};
+        return (Command){.command = show_well};
     }
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
@@ -237,7 +237,7 @@ Func well_raise_bucket_func(void* _ __attribute__((unused)))
     int res = quick_print_menu(COLS / 8, 2, "Yes", "No"); //NOLINT(*magic*)
     if (res == 0) { player_has_key_set(); }
 
-    return (Func){.func = show_well};
+    return (Command){.command = show_well};
 }
 
 char const* const sudoku_board[] = {
@@ -473,7 +473,7 @@ void sudoku_test()
     //NOLINTEND
 }
 
-Func paint_sudoku(void* this)
+Command paint_sudoku(void* this)
 {
 #ifndef NDEBUG
     sudoku_test();
@@ -488,14 +488,14 @@ Func paint_sudoku(void* this)
     wrefresh(suk_win);
     delwin(suk_win);
 
-    return (Func){.func = NULL};
+    return (Command){.command = NULL};
 }
 
 void test_sudoku()
 {
     //NOLINTBEGIN
     Sudoku_command sc_solved __attribute__((unused)) = {
-        .c     = (Command){.label = NULL, .on_select = NULL},
+        .c     = (Option){.label = NULL, .on_select = NULL},
         .board = {
                            {0, 8, 5, 4, 7, 9, 1, 3, 2},
                            {7, 3, 4, 1, 6, 2, 5, 9, 8},
@@ -509,7 +509,7 @@ void test_sudoku()
                            }
     };
     Sudoku_command sc = {
-        .c     = (Command){.label = NULL, .on_select = NULL},
+        .c     = (Option){.label = NULL, .on_select = NULL},
         .board = {
                            {6, 0, 0, 0, 7, 9, 0, 3, 2},
                            {0, 0, 0, 0, 6, 0, 5, 0, 0},

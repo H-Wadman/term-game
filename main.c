@@ -69,8 +69,8 @@ int main()
 
 
     //TODO: Transform into union
-    Func curr = (Func){.func = show_opening};
-    while (curr.func) { curr = curr.func(&curr); }
+    Command curr = (Command){.command = show_opening};
+    while (curr.command) { curr = curr.command(&curr); }
 
     return 0;
 }

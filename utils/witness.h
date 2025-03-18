@@ -56,13 +56,13 @@ typedef struct Square
     enum Witness_enum walls[4];
 } Sq;
 
-//Todo transform into Func and rework the main loop to use pointers
+//Todo transform into Command and rework the main loop to use pointers
 /*!
- * \brief Command for specifying the witness game
+ * \brief Option for specifying the witness game
  */
 typedef struct Witness_command
 {
-    Command c;
+    Option c;
     Sq* board;
     int height;
     int width;
@@ -71,6 +71,6 @@ typedef struct Witness_command
 } Witness_command;
 
 //! Play a witness game specified by this
-Func play_witness(void* this);
+Command play_witness(void* this);
 
 #endif

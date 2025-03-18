@@ -9,13 +9,13 @@ bool valid_sq(int const* board, int y, int x);
 
 typedef struct Sudoku_command
 {
-    Command c;
+    Option c;
     int board[9][9]; //NOLINT
 } Sudoku_command;
 
 //NOLINTBEGIN
 Sudoku_command sc_solved __attribute__((unused)) = {
-    .c     = (Command){.label = NULL, .on_select = NULL},
+    .c     = (Option){.label = NULL, .on_select = NULL},
     .board = {
                        {0, 8, 5, 4, 7, 9, 1, 3, 2},
                        {7, 3, 4, 1, 6, 2, 5, 9, 8},
@@ -29,7 +29,7 @@ Sudoku_command sc_solved __attribute__((unused)) = {
                        }
 };
 Sudoku_command sc = {
-    .c     = (Command){.label = NULL, .on_select = NULL},
+    .c     = (Option){.label = NULL, .on_select = NULL},
     .board = {
                        {6, 0, 0, 0, 7, 9, 0, 3, 2},
                        {0, 0, 0, 0, 6, 0, 5, 0, 0},

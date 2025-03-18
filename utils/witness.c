@@ -15,7 +15,7 @@
 #include "vec.h"
 #include "witness.h"
 
-//! Function for converting enum to string literal
+//! Commandtion for converting enum to string literal
 char const* we_enum_to_str(enum Witness_enum we)
 {
     switch (we) {
@@ -34,7 +34,7 @@ typedef enum Dir
     dir_left
 } Dir;
 
-//! Function for converting enum to string literal
+//! Commandtion for converting enum to string literal
 char const* dir_to_str(Dir d)
 {
     switch (d) {
@@ -429,7 +429,7 @@ void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y - 1, scr_pos.x, "║");
 }
 
-//! Function analogous to \ref paint_up
+//! Commandtion analogous to \ref paint_up
 void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_left, point);
@@ -458,7 +458,7 @@ void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y, scr_pos.x - 4, final_pipe);
 }
 
-//! Function analogous to \ref paint_up
+//! Commandtion analogous to \ref paint_up
 void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_right, point);
@@ -487,7 +487,7 @@ void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
     mvwaddstr(win, scr_pos.y, scr_pos.x + 4, final_pipe);
 }
 
-//! Function analogous to \ref paint_up
+//! Commandtion analogous to \ref paint_up
 void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_down, point);
@@ -686,9 +686,9 @@ void backtrack(Witness_command* wc)
  *
  * \param[in,out] this A pointer to a \ref Witness_command to play
  *
- * \returns The Func \ref func_pop "popped" of the top of the \ref func_stack
+ * \returns The Command \ref func_pop "popped" of the top of the \ref func_stack
  */
-Func play_witness(void* this)
+Command play_witness(void* this)
 {
     Witness_command* wc = (Witness_command*)this;
     WINDOW* win         = create_witness_win(wc);
@@ -745,7 +745,7 @@ Func play_witness(void* this)
     wrefresh(win);
     delwin(win);
 
-    return pop_func(NULL);
+    return pop_command(NULL);
 }
 
 void test_play_witness()
