@@ -10,6 +10,7 @@
 
 #include <limits.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "menu.h"
 #include "menu_constants.h"
@@ -106,22 +107,23 @@ const char* const well_art[] = {
 // clang-format on
 
 /********************** COMMANDS **********************/
-Command command_exit(void* _ __attribute__((unused)))
+Command* command_exit(void* _ __attribute__((unused)))
 {
-    return (Command){.command = NULL};
+    Command* res = (Command*)malloc(sizeof(Command));
+    res->command = NULL;
+    return res;
 };
 
 //int no_op([[maybe_unused]] void* _) { return 0; }
 
 /**************** START MENU -> OPTIONS ****************/
-const struct Option options_language = {.label     = "Language",
-                                         .on_select = NULL};
+const struct Option options_language = {.label = "Language", .on_select = NULL};
 const struct Option options_volume   = {.label = "Volume", .on_select = NULL};
 const struct Option options_colour   = {.label = "Colour", .on_select = NULL};
 const struct Option options_back = {.label = "Back", .on_select = pop_command};
 
 struct Option const* const options[] = {&options_language, &options_volume,
-                                         &options_colour, &options_back};
+                                        &options_colour, &options_back};
 make_menu(options, NULL, 60, -1, -1); //NOLINT
 
 struct Return_command
@@ -131,42 +133,42 @@ struct Return_command
 };
 
 #define MAKE_RETURN_COMMAND(cmd_name, label_val, ret_val)                      \
-    Command impl_return_##ret_val(void* _ __attribute__((unused)))                \
+    Command* impl_return_##ret_val(void* _ __attribute__((unused)))            \
     {                                                                          \
-        return (Command){ret_val};                                                \
+        Command* res = (Command*)malloc(sizeof(Command));                      \
+        res->command = ret_val;                                                \
+        return res;                                                            \
     }                                                                          \
-    const struct Option cmd_name = {.label     = (label_val),                 \
-                                     .on_select = impl_return_##ret_val}
+    const struct Option cmd_name = {.label     = (label_val),                  \
+                                    .on_select = impl_return_##ret_val}
 
 /********************* START MENU *********************/
 
 MAKE_RETURN_COMMAND(start_play, "Play", show_glade);
 const struct Option start_options = {.label     = "Options",
-                                      .on_select = show_options};
+                                     .on_select = show_options};
 const struct Option start_exit = {.label = "Exit", .on_select = command_exit};
 
-struct Option const* const start[] = {&start_play, &start_options,
-                                       &start_exit};
+struct Option const* const start[] = {&start_play, &start_options, &start_exit};
 
 make_menu(start, title, 77, -1, -1); //NOLINT
 
 /********************** GLADE **********************/
 
-const struct Option glade_cabin = {.label     = "Cabin",
-                                    .on_select = command_exit};
+const struct Option glade_cabin = {.label = "Cabin", .on_select = command_exit};
 
 MAKE_RETURN_COMMAND(glade_well, "Well", show_well);
 
 const struct Option glade_forest   = {.label     = "Forest",
-                                       .on_select = command_exit};
-struct Option const* const glade[] = {&glade_cabin, &glade_well,
-                                       &glade_forest};
+                                      .on_select = command_exit};
+struct Option const* const glade[] = {&glade_cabin, &glade_well, &glade_forest};
 
 make_menu(glade, questionmark, 100, -1, -1); //NOLINT
 
 /************************ WELL ************************/
 
-MAKE_RETURN_COMMAND(well_raise_bucket, "Raise bucket", well_raise_bucket_command);
+MAKE_RETURN_COMMAND(well_raise_bucket, "Raise bucket",
+                    well_raise_bucket_command);
 const struct Option well_back = {.label = "Back", .on_select = pop_command};
 
 struct Option const* const well[] = {&well_raise_bucket, &well_back};

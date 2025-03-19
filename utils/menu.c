@@ -57,7 +57,7 @@ void get_dialogue_path(char* buf, int sz)
 typedef struct Node
 {
     struct Node* next;
-    Command val;
+    Command* val;
 } Node;
 
 /*!
@@ -73,7 +73,7 @@ typedef struct Node
  */
 static Node* func_stack = NULL; //NOLINT
 
-void push_command(Command f)
+void push_command(Command* f)
 {
     Node* curr = (Node*)malloc(sizeof(Node));
 
@@ -83,7 +83,7 @@ void push_command(Command f)
     func_stack = curr;
 }
 
-Command pop_command(void* _ __attribute__((unused)))
+Command* pop_command(void* _ __attribute__((unused)))
 {
     if (!func_stack) { log_and_exit("Empty command stack popped\n"); }
 
@@ -91,7 +91,7 @@ Command pop_command(void* _ __attribute__((unused)))
 
     func_stack = func_stack->next;
 
-    Command res = popped->val;
+    Command* res = popped->val;
     free(popped);
 
     return res;
@@ -259,13 +259,13 @@ int get_banner_width(const char* const* banner, int size)
 /*!
  * Prints the passed in menu according to its parameters and then blocks until
  * a choice has been selected. At that point, the \ref Option::on_select
- * associated with the choice is executed, and the returned Command is passed back
- * to the caller
+ * associated with the choice is executed, and the returned Command is passed
+ * back to the caller
  *
  * \param[in] menu Menu to be printed
  * \returns The \ref Command returned by the selected choice
  */
-Command print_menu(const struct Menu* menu)
+Command* print_menu(const struct Menu* menu)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
@@ -294,7 +294,7 @@ Command print_menu(const struct Menu* menu)
                 if (curr->on_select) {
                     option = 0;
                     refresh_menu_win(menu_win, menu, option);
-                    Command res = curr->on_select((void*)curr);
+                    Command* res = curr->on_select((void*)curr);
                     win_cleanup(menu_win);
                     win_cleanup(title_win);
 

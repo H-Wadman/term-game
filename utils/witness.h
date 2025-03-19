@@ -62,7 +62,6 @@ typedef struct Square
  */
 typedef struct Witness_command
 {
-    Option c;
     Sq* board;
     int height;
     int width;
@@ -71,6 +70,6 @@ typedef struct Witness_command
 } Witness_command;
 
 //! Play a witness game specified by this
-Command play_witness(void* this);
+Command* play_witness(void* this);
 
 #endif

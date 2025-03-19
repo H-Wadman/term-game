@@ -69,8 +69,13 @@ int main()
 
 
     //TODO: Transform into union
-    Command curr = (Command){.command = show_opening};
-    while (curr.command) { curr = curr.command(&curr); }
+    Command* curr = (Command*)malloc(sizeof(Command));
+    curr->execute = show_opening;
+    while (curr->execute) {
+        Command* old = curr;
+        curr         = curr->execute(curr);
+        free(old);
+    }
 
     return 0;
 }

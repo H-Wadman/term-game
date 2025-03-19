@@ -25,16 +25,16 @@
  *
  * The Command struct is simply a struct defined to circumvent the issues of
  * declaring a function with void* args that returns a function of the same
- * type.
+ * type combined with the command design pattern.
  *
  * The game starts by calling the first Command->command printing the opening
- * sequence. When that sequence has finished it will return a new Command that will
- * determine what happens next and then return the next Command to be used once it
- * has finished
+ * sequence. When that sequence has finished it will return a new Command that
+ * will determine what happens next and then return the next Command to be used
+ * once it has finished
  */
 typedef struct Command
 {
-    struct Command (*command)(void*);
+    struct Command* (*execute)(void*);
 } Command;
 
 /*!
@@ -49,14 +49,14 @@ typedef struct Command
  */
 typedef struct Option
 {
-    Command (*on_select)(void*);
+    Command* (*on_select)(void*);
     char const* label;
 } Option;
 
 //! Pushes a command on to the global \ref func_stack
-void push_command(Command f);
+void push_command(Command* f);
 //! Pops a command of the global \ref func_stack
-Command pop_command(void*);
+Command* pop_command(void*);
 
 /*!
  * \brief Holds menu information
@@ -162,7 +162,7 @@ void win_cleanup(WINDOW* win);
 #define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
                           justification, left_pad, right_pad, x, y)            \
     static struct Menu implementation_##menu_name##_menu = {                   \
-        .choices        = (struct Option const**)(menu_name),                 \
+        .choices        = (struct Option const**)(menu_name),                  \
         .choices_height = choices_len(menu_name),                              \
         .choices_width  = (min_choice_width),                                  \
         .banner         = (const char**)(menu_banner),                         \
@@ -214,7 +214,7 @@ void get_dialogue_path(char* buf, int sz);
 void implementation_initialise_menu(struct Menu* menu);
 
 //! Prints a menu with a \ref Option::on_select executed on select
-Command print_menu(const struct Menu* menu);
+Command* print_menu(const struct Menu* menu);
 
 //! Conveniently print a minimalistic menu
 int quick_print_menu(int width, int count, ...);

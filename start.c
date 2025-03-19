@@ -96,47 +96,53 @@ int print_diastr(char const* const str)
     return 0;
 }
 
-Command show_opening(void* _ __attribute__((unused)))
+Command* show_opening(void* _ __attribute__((unused)))
 {
     get_and_print_dia("opening.txt", COLS / 3);
-    return (Command){.command = show_main_menu};
+    Command* res = (Command*)malloc(sizeof(Command));
+    res->execute = show_main_menu;
+    return res;
 }
 
 //This type of function with call to print_menu and return in order to avoid
 //arguments should be made obsolete
-Command show_options(void* _ __attribute__((unused)))
+Command* show_options(void* _ __attribute__((unused)))
 {
-    push_command((Command){show_main_menu});
-    Command op = print_menu(options_menu);
+    Command* res = (Command*)malloc(sizeof(Command));
+    res->execute = show_main_menu;
+    push_command(res);
+    Command* op = print_menu(options_menu);
     return op;
 }
 
-Command show_main_menu(void* _ __attribute__((unused)))
+Command* show_main_menu(void* _ __attribute__((unused)))
 {
-    Command op = print_menu(start_menu);
+    Command* op = print_menu(start_menu);
     return op;
 }
 
-Command show_glade(void* _ __attribute__((unused)))
+Command* show_glade(void* _ __attribute__((unused)))
 {
     if (!player_visited_glade_val()) {
         get_and_print_dia("intro.txt", COLS / 2);
         player_visited_glade_set();
     }
-    Command op = print_menu(glade_menu);
+    Command* op = print_menu(glade_menu);
 
     return op;
 }
 
-Command show_well(void* _ __attribute__((unused)))
+Command* show_well(void* _ __attribute__((unused)))
 {
-    push_command((Command){show_glade});
+    Command* res = (Command*)malloc(sizeof(Command));
+    res->execute = show_glade;
+    push_command(res);
     if (player_visited_well_val()) {
         get_and_print_dia("well.txt", COLS / 2);
         player_visited_well_set();
     }
 
-    Command op = print_menu(well_menu);
+    Command* op = print_menu(well_menu);
 
     return op;
 }
@@ -200,11 +206,13 @@ int bucket_iteration(WINDOW* win, int count, int piece_len, int bucket_width,
     return count;
 }
 
-Command well_raise_bucket_command(void* _ __attribute__((unused)))
+Command* well_raise_bucket_command(void* _ __attribute__((unused)))
 {
     if (player_has_key_val()) {
         print_diastr("You've already got the key!");
-        return (Command){.command = show_well};
+        Command* res = (Command*)malloc(sizeof(Command));
+        res->execute = show_well;
+        return res;
     }
     int const bucket_height = sizeof(bucket) / sizeof(char*);
     int const bucket_width  = get_banner_width(bucket, bucket_height);
@@ -237,7 +245,9 @@ Command well_raise_bucket_command(void* _ __attribute__((unused)))
     int res = quick_print_menu(COLS / 8, 2, "Yes", "No"); //NOLINT(*magic*)
     if (res == 0) { player_has_key_set(); }
 
-    return (Command){.command = show_well};
+    Command* next_menu = (Command*)malloc(sizeof(Command));
+    next_menu->execute = show_well;
+    return next_menu;
 }
 
 char const* const sudoku_board[] = {
@@ -488,7 +498,7 @@ Command paint_sudoku(void* this)
     wrefresh(suk_win);
     delwin(suk_win);
 
-    return (Command){.command = NULL};
+    return (Command){.execute = NULL};
 }
 
 void test_sudoku()
@@ -497,30 +507,30 @@ void test_sudoku()
     Sudoku_command sc_solved __attribute__((unused)) = {
         .c     = (Option){.label = NULL, .on_select = NULL},
         .board = {
-                           {0, 8, 5, 4, 7, 9, 1, 3, 2},
-                           {7, 3, 4, 1, 6, 2, 5, 9, 8},
-                           {2, 1, 9, 5, 3, 8, 7, 6, 4},
-                           {9, 2, 6, 3, 4, 5, 8, 7, 1},
-                           {8, 5, 1, 7, 2, 6, 3, 4, 9},
-                           {4, 7, 3, 8, 9, 1, 2, 5, 6},
-                           {3, 4, 2, 6, 8, 7, 9, 1, 5},
-                           {5, 6, 8, 9, 1, 3, 4, 2, 7},
-                           {1, 9, 7, 2, 5, 4, 6, 8, 3},
-                           }
+                          {0, 8, 5, 4, 7, 9, 1, 3, 2},
+                          {7, 3, 4, 1, 6, 2, 5, 9, 8},
+                          {2, 1, 9, 5, 3, 8, 7, 6, 4},
+                          {9, 2, 6, 3, 4, 5, 8, 7, 1},
+                          {8, 5, 1, 7, 2, 6, 3, 4, 9},
+                          {4, 7, 3, 8, 9, 1, 2, 5, 6},
+                          {3, 4, 2, 6, 8, 7, 9, 1, 5},
+                          {5, 6, 8, 9, 1, 3, 4, 2, 7},
+                          {1, 9, 7, 2, 5, 4, 6, 8, 3},
+                          }
     };
     Sudoku_command sc = {
         .c     = (Option){.label = NULL, .on_select = NULL},
         .board = {
-                           {6, 0, 0, 0, 7, 9, 0, 3, 2},
-                           {0, 0, 0, 0, 6, 0, 5, 0, 0},
-                           {2, 0, 9, 0, 0, 8, 7, 0, 0},
-                           {9, 0, 6, 3, 0, 5, 0, 0, 1},
-                           {8, 5, 0, 0, 0, 0, 3, 0, 0},
-                           {4, 7, 3, 0, 0, 1, 2, 5, 0},
-                           {0, 4, 2, 6, 8, 0, 9, 0, 0},
-                           {0, 0, 0, 0, 1, 3, 4, 2, 7},
-                           {0, 9, 0, 2, 0, 0, 6, 0, 0},
-                           }
+                          {6, 0, 0, 0, 7, 9, 0, 3, 2},
+                          {0, 0, 0, 0, 6, 0, 5, 0, 0},
+                          {2, 0, 9, 0, 0, 8, 7, 0, 0},
+                          {9, 0, 6, 3, 0, 5, 0, 0, 1},
+                          {8, 5, 0, 0, 0, 0, 3, 0, 0},
+                          {4, 7, 3, 0, 0, 1, 2, 5, 0},
+                          {0, 4, 2, 6, 8, 0, 9, 0, 0},
+                          {0, 0, 0, 0, 1, 3, 4, 2, 7},
+                          {0, 9, 0, 2, 0, 0, 6, 0, 0},
+                          }
     };
     //NOLINTEND
 

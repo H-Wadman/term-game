@@ -688,7 +688,7 @@ void backtrack(Witness_command* wc)
  *
  * \returns The Command \ref func_pop "popped" of the top of the \ref func_stack
  */
-Command play_witness(void* this)
+Command* play_witness(void* this)
 {
     Witness_command* wc = (Witness_command*)this;
     WINDOW* win         = create_witness_win(wc);
@@ -767,7 +767,6 @@ void test_play_witness()
           .walls = {0}
     };
     Witness_command test_wc = {
-        .c      = {0},
         .board  = (Sq*)board,
         .height = 6,
         .width  = 6,
