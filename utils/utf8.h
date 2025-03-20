@@ -21,13 +21,13 @@
 //! Reads a UTF-8 unicode point from win and returns it as a malloced string
 const char* wget_utf8(WINDOW* win);
 
-//! Reads a UTF8 unicode point from win into buf
+//! Reads a UTF-8 unicode point from win into buf
 int load_utf8(char* buf, WINDOW* win);
 
-//! Reads a UTF8 unicode point from file into buf
+//! Reads a UTF-8 unicode point from file into buf
 int fload_utf8(char* buf, FILE* file);
 
-//! Reads a UTF8 word (until whitespace) from file into buf
+//! Reads a UTF-8 word (until whitespace) from file into buf
 int floadw_utf8(char* buf, FILE* file);
 
 //! Returns the length of a UTF-8 string in unicode code points
