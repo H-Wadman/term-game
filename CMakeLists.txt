@@ -12,9 +12,10 @@ else ()
   add_link_options(-fsanitize=address,undefined)
 endif ()
 
-set(utilsDir ${CMAKE_CURRENT_LIST_DIR}/utils)
-set(configDir ${CMAKE_CURRENT_LIST_DIR}/cmake-cfg)
+set(utilsDir ${PROJECT_SOURCE_DIR}/utils)
+set(configDir ${PROJECT_SOURCE_DIR}/cmake-cfg)
 
+# Ugly and bad but convenient
 configure_file(${configDir}/build-path.h.in ${configDir}/build-path.h)
 
 add_executable(run main.c)

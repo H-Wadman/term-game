@@ -1,7 +1,6 @@
 # TODO
-PRIORITY: - [] Let highlights be passed to menu functions so that Commands can restore the right selection afterward
-PRIORITY: - [] Redefine Command to not include label (?)
-PRIORITY: - [] Allow main to handle Func and Func*
+PRIORITY: - [x] Let highlights be passed to menu functions so that Commands can restore the right selection afterward
+PRIORITY: - [x] Redefine Command to not include label (?)
 PRIORITY: - [] Global input function to handle things like ESC, opening a menu anywhere
 
 Box drawing around options also goes weird needs investigation

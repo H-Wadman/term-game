@@ -4,20 +4,26 @@
 #include "utils/menu.h"
 #include <ncurses.h>
 
+Command* show_menu(void*);
+
 Command* show_opening(void*);
 
-Command* show_options(void*);
+extern Command const show_glade;
 
-Command* show_main_menu(void*);
+extern Command const show_well;
 
-Command* show_glade(void*);
+extern Command const well_raise_bucket_command;
 
-Command* show_well(void*);
-
-Command* well_raise_bucket_command(void*);
+extern Command const show_options;
 
 int print_diastr(char const* const str);
 
-WINDOW* paint_sudoku_board(int* board);
+typedef struct Sudoku_command
+{
+    Command command;
+    int board[9][9]; //NOLINT
+} Sudoku;
+
+Command* paint_sudoku(void* this);
 
 #endif

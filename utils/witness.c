@@ -87,7 +87,7 @@ coord get_scr_pos(coord c) { return (coord){.x = 4 * c.x, .y = 2 * c.y}; }
  * \returns true if the coord refers to a valid square on the board, false
  * otherwise
  */
-bool wit_coord_valid_sq(Witness_command* wc, coord c)
+bool wit_coord_valid_sq(Witness* wc, coord c)
 {
     return c.y >= 0 && c.x >= 0 && c.y < wc->height && c.x < wc->width;
 }
@@ -105,7 +105,7 @@ bool wit_coord_valid_sq(Witness_command* wc, coord c)
  *
  * \returns true if the coord refers to
  */
-bool wit_coord_valid_grid(Witness_command* wc, coord c)
+bool wit_coord_valid_grid(Witness* wc, coord c)
 {
     return c.y >= 0 && c.x >= 0 && c.y <= wc->height && c.x <= wc->width;
 }
@@ -119,7 +119,7 @@ bool wit_coord_valid_grid(Witness_command* wc, coord c)
  * \returns A copy of the specified square (in other words wc->board[c.y *
  * wc->width + c.x * wc->height])
  */
-Sq get(Witness_command* wc, coord c)
+Sq get(Witness* wc, coord c)
 {
     if (!wit_coord_valid_sq(wc, c)) {
         log_and_exit(
@@ -131,7 +131,7 @@ Sq get(Witness_command* wc, coord c)
 }
 
 //! Pointer version of \ref get
-Sq* get_p(Witness_command* wc, coord c)
+Sq* get_p(Witness* wc, coord c)
 {
     if (!wit_coord_valid_sq(wc, c)) {
         log_and_exit(
@@ -152,7 +152,7 @@ Sq* get_p(Witness_command* wc, coord c)
  * \param[in] wc The Witness_command specifying the dimensions of the board
  * \param[in] line The index of the line to print
  */
-void print_witness_line(WINDOW* win, Witness_command* wc, int line)
+void print_witness_line(WINDOW* win, Witness* wc, int line)
 {
     wmove(win, line, 0);
     if (line == 0) {
@@ -243,7 +243,7 @@ void get_walls(coord c, coord cs[2], Dir d)
  * specified (i.e have not been sectioned off from each other by the players
  * path)
  */
-Vec_coord get_area(Witness_command* wc, coord c)
+Vec_coord get_area(Witness* wc, coord c)
 {
     int const init_cap   = 16;
     Vec_coord res        = new_vec_coord(init_cap);
@@ -275,7 +275,7 @@ Vec_coord get_area(Witness_command* wc, coord c)
  * reached the end (notably does not verify if all points have been acquired
  * yet).
  */
-bool witness_is_solved(Witness_command* wc)
+bool witness_is_solved(Witness* wc)
 {
     if (vec_back(wc->pos).x != wc->end.x || vec_back(wc->pos).y != wc->end.y) {
         return false;
@@ -319,7 +319,7 @@ bool witness_is_solved(Witness_command* wc)
  * \param[in] wc The Witness_command whose height and width members will
  * determine the window size
  */
-WINDOW* create_witness_win(Witness_command* wc)
+WINDOW* create_witness_win(Witness* wc)
 {
     int const ht = 1 + 2 * wc->height;
     int const wd = 1 + 4 * wc->width;
@@ -336,7 +336,7 @@ WINDOW* create_witness_win(Witness_command* wc)
  * \param[in]  wc The witness puzzle to print
  * \param[out] win The window to print on
  */
-void paint_witness_board(Witness_command* wc, WINDOW* win)
+void paint_witness_board(Witness* wc, WINDOW* win)
 {
     for (int i = 0; i <= wc->height * 2; ++i) {
         print_witness_line(win, wc, i);
@@ -403,7 +403,7 @@ Dir get_direction(coord from, coord to)
  * `point` has to be left, right or up. If it is `dir_down` then this function
  * will log an error and crash.
  */
-void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
+void paint_up(Witness* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_up, point);
 
@@ -430,7 +430,7 @@ void paint_up(Witness_command* wc, WINDOW* win, coord c, Dir point)
 }
 
 //! Commandtion analogous to \ref paint_up
-void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
+void paint_left(Witness* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_left, point);
     char const* final_pipe = NULL;
@@ -459,7 +459,7 @@ void paint_left(Witness_command* wc, WINDOW* win, coord c, Dir point)
 }
 
 //! Commandtion analogous to \ref paint_up
-void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
+void paint_right(Witness* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_right, point);
     char const* final_pipe = NULL;
@@ -488,7 +488,7 @@ void paint_right(Witness_command* wc, WINDOW* win, coord c, Dir point)
 }
 
 //! Commandtion analogous to \ref paint_up
-void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
+void paint_down(Witness* wc, WINDOW* win, coord c, Dir point)
 {
     VERIFY_PAINT_CONDITIONS(wc, c, dir_down, point);
 
@@ -523,7 +523,7 @@ void paint_down(Witness_command* wc, WINDOW* win, coord c, Dir point)
  * \param[in]  c      The coord the player moved from
  * \param[in]  point  The direction the player moved afterward
  */
-void paint(Dir move, Witness_command* wc, WINDOW* win, coord c, Dir point)
+void paint(Dir move, Witness* wc, WINDOW* win, coord c, Dir point)
 {
     switch (move) {
         case dir_up   : paint_up(wc, win, c, point); break;
@@ -539,7 +539,7 @@ void paint(Dir move, Witness_command* wc, WINDOW* win, coord c, Dir point)
  * \param[in]  wc     The witness puzzle in question
  * \param[out] win    The window to print on
  */
-void paint_last(Witness_command* wc, WINDOW* win)
+void paint_last(Witness* wc, WINDOW* win)
 {
     Vec_coord v   = wc->pos;
     coord scr_pos = get_scr_pos(v.data[v.sz - 2]);
@@ -571,7 +571,7 @@ void paint_last(Witness_command* wc, WINDOW* win)
  * The `color` parameter has to be a valid and previously initialised ncurses
  * color pair.
  */
-void paint_path(Witness_command* wc, WINDOW* win, enum color color)
+void paint_path(Witness* wc, WINDOW* win, enum color color)
 {
     if (wc->pos.sz == 1) { return; }
     wattron(win, COLOR_PAIR(color));
@@ -613,7 +613,7 @@ void print_vec_deb(Vec_coord v)
  * \returns True, if the player is backtracking (i.e. if last move was up and
  * current move is down)
  */
-bool is_backtrack(Witness_command* wc, Dir move)
+bool is_backtrack(Witness* wc, Dir move)
 {
     if (wc->pos.sz < 2) { return false; }
 
@@ -631,7 +631,7 @@ bool is_backtrack(Witness_command* wc, Dir move)
  * \param[in]     d  The direction to step in
  * \param[in]     we The status to which the passe by walls will be set
  */
-void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
+void set_walls(Witness* wc, Dir d, enum Witness_enum we)
 {
     coord cs[2];
 
@@ -674,7 +674,7 @@ void set_walls(Witness_command* wc, Dir d, enum Witness_enum we)
  * This function expects a backtrack to be possible, i.e. the player to not be
  * in the starting position. If not the behaviour is undefined.
  */
-void backtrack(Witness_command* wc)
+void backtrack(Witness* wc)
 {
     Dir d = get_direction(vec_back(wc->pos), wc->pos.data[wc->pos.sz - 2]);
     set_walls(wc, d, we_empty);
@@ -688,10 +688,10 @@ void backtrack(Witness_command* wc)
  *
  * \returns The Command \ref func_pop "popped" of the top of the \ref func_stack
  */
-Command* play_witness(void* this)
+Command* play_witness(Witness* this)
 {
-    Witness_command* wc = (Witness_command*)this;
-    WINDOW* win         = create_witness_win(wc);
+    Witness* wc = this;
+    WINDOW* win = create_witness_win(wc);
     paint_witness_board(wc, win);
     wrefresh(win);
 
@@ -766,7 +766,7 @@ void test_play_witness()
         .group = {.color = col_yellow, .symbol = "h"},
           .walls = {0}
     };
-    Witness_command test_wc = {
+    Witness test_wc = {
         .board  = (Sq*)board,
         .height = 6,
         .width  = 6,

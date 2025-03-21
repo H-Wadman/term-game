@@ -69,12 +69,13 @@ int main()
 
 
     //TODO: Transform into union
-    Command* curr = (Command*)malloc(sizeof(Command));
-    curr->execute = show_opening;
+    Command* curr    = (Command*)malloc(sizeof(Command));
+    curr->execute    = show_opening;
+    curr->persistent = false;
     while (curr->execute) {
         Command* old = curr;
         curr         = curr->execute(curr);
-        free(old);
+        if (!old->persistent) { free(old); }
     }
 
     return 0;

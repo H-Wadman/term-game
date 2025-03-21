@@ -67,29 +67,29 @@ typedef struct Node
  * called from state A, B and C, you could store a command that will restore the
  * correct state out of A, B and C and then have the options menu return the
  * command on the stack whenever it is done (i.e the \ref Option of the exit
- * option has \ref pop_command as it's on_select member).
+ * option has \ref pop_command as it's command member).
  *
  * This variable should be manipulated using \ref push_command and \ref pop_func
  */
-static Node* func_stack = NULL; //NOLINT
+static Node* command_stack = NULL; //NOLINT
 
 void push_command(Command* f)
 {
     Node* curr = (Node*)malloc(sizeof(Node));
 
     curr->val  = f;
-    curr->next = func_stack;
+    curr->next = command_stack;
 
-    func_stack = curr;
+    command_stack = curr;
 }
 
 Command* pop_command(void* _ __attribute__((unused)))
 {
-    if (!func_stack) { log_and_exit("Empty command stack popped\n"); }
+    if (!command_stack) { log_and_exit("Empty command stack popped\n"); }
 
-    Node* popped = func_stack;
+    Node* popped = command_stack;
 
-    func_stack = func_stack->next;
+    command_stack = command_stack->next;
 
     Command* res = popped->val;
     free(popped);
@@ -258,14 +258,14 @@ int get_banner_width(const char* const* banner, int size)
 
 /*!
  * Prints the passed in menu according to its parameters and then blocks until
- * a choice has been selected. At that point, the \ref Option::on_select
+ * a choice has been selected. At that point, the \ref Option::command::execute
  * associated with the choice is executed, and the returned Command is passed
  * back to the caller
  *
  * \param[in] menu Menu to be printed
  * \returns The \ref Command returned by the selected choice
  */
-Command* print_menu(const struct Menu* menu)
+Command* print_menu(const struct Menu* menu, int select)
 {
     WINDOW* menu_win =
         newwin(menu->choices_height + 2,
@@ -277,24 +277,23 @@ Command* print_menu(const struct Menu* menu)
 
     box(menu_win, 0, 0);
 
-    int option = 0;
-    refresh_menu_win(menu_win, menu, option);
+    refresh_menu_win(menu_win, menu, select);
 
     int ch = 0;
     while (true) {
         ch = wgetch(menu_win);
         switch (ch) {
             case KEY_UP:
-                option =
-                    (option + menu->choices_height - 1) % menu->choices_height;
+                select =
+                    (select + menu->choices_height - 1) % menu->choices_height;
                 break;
-            case KEY_DOWN : option = (option + 1) % menu->choices_height; break;
+            case KEY_DOWN : select = (select + 1) % menu->choices_height; break;
             case LINE_FEED: {
-                struct Option const* const curr = menu->choices[option];
-                if (curr->on_select) {
-                    option = 0;
-                    refresh_menu_win(menu_win, menu, option);
-                    Command* res = curr->on_select((void*)curr);
+                struct Option const* const curr = menu->choices[select];
+                if (curr->command->execute) {
+                    select = 0;
+                    refresh_menu_win(menu_win, menu, select);
+                    Command* res = curr->command->execute((void*)curr->command);
                     win_cleanup(menu_win);
                     win_cleanup(title_win);
 
@@ -303,7 +302,7 @@ Command* print_menu(const struct Menu* menu)
             }
             default:;
         }
-        refresh_menu_win(menu_win, menu, option);
+        refresh_menu_win(menu_win, menu, select);
         //TODO: Can probably be removed
         //refresh_banner(title_win, menu, menu_win);
     }
@@ -377,9 +376,9 @@ int quick_print_menu(int width, int count, ...)
 
     assert(count > 0);
     for (int i = 0; i < count; ++i) {
-        char const* ch        = va_arg(va, char const*);
-        choices[i]->label     = ch;
-        choices[i]->on_select = NULL;
+        char const* ch      = va_arg(va, char const*);
+        choices[i]->label   = ch;
+        choices[i]->command = NULL;
     }
 
     Menu m = {(Option const**)choices, count, width, NULL, 0, 0, -1, -1};
