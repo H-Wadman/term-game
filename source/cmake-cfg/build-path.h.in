@@ -1,0 +1,2 @@
+// clang-format off
+#define ASSET_DIR "@asset_dir@"

@@ -11,9 +11,9 @@
 #ifndef WITNESS_H
 #define WITNESS_H
 
-#include "color.h"
-#include "menu.h"
-#include "utf8.h"
+#include "base.h"
+#include "io/utf8.h"
+#include "menu/menu.h"
 #include "vec.h"
 
 /*!

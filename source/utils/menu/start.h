@@ -1,8 +1,9 @@
 #ifndef START_H
 #define START_H
 
-#include "utils/menu.h"
 #include <ncurses.h>
+
+#include "base.h"
 
 Command* show_menu(void*);
 
@@ -18,12 +19,5 @@ extern Command const show_options;
 
 int print_diastr(char const* const str);
 
-typedef struct Sudoku_command
-{
-    Command command;
-    int board[9][9]; //NOLINT
-} Sudoku;
-
-Command* paint_sudoku(void* this);
 
 #endif

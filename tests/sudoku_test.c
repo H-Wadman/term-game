@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "start.h"
+#include "games/sudoku.h"
 
 bool valid_row(int const* board, int r);
 bool valid_col(int const* board, int c);

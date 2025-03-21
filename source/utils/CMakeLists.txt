@@ -1,0 +1,12 @@
+include_directories(${utilsDir})
+
+add_library(base base.c)
+add_library(utf8 io/utf8.c)
+add_library(menu menu/menu.c)
+add_library(menu_constants menu/menu_constants.c)
+add_library(start menu/start.c)
+add_library(state state.c)
+add_library(vec vec.c)
+add_library(witness games/witness.c)
+add_library(sudoku games/sudoku.c)
+add_library(logging io/logging.c)
