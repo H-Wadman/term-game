@@ -8,10 +8,9 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#include "color.h"
-#include "logging.h"
-#include "menu.h"
-#include "utf8.h"
+#include "base.h"
+#include "io/logging.h"
+#include "io/utf8.h"
 #include "vec.h"
 #include "witness.h"
 

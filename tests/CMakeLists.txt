@@ -6,8 +6,8 @@ target_link_libraries(vec_test PRIVATE vec)
 add_test(NAME Vector COMMAND vec_test)
 
 add_executable(sudoku_test sudoku_test.c)
-target_include_directories(sudoku_test PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_libraries(sudoku_test PRIVATE start)
+target_include_directories(sudoku_test PRIVATE ${utilsDir})
+target_link_libraries(sudoku_test PRIVATE sudoku)
 add_test(NAME Sudoku COMMAND sudoku_test)
 
 add_executable(witness_test witness_test.c)

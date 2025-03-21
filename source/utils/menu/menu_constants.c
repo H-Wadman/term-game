@@ -153,10 +153,6 @@ Command* return_command(void* this)
 /********************* STANDARD COMMANDS *********************/
 /********************** SHOULD BE CONST **********************/
 
-// = no-op for menus, exit for main function
-static Command const null_command = {.execute = NULL};
-
-static Command const pop = {.execute = pop_command};
 
 static Return_command const exit_game = {(Command){.execute = return_command},
                                          .return_value =

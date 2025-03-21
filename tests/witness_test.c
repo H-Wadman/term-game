@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "games/witness.h"
 #include "vec.h"
-#include "witness.h"
 
 typedef enum Dir
 {
