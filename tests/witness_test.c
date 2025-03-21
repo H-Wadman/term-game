@@ -14,19 +14,19 @@ typedef enum Dir
     dir_left
 } Dir;
 
-bool wit_coord_valid_sq(Witness_command* wc, coord c);
-bool wit_coord_valid_grid(Witness_command* wc, coord c);
-Vec_coord get_area(Witness_command* wc, coord c);
+bool wit_coord_valid_sq(Witness* wc, coord c);
+bool wit_coord_valid_grid(Witness* wc, coord c);
+Vec_coord get_area(Witness* wc, coord c);
 coord step(coord c, Dir d);
 coord get_scr_pos(coord c);
-Sq get(Witness_command* wc, coord c);
+Sq get(Witness* wc, coord c);
 void get_walls(coord c, coord cs[2], Dir d);
 Dir get_direction(coord from, coord to);
 
 //NOLINTBEGIN
 void test_wit_coord_valid_sq()
 {
-    Witness_command wc = {{0}, NULL, .height = 3, .width = 9};
+    Witness wc = {NULL, .height = 3, .width = 9};
 
     assert(wit_coord_valid_sq(&wc, (coord){0, 0}));
     assert(wit_coord_valid_sq(&wc, (coord){1, 0}));
@@ -41,7 +41,7 @@ void test_wit_coord_valid_sq()
 
 void test_wit_coord_valid_grid()
 {
-    Witness_command wc = {.width = 6, .height = 9};
+    Witness wc = {.width = 6, .height = 9};
     assert(wit_coord_valid_grid(&wc, (coord){.x = 0, .y = 9}));
     assert(wit_coord_valid_grid(&wc, (coord){.x = 6, .y = 9}));
     assert(!wit_coord_valid_grid(&wc, (coord){.x = 6, .y = 10}));
@@ -58,8 +58,8 @@ void test_wit_coord_valid_grid()
 
 void test_get()
 {
-    Witness_command wc = {.width = 6, .height = 8};
-    wc.board           = malloc(wc.width * wc.height * sizeof(Sq));
+    Witness wc = {.width = 6, .height = 8};
+    wc.board   = malloc(wc.width * wc.height * sizeof(Sq));
     memset(wc.board, 0, wc.width * wc.height * sizeof(Sq));
     wc.board[0] = (Sq){.group.color = 1};
     Sq s        = get(&wc, (coord){0, 0});
@@ -99,8 +99,8 @@ void test_step()
 
 void test_get_walls()
 {
-    Witness_command wc = {.width = 4, .height = 3};
-    wc.board           = malloc(wc.width * wc.height * sizeof(Sq));
+    Witness wc = {.width = 4, .height = 3};
+    wc.board   = malloc(wc.width * wc.height * sizeof(Sq));
     memset(wc.board, 0, wc.width * wc.height * sizeof(Sq));
 
     coord cs[2];
@@ -154,36 +154,36 @@ void test_get_area_full_board()
 {
     Sq board[3][2];
     memset(&board, 0, sizeof board);
-    Witness_command wc = {{0}, (Sq*)board, .height = 3, .width = 2};
-    Vec_coord v1       = get_area(&wc, (coord){0, 0});
+    Witness wc   = {(Sq*)board, .height = 3, .width = 2};
+    Vec_coord v1 = get_area(&wc, (coord){0, 0});
 
     assert(v1.sz == 6);
 
     Sq board2[3][4];
     memset(&board2, 0, sizeof board2);
-    Witness_command wc2 = {{0}, (Sq*)board2, .height = 3, .width = 4};
-    Vec_coord v2        = get_area(&wc2, (coord){0, 0});
+    Witness wc2  = {(Sq*)board2, .height = 3, .width = 4};
+    Vec_coord v2 = get_area(&wc2, (coord){0, 0});
 
     assert(v2.sz == 12);
 
     Sq board5[3][5];
     memset(&board5, 0, sizeof board5);
-    Witness_command wc5 = {{0}, (Sq*)board5, .height = 3, .width = 5};
-    Vec_coord v5        = get_area(&wc5, (coord){0, 0});
+    Witness wc5  = {(Sq*)board5, .height = 3, .width = 5};
+    Vec_coord v5 = get_area(&wc5, (coord){0, 0});
 
     assert(v5.sz == 15);
 
     Sq board3[3][6];
     memset(&board3, 0, sizeof board3);
-    Witness_command wc3 = {{0}, (Sq*)board3, .height = 3, .width = 6};
-    Vec_coord v3        = get_area(&wc3, (coord){0, 0});
+    Witness wc3  = {(Sq*)board3, .height = 3, .width = 6};
+    Vec_coord v3 = get_area(&wc3, (coord){0, 0});
 
     assert(v3.sz == 18);
 
     Sq board4[3][9];
     memset(&board4, 0, sizeof board4);
-    Witness_command wc4 = {{0}, (Sq*)board4, .height = 3, .width = 9};
-    Vec_coord v4        = get_area(&wc4, (coord){0, 0});
+    Witness wc4  = {(Sq*)board4, .height = 3, .width = 9};
+    Vec_coord v4 = get_area(&wc4, (coord){0, 0});
 
     assert(v4.sz == 27);
 
@@ -209,7 +209,7 @@ void test_get_area_regions()
     board[0][0].walls[dir_left] = we_empty;
 
     board[1][0].walls[dir_up] = we_empty;
-    Witness_command wc        = {{0}, (Sq*)board, .height = 3, .width = 2};
+    Witness wc                = {(Sq*)board, .height = 3, .width = 2};
     Vec_coord v1              = get_area(&wc, (coord){0, 0});
 
     assert(v1.sz == 2);
