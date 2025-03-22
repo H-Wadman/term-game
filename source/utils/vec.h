@@ -3,8 +3,7 @@
  * \brief Resizeable runtime array to the tune of a C++ vector
  */
 
-#ifndef VEC_H
-#define VEC_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -70,5 +69,3 @@ void free_vec(void* v);
 
 forward_declare_vec(int);
 forward_declare_vec(coord);
-
-#endif
