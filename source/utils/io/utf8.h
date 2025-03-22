@@ -17,11 +17,32 @@
 //! The size a buffer has to be for loading a utf8 char
 #define ASCII_BUF_SZ 5
 
-//! Reads a UTF-8 unicode point from win and returns it as a malloced string
-const char* wget_utf8(WINDOW* win);
+typedef struct Input
+{
+    union
+    {
+        WINDOW* win;
+        char const* str;
+    };
 
-//! Reads a UTF-8 unicode point from win into buf
-int load_utf8(char* buf, WINDOW* win);
+    enum
+    {
+        tag_win,
+        tag_str
+    } tag;
+} Input;
+
+//! Interactive get input
+const char* get_input_utf8(Input inp);
+
+//! Interactive get input
+int get_input_char(Input inp);
+
+//! Reads a UTF-8 unicode point from inp and returns it as a malloced string
+const char* get_utf8(Input inp);
+
+//! Reads a UTF-8 unicode point from inp into buf
+int load_utf8(char* buf, Input inp);
 
 //! Reads a UTF-8 unicode point from file into buf
 int fload_utf8(char* buf, FILE* file);

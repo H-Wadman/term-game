@@ -544,7 +544,7 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
     char buf[ASCII_BUF_SZ];
     if (r_code == 2) {
         wrefresh(dia_win);
-        load_utf8(buf, dia_win);
+        load_utf8(buf, (Input){.win = dia_win, .tag = tag_win});
     }
 
     win_cleanup(dia_win);

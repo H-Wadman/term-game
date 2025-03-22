@@ -1,7 +1,7 @@
 # TODO
-PRIORITY: - [x] Let highlights be passed to menu functions so that Commands can restore the right selection afterward
-PRIORITY: - [x] Redefine Command to not include label (?)
 PRIORITY: - [] Global input function to handle things like ESC, opening a menu anywhere
+            + Enable simulating input in order to restore game-state and/or test??
+
 
 Box drawing around options also goes weird needs investigation
     - Check why nerd code point adds a bar after selection in 2nd menu (works on WSL (Ubuntu + Debian))

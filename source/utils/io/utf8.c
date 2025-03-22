@@ -44,13 +44,13 @@ static inline bool is_continuation(unsigned int c)
  * \returns An integer in the range [1, 4] indicating the length in bytes of the
  * unicode code point, or -1 on error
  */
-int get_utf8_len(unsigned int c)
+static int get_utf8_len(unsigned int c)
 {
     if (is_ascii(c)) { return 1; }
     unsigned const int mask = 0b11000000;
     if ((c & mask) != mask) { return -1; }
 
-    // \cond
+    //! \cond
 #define check(mask, return_val)                                                \
     do {                                                                       \
         if ((c & (mask)) != 0) {                                               \
@@ -66,7 +66,30 @@ int get_utf8_len(unsigned int c)
     return -1;
 
 #undef check
-    // \endcond
+    //! \endcond
+}
+
+char const* get_input_utf8(Input inp)
+{
+    char const* res = "";
+    res             = get_utf8(inp);
+    if (!res) {
+        log_msgf("Failed to get input in %s\n", __func__);
+        return NULL;
+    }
+
+    return res;
+}
+
+static int get_char(Input i)
+{
+    int res = -1;
+    switch (i.tag) {
+        case tag_win: res = wgetch(i.win); break;
+        case tag_str: res = (unsigned char)*i.str; break;
+    }
+
+    return res;
 }
 
 /*!
@@ -82,9 +105,9 @@ int get_utf8_len(unsigned int c)
  *
  * \returns 0 on success -1 on failure
  */
-int load_utf8(char* buf, WINDOW* win)
+int load_utf8(char* buf, Input inp)
 {
-    int c = wgetch(win);
+    int c = get_char(inp);
 
     if (c < 0) {
         log_and_exit(
@@ -99,7 +122,7 @@ int load_utf8(char* buf, WINDOW* win)
     assert(1 <= len && len <= 4);
     buf[0] = (char)c;
     for (int i = 1; i < len; ++i) {
-        c = wgetch(win);
+        c = get_char(inp);
         if (!is_continuation(c)) {
             log_msgln(
                 "load_utf8: Length indicated by first byte doesn't correspond "
@@ -213,19 +236,19 @@ int floadw_utf8(char* buf, FILE* file)
 }
 
 /*!
- * Reads a UTF-8 character from the specified window and returns a malloced
- * string containing it
+ * Reads a UTF-8 character from the specified input source and returns a
+ * malloced string containing it
  *
- * \param[in] win The window from which to read the UTF-8 character
+ * \param[in] win The \ref Input "input" from which to read the UTF-8 character
  *
  * \returns A pointer to the malloced string on success, NULL on failure
  */
-const char* wget_utf8(WINDOW* win)
+const char* get_utf8(Input inp)
 {
     // A unicode character can be 1-4 bytes + null termination
     char* res = (char*)malloc(ASCII_BUF_SZ);
 
-    int err = load_utf8(res, win);
+    int err = load_utf8(res, inp);
 
     if (err != 0) {
         free(res);
