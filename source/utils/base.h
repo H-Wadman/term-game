@@ -1,5 +1,4 @@
-#ifndef BASE_H
-#define BASE_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -58,5 +57,3 @@ extern Command const pop;
 
 void init_game();
 Command* start_game();
-
-#endif // !BASE_H

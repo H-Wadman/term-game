@@ -15,8 +15,8 @@
  * declaring the name of the menu
  */
 
-#ifndef MENU_H
-#define MENU_H
+#pragma once
+
 #define choices_len(arr) ((int)(sizeof(arr) / sizeof(char*)))
 #include <ncurses.h>
 
@@ -225,4 +225,3 @@ int quick_print_menu(int width, int count, ...);
 int print_dia(const char* file_path, int width);
 
 #undef string_arr_len
-#endif

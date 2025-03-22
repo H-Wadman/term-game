@@ -1,5 +1,4 @@
-#ifndef SUDOKU_H
-#define SUDOKU_H
+#pragma once
 
 #include "base.h"
 
@@ -10,5 +9,3 @@ typedef struct Sudoku_command
 } Sudoku;
 
 Command* paint_sudoku(void* this);
-
-#endif

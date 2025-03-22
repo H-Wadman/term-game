@@ -6,8 +6,7 @@
  *  A file containing functions related to UTF-8 string handling and io.
  */
 
-#ifndef UTF8_H
-#define UTF8_H
+#pragma once
 
 #include <ncurses.h>
 #include <stdbool.h>
@@ -32,6 +31,3 @@ int floadw_utf8(char* buf, FILE* file);
 
 //! Returns the length of a UTF-8 string in unicode code points
 int utf8_strlen(const char* str);
-
-
-#endif

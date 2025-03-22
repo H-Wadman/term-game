@@ -8,8 +8,7 @@
  *
  * Note: Grid and board are used to refer to more or less the same thing.
  */
-#ifndef WITNESS_H
-#define WITNESS_H
+#pragma once
 
 #include "base.h"
 #include "io/utf8.h"
@@ -70,5 +69,3 @@ typedef struct Witness
 
 //! Play a witness game specified by this
 Command* play_witness(Witness* this);
-
-#endif
