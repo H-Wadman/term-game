@@ -17,7 +17,7 @@
 
 #pragma once
 
-#define choices_len(arr) ((int)(sizeof(arr) / sizeof(char*)))
+#define CHOICES_LEN(arr) ((int)(sizeof(arr) / sizeof(char*)))
 #include <ncurses.h>
 
 #include <base.h>
@@ -48,7 +48,7 @@ typedef struct Option
  * functions declared in \ref menu.h.
  *
  * Menu structs should rarely be created directly and rather the macros \ref
- * make_menu and \ref make_menu_verbose should be preferred. Please see their
+ * make_menu and \ref MAKE_MENU_VERBOSE should be preferred. Please see their
  * documentation for options and end use.
  */
 typedef struct Menu
@@ -142,11 +142,11 @@ void win_cleanup(WINDOW* win);
  * negative will be set such that menu is vertically centered on screen.
  */
 
-#define make_menu_verbose(menu_name, menu_banner, min_choice_width,            \
+#define MAKE_MENU_VERBOSE(menu_name, menu_banner, min_choice_width,            \
                           justification, left_pad, right_pad, x, y)            \
     static struct Menu implementation_##menu_name##_menu = {                   \
         .choices        = (struct Option const**)(menu_name),                  \
-        .choices_height = choices_len(menu_name),                              \
+        .choices_height = CHOICES_LEN(menu_name),                              \
         .choices_width  = (min_choice_width),                                  \
         .banner         = (const char**)(menu_banner),                         \
         .banner_height  = (int)(sizeof(menu_banner) / sizeof(char*)),          \
@@ -162,7 +162,7 @@ void win_cleanup(WINDOW* win);
  *  This macro creates a menu structure to be used with other functions in this
  * file for printing, etc.
  *
- * For more options, and more detailed descriptions, see \ref make_menu_verbose,
+ * For more options, and more detailed descriptions, see \ref MAKE_MENU_VERBOSE,
  * although this macro should be preferred
  *
  *  \param name This will be the name of the menu and also determines the
@@ -185,8 +185,8 @@ void win_cleanup(WINDOW* win);
  * \param start_y The y-coordinate for the upper left corner of the menu. If
  * negative will be set such that menu is vertically centered on screen.
  */
-#define make_menu(name, banner, min_width, start_x, start_y)                   \
-    make_menu_verbose(name, banner, min_width, left_just, " ", " ", start_x,   \
+#define MAKE_MENU(name, banner, min_width, start_x, start_y)                   \
+    MAKE_MENU_VERBOSE(name, banner, min_width, left_just, " ", " ", start_x,   \
                       start_y)
 
 /*!
@@ -202,13 +202,13 @@ typedef struct Menu_command
     int highlight;
 } Menu_command;
 
-#define make_menu_command(menu_name)                                           \
+#define MAKE_MENU_COMMAND(menu_name)                                           \
     Menu_command const show_##menu_name = {                                    \
         .command   = (Command){.execute = show_menu},                          \
         .menu      = menu_name##_menu,                                         \
         .highlight = 0};
 
-#define extern_menu(name) extern const struct Menu* const name##_menu
+#define EXTERN_MENU(name) extern const struct Menu* const name##_menu
 
 //! Loads the path to the dialogue directory into buf
 void get_dialogue_path(char* buf, int sz);

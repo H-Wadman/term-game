@@ -22,9 +22,3 @@ struct log_def_args
     const char* msg;
     bool location_info;
 };
-
-void impl_log_def(struct log_def_args args);
-
-#define log_def(mesg, ...)                                                     \
-    impl_log_def((struct log_def_args){                                        \
-        .msg = (mesg), .location_info = true, __VA_ARGS__})

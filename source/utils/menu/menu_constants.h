@@ -13,16 +13,16 @@
  * to be called before any other menu related functions.
  */
 
-extern_menu(start);
+EXTERN_MENU(start);
 
-extern_menu(options);
+EXTERN_MENU(options);
 
 
-extern_menu(encounter);
+EXTERN_MENU(encounter);
 
-extern_menu(glade);
+EXTERN_MENU(glade);
 
-extern_menu(well);
+EXTERN_MENU(well);
 
 void initialise_menus();
 

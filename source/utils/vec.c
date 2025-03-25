@@ -15,7 +15,7 @@ struct Vec
 
 void free_vec(void* v) { free(((struct Vec*)v)->data); }
 
-#define create_vec(type, eq_fnc)                                               \
+#define CREATE_VEC(type, eq_fnc)                                               \
                                                                                \
     Vec_##type new_vec_##type(int cap)                                         \
     {                                                                          \
@@ -60,7 +60,7 @@ bool int_eq(int a, int b) { return a == b; }
 
 bool coord_eq(coord c, coord c2) { return c.x == c2.x && c.y == c2.y; }
 
-create_vec(int, int_eq);
-create_vec(coord, coord_eq);
+CREATE_VEC(int, int_eq);
+CREATE_VEC(coord, coord_eq);
 
 //NOLINTEND

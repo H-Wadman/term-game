@@ -1,0 +1,11 @@
+forward_declare_vec
+vec_get
+vec_push
+vec_pop
+vec_contains
+vec_back
+log_def
+log_def
+create_vec
+handle_floadw_error
+choices_len

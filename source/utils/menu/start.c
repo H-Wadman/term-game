@@ -13,7 +13,7 @@
 #include "start.h"
 #include "state.h"
 
-#define get_and_print_dia(file, width)                                         \
+#define GET_AND_PRINT_DIA(file, width)                                         \
     {                                                                          \
         char buf[1024];                                                        \
         get_dialogue_path(buf, 1024);                                          \
@@ -92,7 +92,7 @@ int print_diastr(char const* const str)
 
 Command* show_opening(void* _ __attribute__((unused)))
 {
-    get_and_print_dia("opening.txt", COLS / 3);
+    GET_AND_PRINT_DIA("opening.txt", COLS / 3);
     Menu_command* res       = (Menu_command*)malloc(sizeof(Menu_command));
     res->command.execute    = show_menu;
     res->menu               = start_menu;
@@ -127,7 +127,7 @@ Command const show_options = {.execute    = show_options_execute,
 Command* show_glade_execute(void* _ __attribute__((unused)))
 {
     if (!player_visited_glade_val()) {
-        get_and_print_dia("intro.txt", COLS / 2);
+        GET_AND_PRINT_DIA("intro.txt", COLS / 2);
         player_visited_glade_set();
     }
     Command* op = print_menu(glade_menu, 0);
@@ -144,7 +144,7 @@ Command* show_well_execute(void* _ __attribute__((unused)))
     res->persistent = false;
     push_command(res);
     if (player_visited_well_val()) {
-        get_and_print_dia("well.txt", COLS / 2);
+        GET_AND_PRINT_DIA("well.txt", COLS / 2);
         player_visited_well_set();
     }
 

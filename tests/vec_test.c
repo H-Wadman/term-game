@@ -21,25 +21,25 @@ void test_new_free()
 void test_push()
 {
     Vec_int v = new_vec_int(16);
-    vec_push(&v, 0);
-    vec_push(&v, 1);
-    vec_push(&v, 2);
-    vec_push(&v, 3);
-    vec_push(&v, 4);
+    VEC_PUSH(&v, 0);
+    VEC_PUSH(&v, 1);
+    VEC_PUSH(&v, 2);
+    VEC_PUSH(&v, 3);
+    VEC_PUSH(&v, 4);
 
-    for (int i = 0; i < v.sz; ++i) { assert(vec_get(v, i) == i); }
+    for (int i = 0; i < v.sz; ++i) { assert(VEC_GET(v, i) == i); }
 
     for (int i = 0; i < v.sz; ++i) { assert(v.data[i] == i); }
 
     free_vec(&v);
     v = new_vec_int(4);
     for (int i = 1; i <= 4; ++i) {
-        vec_push(&v, i);
+        VEC_PUSH(&v, i);
         assert(v.cap == 4);
         assert(v.sz == i);
     }
 
-    vec_push(&v, 5);
+    VEC_PUSH(&v, 5);
     assert(v.sz == 5);
     assert(v.cap == GROWTH_FACTOR * 4);
 
@@ -49,14 +49,14 @@ void test_push()
 void test_pop()
 {
     Vec_int v = new_vec_int(16);
-    vec_push(&v, 0);
-    vec_push(&v, 1);
-    vec_push(&v, 2);
-    vec_push(&v, 3);
-    vec_push(&v, 4);
+    VEC_PUSH(&v, 0);
+    VEC_PUSH(&v, 1);
+    VEC_PUSH(&v, 2);
+    VEC_PUSH(&v, 3);
+    VEC_PUSH(&v, 4);
 
     assert(v.sz == 5);
-    assert(vec_pop(&v) == 4);
+    assert(VEC_POP(&v) == 4);
     assert(v.sz == 4);
 }
 

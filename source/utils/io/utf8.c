@@ -51,7 +51,7 @@ static int get_utf8_len(unsigned int c)
     if ((c & mask) != mask) { return -1; }
 
     //! \cond
-#define check(mask, return_val)                                                \
+#define CHECK(mask, return_val)                                                \
     do {                                                                       \
         if ((c & (mask)) != 0) {                                               \
             unsigned int const check = ((mask) >> 1U);                         \
@@ -59,13 +59,13 @@ static int get_utf8_len(unsigned int c)
         }                                                                      \
     } while (0);
 
-    check(0b00010000U, 4);
-    check(0b00100000U, 3);
-    check(0b01000000U, 2);
+    CHECK(0b00010000U, 4);
+    CHECK(0b00100000U, 3);
+    CHECK(0b01000000U, 2);
 
     return -1;
 
-#undef check
+#undef CHECK
     //! \endcond
 }
 

@@ -23,7 +23,7 @@
  *
  * \param type The type that the vector will contain
  */
-#define forward_declare_vec(type)                                              \
+#define FORWARD_DECLARE_VEC(type)                                              \
     typedef struct Vec_##type                                                  \
     {                                                                          \
         int sz;                                                                \
@@ -38,24 +38,24 @@
     Vec_##type new_vec_##type(int cap);
 
 //! Bounds checked element access
-#define vec_get(v, i)                                                          \
+#define VEC_GET(v, i)                                                          \
     _Generic((v), Vec_int: Vec_get_int, Vec_coord: Vec_get_coord)(v, i)
 
 //! Add an element to the back of the vector
-#define vec_push(v, e)                                                         \
+#define VEC_PUSH(v, e)                                                         \
     _Generic((v), Vec_int *: Vec_push_int, Vec_coord *: Vec_push_coord)(v, e)
 
 //! Remove the element at the back of the vector and return it
-#define vec_pop(v)                                                             \
+#define VEC_POP(v)                                                             \
     _Generic((v), Vec_int *: vec_pop_int, Vec_coord *: vec_pop_coord)(v)
 
 //O(n)
-#define vec_contains(v, e)                                                     \
+#define VEC_CONTAINS(v, e)                                                     \
     _Generic((v), Vec_int: Vec_contains_int, Vec_coord: Vec_contains_coord)(v, \
                                                                             e)
 
 //! Get the last element
-#define vec_back(v)                                                            \
+#define VEC_BACK(v)                                                            \
     _Generic((v), Vec_int: Vec_back_int, Vec_coord: Vec_back_coord)(v)
 
 typedef struct Coord
@@ -67,5 +67,5 @@ typedef struct Coord
 //! Free the resources associated with vector
 void free_vec(void* v);
 
-forward_declare_vec(int);
-forward_declare_vec(coord);
+FORWARD_DECLARE_VEC(int);
+FORWARD_DECLARE_VEC(coord);

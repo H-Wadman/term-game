@@ -247,18 +247,18 @@ Vec_coord get_area(Witness* wc, coord c)
     int const init_cap   = 16;
     Vec_coord res        = new_vec_coord(init_cap);
     Vec_coord back_track = new_vec_coord(init_cap);
-    vec_push(&back_track, c);
+    VEC_PUSH(&back_track, c);
 
     while (back_track.sz > 0) {
-        coord curr = vec_pop(&back_track);
-        vec_push(&res, curr);
+        coord curr = VEC_POP(&back_track);
+        VEC_PUSH(&res, curr);
 
         for (int i = 0; i < 4; ++i) {
             coord s = step(curr, i);
             if (!wit_coord_valid_sq(wc, s)) { continue; }
             if (get(wc, curr).walls[i] == we_filled) { continue; }
-            if (!vec_contains(back_track, s) && !vec_contains(res, s)) {
-                vec_push(&back_track, s);
+            if (!VEC_CONTAINS(back_track, s) && !VEC_CONTAINS(res, s)) {
+                VEC_PUSH(&back_track, s);
             }
         }
     }
@@ -276,21 +276,21 @@ Vec_coord get_area(Witness* wc, coord c)
  */
 bool witness_is_solved(Witness* wc)
 {
-    if (vec_back(wc->pos).x != wc->end.x || vec_back(wc->pos).y != wc->end.y) {
+    if (VEC_BACK(wc->pos).x != wc->end.x || VEC_BACK(wc->pos).y != wc->end.y) {
         return false;
     }
     Vec_coord visited = new_vec_coord(wc->width * wc->height);
     for (int i = 0; i < wc->height; ++i) {
         for (int j = 0; j < wc->width; ++j) {
             coord temp = {i, j};
-            if (vec_contains(visited, temp)) { continue; }
+            if (VEC_CONTAINS(visited, temp)) { continue; }
 
             Vec_coord v = get_area(wc, temp);
             //Verify that all squares in the same area are of same color (or
             //colorless)
             int color = -1;
             while (v.sz > 0) {
-                coord c = vec_pop(&v);
+                coord c = VEC_POP(&v);
                 int clr = get(wc, c).group.color;
                 if (clr != col_default) {
                     if (color == -1) { color = clr; }
@@ -299,7 +299,7 @@ bool witness_is_solved(Witness* wc)
                     }
                 }
             }
-            for (int i = 0; i < v.sz; ++i) { vec_push(&visited, v.data[i]); }
+            for (int i = 0; i < v.sz; ++i) { VEC_PUSH(&visited, v.data[i]); }
 
             free_vec(&v);
         }
@@ -634,7 +634,7 @@ void set_walls(Witness* wc, Dir d, enum Witness_enum we)
 {
     coord cs[2];
 
-    get_walls(vec_back(wc->pos), cs, d);
+    get_walls(VEC_BACK(wc->pos), cs, d);
 
     if (wit_coord_valid_sq(wc, cs[0])) {
         Sq* s = get_p(wc, cs[0]);
@@ -675,9 +675,9 @@ void set_walls(Witness* wc, Dir d, enum Witness_enum we)
  */
 void backtrack(Witness* wc)
 {
-    Dir d = get_direction(vec_back(wc->pos), wc->pos.data[wc->pos.sz - 2]);
+    Dir d = get_direction(VEC_BACK(wc->pos), wc->pos.data[wc->pos.sz - 2]);
     set_walls(wc, d, we_empty);
-    vec_pop(&wc->pos);
+    VEC_POP(&wc->pos);
 }
 
 /*!
@@ -723,13 +723,13 @@ Command* play_witness(Witness* this)
         if (move) {
             if (is_backtrack(wc, next_dir)) { backtrack(wc); }
             else {
-                coord next = step(vec_back(wc->pos), next_dir);
+                coord next = step(VEC_BACK(wc->pos), next_dir);
                 //Guard against stepping outside the grid and
                 //walking over already visited junctions
                 if (wit_coord_valid_grid(wc, next) &&
-                    !vec_contains(wc->pos, next)) {
+                    !VEC_CONTAINS(wc->pos, next)) {
                     set_walls(wc, next_dir, we_filled);
-                    vec_push(&wc->pos, next);
+                    VEC_PUSH(&wc->pos, next);
                 }
             }
             //Update screen
@@ -772,7 +772,7 @@ void test_play_witness()
         .pos    = new_vec_coord(36),
         .end    = {6, 6}
     };
-    vec_push(&test_wc.pos, ((coord){0, 0}));
+    VEC_PUSH(&test_wc.pos, ((coord){0, 0}));
 
     play_witness(&test_wc);
 

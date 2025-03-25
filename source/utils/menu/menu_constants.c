@@ -169,7 +169,7 @@ const struct Option options_back = {.label = "Back", .command = (Command*)&pop};
 
 struct Option const* const options[] = {&options_language, &options_volume,
                                         &options_colour, &options_back};
-make_menu(options, NULL, 60, -1, -1); //NOLINT
+MAKE_MENU(options, NULL, 60, -1, -1); //NOLINT
 
 /********************* START MENU *********************/
 
@@ -184,7 +184,7 @@ const struct Option start_exit    = {.label   = "Exit",
 
 struct Option const* const start[] = {&start_play, &start_options, &start_exit};
 
-make_menu(start, title, 77, -1, -1); //NOLINT
+MAKE_MENU(start, title, 77, -1, -1); //NOLINT
 
 /********************** GLADE **********************/
 
@@ -197,7 +197,7 @@ const struct Option glade_forest   = {.label   = "Forest",
                                       .command = (Command*)&exit_game};
 struct Option const* const glade[] = {&glade_cabin, &glade_well, &glade_forest};
 
-make_menu(glade, questionmark, 100, -1, -1); //NOLINT
+MAKE_MENU(glade, questionmark, 100, -1, -1); //NOLINT
 
 /************************ WELL ************************/
 
@@ -208,7 +208,7 @@ const struct Option well_back = {.label = "Back", .command = (Command*)&pop};
 
 struct Option const* const well[] = {&well_raise_bucket, &well_back};
 
-make_menu(well, well_art, 50, -1, -1); //NOLINT
+MAKE_MENU(well, well_art, 50, -1, -1); //NOLINT
 
 /*****************************************************/
 

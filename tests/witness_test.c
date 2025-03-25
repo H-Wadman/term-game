@@ -213,8 +213,8 @@ void test_get_area_regions()
     Vec_coord v1              = get_area(&wc, (coord){0, 0});
 
     assert(v1.sz == 2);
-    assert(vec_contains(v1, ((coord){0, 0})));
-    assert(vec_contains(v1, ((coord){1, 0})));
+    assert(VEC_CONTAINS(v1, ((coord){0, 0})));
+    assert(VEC_CONTAINS(v1, ((coord){1, 0})));
 
     free_vec(&v1);
 

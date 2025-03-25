@@ -43,9 +43,3 @@ void log_and_exit(char const* fmt, ...)
     va_end(args);
     exit(1);
 }
-
-void impl_log_def(struct log_def_args args); //NOLINT
-
-#define log_def(mesg, ...)                                                     \
-    impl_log_def((struct log_def_args){                                        \
-        .msg = (mesg), .location_info = true, __VA_ARGS__})

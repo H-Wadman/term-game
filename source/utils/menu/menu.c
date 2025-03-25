@@ -399,7 +399,7 @@ struct Dia_print
     int width;
 };
 
-#define handle_floadw_error(code, file)                                        \
+#define HANDLE_FLOADW_ERROR(code, file)                                        \
     {                                                                          \
         if ((code) == 0) {                                                     \
             log_msgln(                                                         \
@@ -431,7 +431,7 @@ int print_next_word(WINDOW* win, struct Dia_print* dia)
 
     int code = floadw_utf8(buf, dia->file);
 
-    handle_floadw_error(code, dia->file);
+    HANDLE_FLOADW_ERROR(code, dia->file);
 
     if (dia->line_len + utf8_strlen(buf) > dia->width) {
         dia->line_len = utf8_strlen(buf) + 1;
