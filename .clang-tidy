@@ -18,7 +18,8 @@ Checks: "*,
         -cppcoreguidelines-avoid-do-while,
         -concurrency-mt-unsafe,
         -bugprone-easily-swappable-parameters,
-        -readability-math-missing-parentheses
+        -readability-math-missing-parentheses,
+        -cppcoreguidelines-interfaces-global-init
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
