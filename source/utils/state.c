@@ -3,6 +3,7 @@
 struct Player
 {
     bool has_visited_glade;
+    bool has_visited_cabin;
     bool has_visited_well;
     bool has_key;
 };
@@ -12,6 +13,10 @@ static struct Player player; //NOLINT
 bool player_visited_glade_val() { return player.has_visited_glade; }
 
 void player_visited_glade_set() { player.has_visited_glade = true; }
+
+bool player_visited_cabin_val() { return player.has_visited_cabin; }
+
+void player_visited_cabin_set() { player.has_visited_cabin = true; }
 
 bool player_visited_well_val() { return player.has_visited_well; }
 

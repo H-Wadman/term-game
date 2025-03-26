@@ -27,9 +27,9 @@ typedef struct Node
  */
 static Node* command_stack = NULL; //NOLINT
 
-Command const null_command = {.execute = NULL};
+Command const null_command = {.execute = NULL, .persistent = true};
 
-Command const pop = {.execute = pop_command};
+Command const pop = {.execute = pop_command, .persistent = true};
 
 void push_command(Command* f)
 {

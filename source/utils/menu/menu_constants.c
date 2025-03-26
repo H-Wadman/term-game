@@ -103,6 +103,21 @@ const char* const well_art[] = {
     "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢀⠀⡀⢀⠀⡀⢀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ "
 };
 
+char const* const door_art[] = {
+    "              ________",
+    "             / ______ \\",
+    "             || _  _ ||",
+    "             ||| || |||",
+    "             |||_||_|||",
+    "             || _  _o||    ",
+    "             ||| || |||",
+    "             |||_||_|||      ^~^  ,",
+    "             ||______||     ('Y') )",
+    "            /__________\\    /   \\/",
+    "    ________|__________|__ (\\|||/) _________",
+    "           /____________\\",
+    "           |____________|",
+};
 
 // clang-format on
 
@@ -154,9 +169,10 @@ Command* return_command(void* this)
 /********************** SHOULD BE CONST **********************/
 
 
-static Return_command const exit_game = {(Command){.execute = return_command},
-                                         .return_value =
-                                             (Command*)&null_command};
+static Return_command const exit_game = {
+    (Command){.execute = return_command, .persistent = true},
+    .return_value = (Command*)&null_command
+};
 
 /**************** START MENU -> OPTIONS ****************/
 const struct Option options_language = {.label   = "Language",
@@ -186,11 +202,21 @@ struct Option const* const start[] = {&start_play, &start_options, &start_exit};
 
 MAKE_MENU(start, title, 77, -1, -1); //NOLINT
 
+/************************ CABIN ************************/
+
+const struct Option cabin_knock = {.label   = "Knock",
+                                   .command = (Command*)&exit_game};
+const struct Option cabin_back  = {.label   = "Go back",
+                                   .command = (Command*)&show_glade};
+
+struct Option const* const cabin[] = {&cabin_knock, &cabin_back};
+
+MAKE_MENU(cabin, door_art, 100, -1, -1); //NOLINT
+MAKE_MENU_COMMAND(cabin);
+
 /********************** GLADE **********************/
 
-const struct Option glade_cabin = {.label   = "Cabin",
-                                   .command = (Command*)&exit_game};
-
+MAKE_RETURN_COMMAND(glade_cabin, "Cabin", show_cabin, (Command*)&show_cabin);
 MAKE_RETURN_COMMAND(glade_well, "Well", show_well, (Command*)&show_well);
 
 const struct Option glade_forest   = {.label   = "Forest",
@@ -220,4 +246,5 @@ void initialise_menus()
     implementation_initialise_menu(&implementation_options_menu);
     implementation_initialise_menu(&implementation_glade_menu);
     implementation_initialise_menu(&implementation_well_menu);
+    implementation_initialise_menu(&implementation_cabin_menu);
 }

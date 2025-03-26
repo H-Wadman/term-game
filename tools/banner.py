@@ -19,7 +19,7 @@ with open(argv[1]) as f:
         line = line.strip("\n")
         line = line.replace('"', '\\"')
         line = line.replace("\\", "\\\\")
-        # lines[i] = f'"{line}\\n",'
+        lines[i] = f'"{line}",'
 
 
 for line in lines:

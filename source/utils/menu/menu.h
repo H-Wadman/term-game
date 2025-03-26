@@ -204,9 +204,10 @@ typedef struct Menu_command
 
 #define MAKE_MENU_COMMAND(menu_name)                                           \
     Menu_command const show_##menu_name = {                                    \
-        .command   = (Command){.execute = show_menu},                          \
+        .command   = (Command){.execute = show_menu, .persistent = true},      \
         .menu      = menu_name##_menu,                                         \
-        .highlight = 0};
+        .highlight = 0 \
+    };
 
 #define EXTERN_MENU(name) extern const struct Menu* const name##_menu
 
@@ -224,4 +225,6 @@ int quick_print_menu(int width, int count, ...);
 //! Prints the passed in dialogue file to screen with indicated width
 int print_dia(const char* file_path, int width);
 
+//! This function prints the string passed in as a dialogue
+int print_diastr(char const* const str);
 #undef string_arr_len

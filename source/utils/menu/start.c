@@ -23,72 +23,6 @@
 
 //len of str should fit in an int
 
-/*! \brief This function prints the string passed in as a dialogue
- *
- * This commandion will print a dialogue with an identical result to print_dia,
- * however instead of printing the contents of a file, it will print the passed
- * in string.
- *
- * \param str A string containing the text you want to print with length fitting
- * into an int
- *
- * \returns 0 on success and a negative integer on failure depending on the
- * error
- */
-int print_diastr(char const* const str)
-{
-    char const tmpl[] = "/tmp/tmpdia.XXXXXX";
-    int fd            = mkstemp((char*)tmpl);
-    if (fd == -1) {
-        log_and_exit("Failed to make temporary file in %s, aborting...\n",
-                     __func__);
-    }
-    FILE* temp = fdopen(fd, "w");
-    if (!temp) {
-        log_and_exit("Call to fdopen failed in %s, aborting...\n", __func__);
-    }
-    int b = fputs(str, temp);
-
-    assert(b == (int)strlen(str));
-    if (b != (int)strlen(str)) {
-        log_msgln(
-            "fputs did not manage to print entire string in print_diastr");
-        return -1;
-    }
-
-    int err = fputs(u8"\n§\n", temp);
-    if (err == EOF) {
-        log_msgln("fputs failed in print_diastr");
-        return -2;
-    }
-    err = fflush(temp);
-    if (err == EOF) {
-        log_msgf("fflush failed in print_diastr, with errno value: %s\n",
-                 strerror(errno));
-        return -3;
-    }
-
-    err = print_dia(tmpl, utf8_strlen(str));
-    if (err == -1) {
-        log_msgln("print_dia failed in print_diastr");
-        return -6; //NOLINT
-    }
-
-    err = fclose(temp);
-    if (err == EOF) {
-        log_msgln("fclose failed in print_diastr");
-        return -4;
-    }
-
-    err = remove(tmpl);
-    if (err == -1) {
-        log_msgln("failed to remove file in print_diastr");
-        return -5; //NOLINT
-    }
-
-
-    return 0;
-}
 
 Command* show_opening(void* _ __attribute__((unused)))
 {
@@ -109,7 +43,7 @@ Command* show_menu(void* this)
     return option;
 }
 
-Command* show_options_execute(void* _ __attribute__((unused)))
+static Command* show_options_execute(void* _ __attribute__((unused)))
 {
     Menu_command* start       = (Menu_command*)malloc(sizeof(Menu_command));
     start->command.execute    = show_menu;
@@ -124,7 +58,7 @@ Command* show_options_execute(void* _ __attribute__((unused)))
 Command const show_options = {.execute    = show_options_execute,
                               .persistent = true};
 
-Command* show_glade_execute(void* _ __attribute__((unused)))
+static Command* show_glade_execute(void* _ __attribute__((unused)))
 {
     if (!player_visited_glade_val()) {
         GET_AND_PRINT_DIA("intro.txt", COLS / 2);
@@ -137,7 +71,7 @@ Command* show_glade_execute(void* _ __attribute__((unused)))
 
 Command const show_glade = {.execute = show_glade_execute, .persistent = true};
 
-Command* show_well_execute(void* _ __attribute__((unused)))
+static Command* show_well_execute(void* _ __attribute__((unused)))
 {
     Command* res    = (Command*)malloc(sizeof(Command));
     res->execute    = show_glade_execute;

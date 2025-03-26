@@ -17,7 +17,5 @@ extern Command const well_raise_bucket_command;
 
 extern Command const show_options;
 
-int print_diastr(char const* const str);
-
 
 #endif

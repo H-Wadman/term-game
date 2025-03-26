@@ -24,6 +24,8 @@ EXTERN_MENU(glade);
 
 EXTERN_MENU(well);
 
+EXTERN_MENU(cabin);
+
 void initialise_menus();
 
 #endif
