@@ -22,6 +22,7 @@
 #include "io/logging.h"
 #include "io/utf8.h"
 #include "menu.h"
+#include "menu/start.h"
 
 enum
 {
@@ -34,7 +35,23 @@ const char selection_string[] = u8"◇ ";
 int const selection_offset      = 2;
 int const menu_box_width_offset = 2 + selection_offset;
 
-/*! Loads the path to the dialogue directory
+/*!
+ * \param[in] menu The menu to print
+ * \param[in] highlight The \ref Menu_command::highlight value
+ *
+ * \returns A malloced Menu_command*
+ */
+Command* new_menu_command(Menu const* menu, int highlight)
+{
+    Menu_command* res = (Menu_command*)malloc(sizeof(Menu_command));
+    res->command      = (Command){.execute = show_menu, .persistent = false};
+    res->menu         = menu;
+    res->highlight    = highlight;
+    return (Command*)res;
+}
+
+/*!
+ * Loads the path to the dialogue directory
  *
  *  \param[out] buf A character buffer in which the path to the dialogue
  * directory will be stored.

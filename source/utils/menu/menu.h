@@ -211,6 +211,8 @@ typedef struct Menu_command
 
 #define EXTERN_MENU(name) extern const struct Menu* const name##_menu
 
+Command* new_menu_command(Menu const* menu, int highlight);
+
 //! Loads the path to the dialogue directory into buf
 void get_dialogue_path(char* buf, int sz);
 
