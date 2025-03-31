@@ -12,10 +12,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define ASCII_MAX 127
-#define ASCII_MIN 0
-//! The size a buffer has to be for loading a utf8 char
-#define ASCII_BUF_SZ 5
+enum
+{
+    ASCII_MAX = 127,
+    ASCII_MIN = 0,
+    //! The size a buffer has to be for loading a utf8 char
+    ASCII_BUF_SZ = 5
+};
 
 typedef struct Input
 {

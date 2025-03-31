@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "base.h"
 #include "build-path.h"
 #include "io/logging.h"
 #include "io/utf8.h"
@@ -647,6 +648,7 @@ int print_diastr(char const* const str)
 
     assert(b == (int)strlen(str));
     if (b != (int)strlen(str)) {
+        (void)fclose(temp);
         log_msgln(
             "fputs did not manage to print entire string in print_diastr");
         return -1;
@@ -654,11 +656,13 @@ int print_diastr(char const* const str)
 
     int err = fputs(u8"\n§\n", temp);
     if (err == EOF) {
+        (void)fclose(temp);
         log_msgln("fputs failed in print_diastr");
         return -2;
     }
     err = fflush(temp);
     if (err == EOF) {
+        (void)fclose(temp);
         log_msgf("fflush failed in print_diastr, with errno value: %s\n",
                  strerror(errno));
         return -3;
@@ -666,6 +670,7 @@ int print_diastr(char const* const str)
 
     err = print_dia(tmpl, utf8_strlen(str));
     if (err == -1) {
+        (void)fclose(temp);
         log_msgln("print_dia failed in print_diastr");
         return -6; //NOLINT
     }

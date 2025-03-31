@@ -71,8 +71,7 @@ static int get_utf8_len(unsigned int c)
 
 char const* get_input_utf8(Input inp)
 {
-    char const* res = "";
-    res             = get_utf8(inp);
+    char const* res = get_utf8(inp);
     if (!res) {
         log_msgf("Failed to get input in %s\n", __func__);
         return NULL;

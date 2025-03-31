@@ -7,9 +7,6 @@
 
 #include <stdbool.h>
 
-#define GROWTH_FACTOR 2
-#define SHRINK_FACTOR 1.5
-
 /*!
  * \brief Macro for forward_declaring a vector
  *
@@ -36,6 +33,13 @@
     type Vec_back_##type(Vec_##type v);                                        \
     type vec_pop_##type(Vec_##type* v);                                        \
     Vec_##type new_vec_##type(int cap);
+
+enum
+{
+    GROWTH_FACTOR = 2
+};
+
+#define SHRINK_FACTOR 1.5
 
 //! Bounds checked element access
 #define VEC_GET(v, i)                                                          \

@@ -1,8 +1,6 @@
 #ifndef START_H
 #define START_H
 
-#include <ncurses.h>
-
 #include "base.h"
 
 Command* show_menu(void*);

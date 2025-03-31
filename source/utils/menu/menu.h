@@ -20,7 +20,7 @@
 #define CHOICES_LEN(arr) ((int)(sizeof(arr) / sizeof(char*)))
 #include <ncurses.h>
 
-#include <base.h>
+#include "base.h"
 
 /*!
  * \brief Option for menus

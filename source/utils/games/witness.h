@@ -12,7 +12,6 @@
 
 #include "base.h"
 #include "io/utf8.h"
-#include "menu/menu.h"
 #include "vec.h"
 
 /*!

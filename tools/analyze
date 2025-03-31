@@ -1,1 +1,2 @@
-clang-tidy *.{c,h} utils/*.{c,h} --checks='-bugprone-macro-parentheses,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-security.insecureAPI.strcat'
+#!/usr/bin/env bash
+clang-tidy $(find "$(dirname "$0")/../source" -name "*.[ch]") --checks='-bugprone-macro-parentheses,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-security.insecureAPI.strcat'

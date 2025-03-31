@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include "base.h"
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
