@@ -6,9 +6,18 @@ struct Player
     bool has_visited_cabin;
     bool has_visited_well;
     bool has_key;
+} static player; //NOLINT
+
+struct Settings
+{
+    bool katte_mode_enabled;
 };
 
-static struct Player player; //NOLINT
+static struct Settings settings = {.katte_mode_enabled = false}; //NOLINT
+
+bool is_katte_mode() { return settings.katte_mode_enabled; }
+
+void set_katte_mode(bool enable) { settings.katte_mode_enabled = enable; }
 
 bool player_visited_glade_val() { return player.has_visited_glade; }
 

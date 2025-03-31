@@ -2,6 +2,10 @@
 
 #include <stdbool.h>
 
+bool is_katte_mode();
+
+bool set_katte_mode(bool enable);
+
 bool player_visited_glade_val();
 
 void player_visited_glade_set();

@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "io/logging.h"
-#include "io/utf8.h"
+#include "base.h"
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
@@ -27,12 +26,7 @@
 Command* show_opening(void* _ __attribute__((unused)))
 {
     GET_AND_PRINT_DIA("opening.txt", COLS / 3);
-    Menu_command* res       = (Menu_command*)malloc(sizeof(Menu_command));
-    res->command.execute    = show_menu;
-    res->menu               = start_menu;
-    res->highlight          = 0;
-    res->command.persistent = false;
-    return (Command*)res;
+    return new_menu_command(start_menu, 0);
 }
 
 Command* show_menu(void* this)
@@ -45,12 +39,7 @@ Command* show_menu(void* this)
 
 static Command* show_options_execute(void* _ __attribute__((unused)))
 {
-    Menu_command* start       = (Menu_command*)malloc(sizeof(Menu_command));
-    start->command.execute    = show_menu;
-    start->menu               = start_menu;
-    start->highlight          = 0;
-    start->command.persistent = false;
-    push_command((Command*)start);
+    push_command(new_menu_command(start_menu, 1));
     Command* op = print_menu(options_menu, 0);
     return op;
 }
@@ -88,6 +77,63 @@ static Command* show_well_execute(void* _ __attribute__((unused)))
 }
 
 Command const show_well = {.execute = show_well_execute, .persistent = true};
+
+// static Command* show_cabin_execute(void* _ __attribute__((unused)))
+// {
+//     if (!player_visited_cabin_val()) {
+//         player_visited_cabin_set();
+//         print_diastr("");
+//     }
+// }
+
+__attribute__((unused)) static Command* knock_execute(void* _
+                                                      __attribute__((unused)))
+{
+    static bool has_knocked = false;
+    if (!has_knocked) {
+        print_diastr("You approach the door and knock.");
+        print_diastr(".");
+        print_diastr("..");
+        print_diastr("...");
+        print_diastr("Seems like nobody's answering.");
+    }
+
+    print_diastr("The door seems to be locked.");
+
+
+    if (player_has_key_val()) {
+        print_diastr("Use key?");
+        int res = quick_print_menu(0, 2, "Yes", "No");
+        if (res == 0) {
+            if (is_katte_mode()) {
+                GET_AND_PRINT_DIA("freaky.txt", COLS / 3);
+                return (Command*)&null_command;
+            }
+            else {
+                return (Command*)&null_command;
+            }
+        }
+    }
+
+    return (Command*)&null_command;
+}
+
+Command const knock = {.execute = knock_execute, .persistent = true};
+
+Command* switch_katte_mode_execute(void* _ __attribute__((unused)))
+{
+    set_katte_mode(!is_katte_mode());
+    bool katte_mode = is_katte_mode();
+
+    char const* str =
+        katte_mode ? "Katte mode enabled!" : "Katte mode disabled!";
+    print_diastr(str);
+
+    return new_menu_command(options_menu, 1);
+}
+
+Command const switch_katte_mode = {.execute    = switch_katte_mode_execute,
+                                   .persistent = true};
 
 // clang-format off
     char const* const bucket[] = {
