@@ -4,8 +4,6 @@
 
 #include "base.h"
 #include "io/logging.h"
-#include "menu/menu_constants.h"
-#include "menu/start.h"
 
 //! Command linked list structure
 typedef struct Node
@@ -55,70 +53,9 @@ Command* pop_command(void* _ __attribute__((unused)))
     return res;
 }
 
-static void perform_atexit()
-{
-    endwin();
-    close_log_stream();
-}
-
-static void init_color_pairs()
+void init_color_pairs()
 {
     init_pair(1, COLOR_YELLOW, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     init_pair(3, COLOR_RED, COLOR_BLACK);
-}
-
-//! \brief Sets the locale, initialises ncurses with common defaults, and
-//! registers a function to be called on exit
-static void ncurses_set_up()
-{
-    const char* locale = setlocale(LC_ALL, "");
-    if (locale == NULL) {
-        fprintf(stderr, "Error setting locale, aborting.../\n"); //NOLINT
-        exit(1);
-    }
-    initscr();
-    start_color();
-    init_color_pairs();
-    clear();
-    noecho();
-    cbreak();
-    nonl();
-    intrflush(stdscr, false);
-    //Add this?
-    // raw();
-    keypad(stdscr, TRUE);
-
-    int err = atexit(perform_atexit);
-    if (err != 0) {
-        fprintf( //NOLINT
-            stderr,
-            "Couldn't register atexit function in ncurses_set_up, quitting "
-            "program...\n");
-        endwin();
-        exit(1);
-    }
-    err = curs_set(0);
-    if (err == ERR) {
-        fprintf(stderr, //NOLINT
-                "Terminal doesn't support invisible cursor, support to be "
-                "added.\n Aborting...\n");
-        exit(1);
-    }
-}
-
-void init_game()
-{
-    ncurses_set_up();
-    initialise_menus();
-    set_log_output(stderr);
-}
-
-Command* start_game()
-{
-    Command* start    = (Command*)malloc(sizeof(Command));
-    start->execute    = show_opening;
-    start->persistent = false;
-
-    return start;
 }

@@ -1,11 +1,13 @@
 #include <assert.h>
 #include <errno.h>
+#include <locale.h>
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "base.h"
+#include "io/logging.h"
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
@@ -22,18 +24,71 @@
 //len of str should fit in an int
 
 
+static void perform_atexit()
+{
+    endwin();
+    close_log_stream();
+}
+
+//! \brief Sets the locale, initialises ncurses with common defaults, and
+//! registers a function to be called on exit
+static void ncurses_set_up()
+{
+    const char* locale = setlocale(LC_ALL, "");
+    if (locale == NULL) {
+        fprintf(stderr, "Error setting locale, aborting.../\n"); //NOLINT
+        exit(1);
+    }
+    initscr();
+    start_color();
+    init_color_pairs();
+    clear();
+    noecho();
+    cbreak();
+    nonl();
+    intrflush(stdscr, false);
+    //Add this?
+    // raw();
+    keypad(stdscr, TRUE);
+
+    int err = atexit(perform_atexit);
+    if (err != 0) {
+        fprintf( //NOLINT
+            stderr,
+            "Couldn't register atexit function in ncurses_set_up, quitting "
+            "program...\n");
+        endwin();
+        exit(1);
+    }
+    err = curs_set(0);
+    if (err == ERR) {
+        fprintf(stderr, //NOLINT
+                "Terminal doesn't support invisible cursor, support to be "
+                "added.\n Aborting...\n");
+        exit(1);
+    }
+}
+
+void init_game()
+{
+    ncurses_set_up();
+    initialise_menus();
+    set_log_output(stderr);
+}
+
+Command* start_game()
+{
+    Command* start    = (Command*)malloc(sizeof(Command));
+    start->execute    = show_opening;
+    start->persistent = false;
+
+    return start;
+}
+
 Command* show_opening(void* _ __attribute__((unused)))
 {
     GET_AND_PRINT_DIA("opening.txt", COLS / 3);
     return new_menu_command(start_menu, 0);
-}
-
-Command* show_menu(void* this)
-{
-    Menu_command* mc = (Menu_command*)this;
-    Command* option  = print_menu(mc->menu, mc->highlight);
-
-    return option;
 }
 
 static Command* show_options_execute(void* _ __attribute__((unused)))

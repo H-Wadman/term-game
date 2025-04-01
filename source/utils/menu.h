@@ -229,4 +229,7 @@ int print_dia(const char* file_path, int width);
 
 //! This function prints the string passed in as a dialogue
 int print_diastr(char const* const str);
+
+//! \ref Command::execute "Execute" that prints a menu
+Command* show_menu(void*);
 #undef string_arr_len

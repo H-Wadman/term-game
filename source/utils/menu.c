@@ -23,7 +23,6 @@
 #include "io/logging.h"
 #include "io/utf8.h"
 #include "menu.h"
-#include "menu/start.h"
 
 enum
 {
@@ -689,4 +688,16 @@ int print_diastr(char const* const str)
 
 
     return 0;
+}
+
+/*!
+ * \this A \ref Menu_command* to use when printing
+ * \returns The result of print_menu executed on the information in this
+ */
+Command* show_menu(void* this)
+{
+    Menu_command* mc = (Menu_command*)this;
+    Command* option  = print_menu(mc->menu, mc->highlight);
+
+    return option;
 }

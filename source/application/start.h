@@ -3,7 +3,9 @@
 
 #include "base.h"
 
-Command* show_menu(void*);
+void init_game();
+
+Command* start_game();
 
 Command* show_opening(void*);
 

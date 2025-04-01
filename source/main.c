@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "base.h"
+#include "start.h"
 
 int main()
 {

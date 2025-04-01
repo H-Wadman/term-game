@@ -55,5 +55,4 @@ Command* pop_command(void*);
 extern Command const null_command;
 extern Command const pop;
 
-void init_game();
-Command* start_game();
+void init_color_pairs();
