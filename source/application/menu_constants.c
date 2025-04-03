@@ -120,7 +120,7 @@ char const* const door_art[] = {
     "           |____________|",
 };
 
-char const* const freaky_apple[] = {
+char const* const freaky_apple[55] = {
 
 "                                       *%##*-==--------=*@@                                         ",
 "                              ******++*#%###+==---------===--+%                                     ",
@@ -185,23 +185,6 @@ char const* const freaky_apple[] = {
 
 //Auxiliary definitions
 
-/*!
- * \Brief \ref Command extension designed for immediately returning a value
- *
- * This structure is mainly useful in combination with \Option "Options".
- * \ref MAKE_RETURN_COMMAND is defined in order to simplify creating
- * Options with corresponding Return_commands.
- */
-typedef struct Return_command
-{
-    Command this;
-    Command* return_value;
-} Return_command;
-
-Command* return_command(void* this)
-{
-    return ((Return_command*)this)->return_value;
-}
 
 /*!
  * \brief Make an Options that returns a Command*

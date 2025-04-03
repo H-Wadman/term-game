@@ -80,7 +80,7 @@ char const* get_input_utf8(Input inp)
     return res;
 }
 
-static int get_char(Input i)
+int get_input_char(Input i)
 {
     int res = -1;
     switch (i.tag) {
@@ -106,7 +106,7 @@ static int get_char(Input i)
  */
 int load_utf8(char* buf, Input inp)
 {
-    int c = get_char(inp);
+    int c = get_input_char(inp);
 
     if (c < 0) {
         log_and_exit(
@@ -121,7 +121,7 @@ int load_utf8(char* buf, Input inp)
     assert(1 <= len && len <= 4);
     buf[0] = (char)c;
     for (int i = 1; i < len; ++i) {
-        c = get_char(inp);
+        c = get_input_char(inp);
         if (!is_continuation(c)) {
             log_msgln(
                 "load_utf8: Length indicated by first byte doesn't correspond "

@@ -80,16 +80,16 @@ void get_dialogue_path(char* buf, int sz)
  */
 WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
 {
-    if (!menu->banner) { return NULL; }
+    if (!menu->banner.art) { return NULL; }
 
     int x                 = getmaxx(menu_win);
     int const menu_middle = x / 2;
     WINDOW* banner_win =
-        newwin(menu->banner_height, menu->banner_width,
-               menu->start_y - menu->banner_height,
-               menu->start_x + menu_middle - menu->banner_width / 2);
-    for (int i = 0; i < menu->banner_height; ++i) {
-        mvwprintw(banner_win, i, 0, "%s", menu->banner[i]);
+        newwin(menu->banner.dim.h, menu->banner.dim.w,
+               menu->start_y - menu->banner.dim.h,
+               menu->start_x + menu_middle - menu->banner.dim.w / 2);
+    for (int i = 0; i < menu->banner.dim.h; ++i) {
+        mvwprintw(banner_win, i, 0, "%s", menu->banner.art[i]);
     }
 
     wrefresh(banner_win);
@@ -105,8 +105,8 @@ void refresh_banner(WINDOW* banner_win, const struct Menu* menu,
     int x                         = 0;
     int y __attribute__((unused)) = 0;
     getmaxyx(menu_win, y, x);
-    for (int i = 0; i < menu->banner_height; ++i) {
-        mvwprintw(banner_win, i, 0, "%s", menu->banner[i]);
+    for (int i = 0; i < menu->banner.dim.h; ++i) {
+        mvwprintw(banner_win, i, 0, "%s", menu->banner.art[i]);
     }
 
     wrefresh(banner_win);
@@ -219,11 +219,11 @@ int get_menu_width(struct Menu const* menu)
  * \param[in] size the size of banner
  * \returns The width of the banner in unicode points
  */
-int get_banner_width(const char* const* banner, int size)
+int get_banner_width(Banner b)
 {
     int max = 0;
-    for (int i = 0; i < size; ++i) {
-        int curr = utf8_strlen(banner[i]);
+    for (int i = 0; i < b.dim.h; ++i) {
+        int curr = utf8_strlen(b.art[i]);
         if (max < curr) { max = curr; }
     }
     return max;
@@ -352,7 +352,7 @@ int quick_print_menu(int width, int count, ...)
         choices[i]->command = NULL;
     }
 
-    Menu m = {(Option const**)choices, count, width, NULL, 0, 0, -1, -1};
+    Menu m = {(Option const**)choices, count, width, {.art = NULL}, -1, -1};
     implementation_initialise_menu(&m);
 
     int res = print_menu_old(&m);
@@ -375,21 +375,21 @@ void implementation_initialise_menu(struct Menu* menu)
     menu->choices_width = get_menu_width(menu);
     assert(menu->choices_width + utf8_strlen(selection_string) + 2 <= COLS);
 
-    if (menu->banner) {
-        menu->banner_width =
-            get_banner_width(menu->banner, menu->banner_height);
-        assert(menu->banner_width <= COLS);
+    if (menu->banner.art) {
+        menu->banner.dim.w =
+            get_banner_width(menu->banner);
+        assert(menu->banner.dim.w <= COLS);
     }
     else {
-        menu->banner_width  = 0;
-        menu->banner_height = 0;
+        menu->banner.dim.w  = 0;
+        menu->banner.dim.h = 0;
     }
 
     if (menu->start_x < 0) {
         menu->start_x = (COLS - (menu->choices_width + 2)) / 2;
     }
     if (menu->start_y < 0) {
-        int height    = (menu->banner) ? menu->banner_height : 0;
+        int height    = (menu->banner.art) ? menu->banner.dim.h : 0;
         menu->start_y = (LINES - (menu->choices_height + 2) + height) / 2;
     }
 }

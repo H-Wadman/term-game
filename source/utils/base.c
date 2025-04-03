@@ -12,6 +12,20 @@ typedef struct Node
     Command* val;
 } Node;
 
+Command* new_command(Command* (*execute)(void*), bool persistent)
+{
+    Command* res    = (Command*)malloc(sizeof(Command));
+    res->execute    = execute;
+    res->persistent = persistent;
+
+    return res;
+}
+
+Command* return_command(void* this)
+{
+    return ((Return_command*)this)->return_value;
+}
+
 /*!
  * Global command stack for storing commands that are to be restored later.
  *

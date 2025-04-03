@@ -8,6 +8,7 @@
 
 #include "base.h"
 #include "io/logging.h"
+#include "io/utf8.h"
 #include "menu.h"
 #include "menu_constants.h"
 #include "start.h"
@@ -76,14 +77,7 @@ void init_game()
     set_log_output(stderr);
 }
 
-Command* start_game()
-{
-    Command* start    = (Command*)malloc(sizeof(Command));
-    start->execute    = show_opening;
-    start->persistent = false;
-
-    return start;
-}
+Command* start_game() { return new_command(show_opening, false); }
 
 Command* show_opening(void* _ __attribute__((unused)))
 {
@@ -116,9 +110,7 @@ Command const show_glade = {.execute = show_glade_execute, .persistent = true};
 
 static Command* show_well_execute(void* _ __attribute__((unused)))
 {
-    Command* res    = (Command*)malloc(sizeof(Command));
-    res->execute    = show_glade_execute;
-    res->persistent = false;
+    Command* res = new_command(show_glade_execute, false);
     push_command(res);
     if (player_visited_well_val()) {
         GET_AND_PRINT_DIA("well.txt", COLS / 2);
@@ -140,8 +132,7 @@ Command const show_well = {.execute = show_well_execute, .persistent = true};
 //     }
 // }
 
-__attribute__((unused)) static Command* knock_execute(void* _
-                                                      __attribute__((unused)))
+static Command* knock_execute(void* _ __attribute__((unused)))
 {
     static bool has_knocked = false;
     if (!has_knocked) {
@@ -159,8 +150,28 @@ __attribute__((unused)) static Command* knock_execute(void* _
         print_diastr("Use key?");
         int res = quick_print_menu(0, 2, "Yes", "No");
         if (res == 0) {
+            
+        }
+        else if (res == 1) {
+            return (Command*)&show_cabin;
+        }
+        else { log_and_exit(""); }
+        if (res == 0) {
             if (is_katte_mode()) {
                 GET_AND_PRINT_DIA("freaky.txt", COLS / 3);
+                int h = sizeof(freaky_apple) / sizeof(freaky_apple[0]);
+                int w = utf8_strlen(freaky_apple[0]);
+                WINDOW* freaky_apple_win = newwin(h, w, 0, 0);
+                intrflush(freaky_apple_win, false);
+                keypad(freaky_apple_win, true);
+
+                for (int i = 0; i < h; ++i) {
+                    mvwaddstr(freaky_apple_win, i, 0, freaky_apple[i]);
+                }
+                wrefresh(freaky_apple_win);
+                get_input_char((Input){.win = freaky_apple_win, .tag = tag_win});
+                win_cleanup(freaky_apple_win);
+
                 return (Command*)&null_command;
             }
             else {
@@ -169,7 +180,7 @@ __attribute__((unused)) static Command* knock_execute(void* _
         }
     }
 
-    return (Command*)&null_command;
+    return (Command*)&show_cabin;
 }
 
 Command const knock = {.execute = knock_execute, .persistent = true};
@@ -203,11 +214,11 @@ static void wpaint_bucket(WINDOW* win, int const y)
 {
     int const max_x = getmaxx(win);
 
-    int const height = sizeof(bucket) / sizeof(char*);
-    int const width  = get_banner_width(bucket, height);
+    Banner b = {.art = bucket, .dim.h = (sizeof(bucket) / sizeof(char*))};
+    b.dim.w  = get_banner_width(b);
 
-    int const x = (max_x - width) / 2;
-    for (int i = 0; i < height; ++i) { mvwaddstr(win, y + i, x, bucket[i]); }
+    int const x = (max_x - b.dim.w) / 2;
+    for (int i = 0; i < b.dim.h; ++i) { mvwaddstr(win, y + i, x, bucket[i]); }
 
     wrefresh(win);
 }
@@ -224,10 +235,10 @@ static void wpaint_rope(WINDOW* win, int count, int piece_len, int bucket_width)
 }
 
 static int bucket_iteration(WINDOW* win, int count, int piece_len,
-                            int bucket_width, int bucket_height)
+                            Dim bucket_dim)
 {
     werase(win);
-    wpaint_rope(win, count, piece_len, bucket_width);
+    wpaint_rope(win, count, piece_len, bucket_dim.w);
     wpaint_bucket(win, count * piece_len);
     wrefresh(win);
 
@@ -239,7 +250,7 @@ static int bucket_iteration(WINDOW* win, int count, int piece_len,
         case KEY_DOWN:
         case 's'     :
         case 'S'     : {
-            int total_height = count * piece_len + bucket_height;
+            int total_height = count * piece_len + bucket_dim.h;
             if (total_height + piece_len <= LINES) { ++count; }
         } break;
         default:;
@@ -255,12 +266,13 @@ static Command* well_raise_bucket_execute(void* _ __attribute__((unused)))
         return (Command*)&show_well;
     }
     int const bucket_height = sizeof(bucket) / sizeof(char*);
-    int const bucket_width  = get_banner_width(bucket, bucket_height);
+    Banner b = {.art = bucket, .dim.h = sizeof(bucket) / sizeof(char*)};
+    b.dim.w  = get_banner_width(b);
 
     int const mid_x = COLS / 2;
     // Make centered window with bucket_width
     WINDOW* bucket_win =
-        newwin(LINES, bucket_width, 0, mid_x - bucket_width / 2);
+        newwin(LINES, b.dim.w, 0, mid_x - b.dim.w / 2);
     intrflush(bucket_win, false);
     keypad(bucket_win, true);
 
@@ -271,8 +283,7 @@ static Command* well_raise_bucket_execute(void* _ __attribute__((unused)))
 
     assert(count > 0);
     while (count > 0) {
-        count = bucket_iteration(bucket_win, count, piece_len, bucket_width,
-                                 bucket_height);
+        count = bucket_iteration(bucket_win, count, piece_len, b.dim);
     }
 
     werase(bucket_win);

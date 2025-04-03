@@ -29,6 +29,9 @@ typedef struct Command
     bool persistent;
 } Command;
 
+//! Constructor for Command
+Command* new_command(Command* (*execute)(void*), bool persistent);
+
 /* <--- Command members ---> */
 /*!
  * \var Command::execute
@@ -44,6 +47,21 @@ typedef struct Command
  * flexible or do what we want, and in the main loop we have to have the same
  * signature for every function.
  */
+
+/*!
+ * \Brief \ref Command extension designed for immediately returning a value
+ *
+ * This structure is mainly useful in combination with \Option "Options".
+ * \ref MAKE_RETURN_COMMAND is defined in order to simplify creating
+ * Options with corresponding Return_commands.
+ */
+typedef struct Return_command
+{
+    Command this;
+    Command* return_value;
+} Return_command;
+
+Command* return_command(void* this);
 
 //! Pushes a command on to the global \ref func_stack
 void push_command(Command* f);

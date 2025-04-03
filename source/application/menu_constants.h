@@ -17,7 +17,6 @@ EXTERN_MENU(start);
 
 EXTERN_MENU(options);
 
-
 EXTERN_MENU(encounter);
 
 EXTERN_MENU(glade);
@@ -25,6 +24,9 @@ EXTERN_MENU(glade);
 EXTERN_MENU(well);
 
 EXTERN_MENU(cabin);
+extern Menu_command const show_cabin;
+
+extern char const* const freaky_apple[55];
 
 void initialise_menus();
 

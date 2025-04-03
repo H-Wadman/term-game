@@ -41,6 +41,29 @@ typedef struct Option
     char const* label;
 } Option;
 
+//! Specifies dimension
+typedef struct Dim
+{
+    //! Height
+    int h;
+    //! Width
+    int w;
+} Dim;
+
+//! Holds information about 2D art
+typedef struct Banner
+{
+    //! A 2D char array of dimensions \ref dim
+    char const* const* art;
+    //! The height and width of the art array
+    Dim dim;
+} Banner;
+
+/* <--- Banner members ---> */
+/*!
+ * \var Banner::dim The width is specified in number of unicode code points
+ */
+
 /*!
  * \brief Holds menu information
  *
@@ -59,12 +82,8 @@ typedef struct Menu
     int choices_height;
     //! The minimal width of the menu
     int choices_width;
-    //! 2D UTF-8 char array printed above the menu (can be null)
-    char const** banner;
-    //! Specifies the length of banner
-    int banner_height;
-    //! Specifies the length of banner[i]
-    int banner_width;
+    //! 2D UTF-8 char array printed above the menu
+    Banner banner;
     //! x-coordinate of the menus upper left corner
     int start_x;
     //! y-coordinate of the menus upper left corner
@@ -94,7 +113,7 @@ struct dia
 };
 
 int get_menu_width(struct Menu const* menu);
-int get_banner_width(const char* const* banner, int size);
+int get_banner_width(Banner b);
 
 //! Enum used to specify text justification in menus
 enum Justification
@@ -142,19 +161,19 @@ void win_cleanup(WINDOW* win);
  * negative will be set such that menu is vertically centered on screen.
  */
 
-#define MAKE_MENU_VERBOSE(menu_name, menu_banner, min_choice_width,            \
-                          justification, left_pad, right_pad, x, y)            \
-    static struct Menu implementation_##menu_name##_menu = {                   \
-        .choices        = (struct Option const**)(menu_name),                  \
-        .choices_height = CHOICES_LEN(menu_name),                              \
-        .choices_width  = (min_choice_width),                                  \
-        .banner         = (const char**)(menu_banner),                         \
-        .banner_height  = (int)(sizeof(menu_banner) / sizeof(char*)),          \
-        .start_x        = (x),                                                 \
-        .start_y        = (y),                                                 \
-    };                                                                         \
-                                                                               \
-    const struct Menu* const menu_name##_menu =                                \
+#define MAKE_MENU_VERBOSE(menu_name, menu_banner, min_choice_width,                   \
+                          justification, left_pad, right_pad, x, y)                   \
+    static struct Menu implementation_##menu_name##_menu = {                          \
+        .choices        = (struct Option const**)(menu_name),                         \
+        .choices_height = CHOICES_LEN(menu_name),                                     \
+        .choices_width  = (min_choice_width),                                         \
+        .banner         = {.art = (const char**)(menu_banner),                        \
+                           .dim = {.h = (int)(sizeof(menu_banner) / sizeof(char*))}}, \
+        .start_x        = (x),                                                        \
+        .start_y        = (y),                                                        \
+    };                                                                                \
+                                                                                      \
+    const struct Menu* const menu_name##_menu =                                       \
         &implementation_##menu_name##_menu
 
 /*! \brief Convenient macro for creating a menu structure
@@ -232,4 +251,3 @@ int print_diastr(char const* const str);
 
 //! \ref Command::execute "Execute" that prints a menu
 Command* show_menu(void*);
-#undef string_arr_len
