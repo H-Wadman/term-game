@@ -3,10 +3,12 @@
 #include <locale.h>
 #include <ncurses.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "base.h"
+#include "games/sudoku.h"
 #include "io/logging.h"
 #include "io/utf8.h"
 #include "menu.h"
@@ -19,7 +21,15 @@
         char buf[1024];                                                        \
         get_dialogue_path(buf, 1024);                                          \
         strcat(buf, (file));                                                   \
-        print_dia(buf, (Banner){.art = NULL}, (width));                                               \
+        print_dia(buf, (Banner){.art = NULL}, (width));                        \
+    }
+
+#define GET_AND_PRINT_DIA_BANNER(file, banner, width)                          \
+    {                                                                          \
+        char buf[1024];                                                        \
+        get_dialogue_path(buf, 1024);                                          \
+        strcat(buf, (file));                                                   \
+        print_dia(buf, (banner), (width));                                     \
     }
 
 //len of str should fit in an int
@@ -132,6 +142,21 @@ Command const show_well = {.execute = show_well_execute, .persistent = true};
 //     }
 // }
 
+Sudoku_command const gertrud_sudoku = {
+    .command = {.execute = paint_sudoku, .persistent = true},
+    .board   = {
+                {6, 0, 0, 0, 7, 9, 0, 3, 2},
+                {0, 0, 0, 0, 6, 0, 5, 0, 0},
+                {2, 0, 9, 0, 0, 8, 7, 0, 0},
+                {9, 0, 6, 3, 0, 5, 0, 0, 1},
+                {8, 5, 0, 0, 0, 0, 3, 0, 0},
+                {4, 7, 3, 0, 0, 1, 2, 5, 0},
+                {0, 4, 2, 6, 8, 0, 9, 0, 0},
+                {0, 0, 0, 0, 1, 3, 4, 2, 7},
+                {0, 9, 0, 2, 0, 0, 6, 0, 0},
+                }
+};
+
 static Command* knock_execute(void* _ __attribute__((unused)))
 {
     static bool has_knocked = false;
@@ -150,12 +175,19 @@ static Command* knock_execute(void* _ __attribute__((unused)))
         print_diastr("Use key?");
         int res = quick_print_menu(0, 2, "Yes", "No");
         if (res == 0) {
-            
+            GET_AND_PRINT_DIA_BANNER(
+                "meeting_gudrun.txt",
+                make_banner(gudrun, sizeof(gudrun) / sizeof(gudrun[0])),
+                COLS / 4);
+            push_command((Command*)&show_cabin);
+            return (Command*)&gertrud_sudoku;
         }
         else if (res == 1) {
             return (Command*)&show_cabin;
         }
-        else { log_and_exit(""); }
+        else {
+            log_and_exit("Invalid result returned by quick_print_menu\n");
+        }
         if (res == 0) {
             if (is_katte_mode()) {
                 GET_AND_PRINT_DIA("freaky.txt", COLS / 3);
@@ -169,7 +201,8 @@ static Command* knock_execute(void* _ __attribute__((unused)))
                     mvwaddstr(freaky_apple_win, i, 0, freaky_apple[i]);
                 }
                 wrefresh(freaky_apple_win);
-                get_input_char((Input){.win = freaky_apple_win, .tag = tag_win});
+                get_input_char(
+                    (Input){.win = freaky_apple_win, .tag = tag_win});
                 win_cleanup(freaky_apple_win);
 
                 return (Command*)&null_command;
@@ -214,11 +247,12 @@ static void wpaint_bucket(WINDOW* win, int const y)
 {
     int const max_x = getmaxx(win);
 
-    Banner b = {.art = bucket, .dim.height = (sizeof(bucket) / sizeof(char*))};
-    b.dim.width  = get_banner_width(b);
+    Banner b = make_banner(bucket, sizeof(bucket) / sizeof(char*));
 
     int const x = (max_x - b.dim.width) / 2;
-    for (int i = 0; i < b.dim.height; ++i) { mvwaddstr(win, y + i, x, bucket[i]); }
+    for (int i = 0; i < b.dim.height; ++i) {
+        mvwaddstr(win, y + i, x, bucket[i]);
+    }
 
     wrefresh(win);
 }
@@ -269,8 +303,7 @@ static Command* well_raise_bucket_execute(void* _ __attribute__((unused)))
 
     int const mid_x = COLS / 2;
     // Make centered window with bucket_width
-    WINDOW* bucket_win =
-        newwin(LINES, b.dim.width, 0, mid_x - b.dim.width / 2);
+    WINDOW* bucket_win = newwin(LINES, b.dim.width, 0, mid_x - b.dim.width / 2);
     intrflush(bucket_win, false);
     keypad(bucket_win, true);
 

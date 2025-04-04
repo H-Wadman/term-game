@@ -161,7 +161,7 @@ bool sudoku_is_solved(int const* board)
     return true;
 }
 
-void play_sudoku(WINDOW* suk_win, Sudoku* sc)
+void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
 {
     int y = 0;
     int x = 0;
@@ -244,8 +244,8 @@ Command* paint_sudoku(void* this)
     sudoku_test();
 #endif
 
-    Sudoku* sc      = (Sudoku*)this;
-    WINDOW* suk_win = paint_sudoku_board((int*)sc->board);
+    Sudoku_command* sc = (Sudoku_command*)this;
+    WINDOW* suk_win    = paint_sudoku_board((int*)sc->board);
 
     play_sudoku(suk_win, sc);
 
@@ -260,7 +260,7 @@ Command* paint_sudoku(void* this)
 void test_sudoku()
 {
     //NOLINTBEGIN
-    Sudoku sc_solved __attribute__((unused)) = {
+    Sudoku_command sc_solved __attribute__((unused)) = {
         .command = (Command){.execute = paint_sudoku},
         .board   = {
                              {0, 8, 5, 4, 7, 9, 1, 3, 2},
@@ -274,7 +274,7 @@ void test_sudoku()
                              {1, 9, 7, 2, 5, 4, 6, 8, 3},
                              }
     };
-    Sudoku sc = {
+    Sudoku_command sc = {
         .command = (Command){.execute = paint_sudoku},
         .board   = {
                              {6, 0, 0, 0, 7, 9, 0, 3, 2},

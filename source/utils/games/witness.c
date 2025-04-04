@@ -6,6 +6,7 @@
  */
 #include <assert.h>
 #include <ncurses.h>
+#include <stddef.h>
 #include <stdlib.h>
 
 #include "base.h"

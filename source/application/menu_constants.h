@@ -27,6 +27,7 @@ EXTERN_MENU(cabin);
 extern Menu_command const show_cabin;
 
 extern char const* const freaky_apple[55];
+extern char const* const gudrun[16];
 
 void initialise_menus();
 
