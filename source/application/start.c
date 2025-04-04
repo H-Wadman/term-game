@@ -19,7 +19,7 @@
         char buf[1024];                                                        \
         get_dialogue_path(buf, 1024);                                          \
         strcat(buf, (file));                                                   \
-        print_dia(buf, (width));                                               \
+        print_dia(buf, (Banner){.art = NULL}, (width));                                               \
     }
 
 //len of str should fit in an int
@@ -214,11 +214,11 @@ static void wpaint_bucket(WINDOW* win, int const y)
 {
     int const max_x = getmaxx(win);
 
-    Banner b = {.art = bucket, .dim.h = (sizeof(bucket) / sizeof(char*))};
-    b.dim.w  = get_banner_width(b);
+    Banner b = {.art = bucket, .dim.height = (sizeof(bucket) / sizeof(char*))};
+    b.dim.width  = get_banner_width(b);
 
-    int const x = (max_x - b.dim.w) / 2;
-    for (int i = 0; i < b.dim.h; ++i) { mvwaddstr(win, y + i, x, bucket[i]); }
+    int const x = (max_x - b.dim.width) / 2;
+    for (int i = 0; i < b.dim.height; ++i) { mvwaddstr(win, y + i, x, bucket[i]); }
 
     wrefresh(win);
 }
@@ -238,7 +238,7 @@ static int bucket_iteration(WINDOW* win, int count, int piece_len,
                             Dim bucket_dim)
 {
     werase(win);
-    wpaint_rope(win, count, piece_len, bucket_dim.w);
+    wpaint_rope(win, count, piece_len, bucket_dim.width);
     wpaint_bucket(win, count * piece_len);
     wrefresh(win);
 
@@ -250,7 +250,7 @@ static int bucket_iteration(WINDOW* win, int count, int piece_len,
         case KEY_DOWN:
         case 's'     :
         case 'S'     : {
-            int total_height = count * piece_len + bucket_dim.h;
+            int total_height = count * piece_len + bucket_dim.height;
             if (total_height + piece_len <= LINES) { ++count; }
         } break;
         default:;
@@ -265,21 +265,19 @@ static Command* well_raise_bucket_execute(void* _ __attribute__((unused)))
         print_diastr("You've already got the key!");
         return (Command*)&show_well;
     }
-    int const bucket_height = sizeof(bucket) / sizeof(char*);
-    Banner b = {.art = bucket, .dim.h = sizeof(bucket) / sizeof(char*)};
-    b.dim.w  = get_banner_width(b);
+    Banner b = make_banner(bucket, sizeof(bucket) / sizeof(char*));
 
     int const mid_x = COLS / 2;
     // Make centered window with bucket_width
     WINDOW* bucket_win =
-        newwin(LINES, b.dim.w, 0, mid_x - b.dim.w / 2);
+        newwin(LINES, b.dim.width, 0, mid_x - b.dim.width / 2);
     intrflush(bucket_win, false);
     keypad(bucket_win, true);
 
 
     int const piece_len = 4;
     assert(piece_len > 1);
-    int count = (LINES - bucket_height) / piece_len;
+    int count = (LINES - b.dim.height) / piece_len;
 
     assert(count > 0);
     while (count > 0) {

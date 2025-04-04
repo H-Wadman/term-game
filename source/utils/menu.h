@@ -44,10 +44,9 @@ typedef struct Option
 //! Specifies dimension
 typedef struct Dim
 {
-    //! Height
-    int h;
+    int height;
     //! Width
-    int w;
+    int width;
 } Dim;
 
 //! Holds information about 2D art
@@ -161,19 +160,20 @@ void win_cleanup(WINDOW* win);
  * negative will be set such that menu is vertically centered on screen.
  */
 
-#define MAKE_MENU_VERBOSE(menu_name, menu_banner, min_choice_width,                   \
-                          justification, left_pad, right_pad, x, y)                   \
-    static struct Menu implementation_##menu_name##_menu = {                          \
-        .choices        = (struct Option const**)(menu_name),                         \
-        .choices_height = CHOICES_LEN(menu_name),                                     \
-        .choices_width  = (min_choice_width),                                         \
-        .banner         = {.art = (const char**)(menu_banner),                        \
-                           .dim = {.h = (int)(sizeof(menu_banner) / sizeof(char*))}}, \
-        .start_x        = (x),                                                        \
-        .start_y        = (y),                                                        \
-    };                                                                                \
-                                                                                      \
-    const struct Menu* const menu_name##_menu =                                       \
+#define MAKE_MENU_VERBOSE(menu_name, menu_banner, min_choice_width,              \
+                          justification, left_pad, right_pad, x, y)              \
+    static struct Menu implementation_##menu_name##_menu = {                     \
+        .choices        = (struct Option const**)(menu_name),                    \
+        .choices_height = CHOICES_LEN(menu_name),                                \
+        .choices_width  = (min_choice_width),                                    \
+        .banner         = (Banner){.art = (const char**)(menu_banner),           \
+                                   .dim = {.height = (int)(sizeof(menu_banner) / \
+                                                   sizeof(char*))}},     \
+        .start_x        = (x),                                                   \
+        .start_y        = (y),                                                   \
+    };                                                                           \
+                                                                                 \
+    const struct Menu* const menu_name##_menu =                                  \
         &implementation_##menu_name##_menu
 
 /*! \brief Convenient macro for creating a menu structure
@@ -232,6 +232,8 @@ typedef struct Menu_command
 
 Command* new_menu_command(Menu const* menu, int highlight);
 
+Banner make_banner(char const* const* art, int height);
+
 //! Loads the path to the dialogue directory into buf
 void get_dialogue_path(char* buf, int sz);
 
@@ -244,7 +246,7 @@ Command* print_menu(const struct Menu* menu, int select);
 int quick_print_menu(int width, int count, ...);
 
 //! Prints the passed in dialogue file to screen with indicated width
-int print_dia(const char* file_path, int width);
+int print_dia(const char* file_path, Banner b, int width);
 
 //! This function prints the string passed in as a dialogue
 int print_diastr(char const* const str);

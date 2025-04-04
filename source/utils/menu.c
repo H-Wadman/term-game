@@ -50,6 +50,25 @@ Command* new_menu_command(Menu const* menu, int highlight)
     return (Command*)res;
 }
 
+//! Construct a banner with the correct width
+Banner make_banner(char const* const* art, int height)
+{
+    if (!art) {
+        return (Banner){.art = NULL};
+    }
+    Banner res = {.art = art, .dim.height = height};
+    res.dim.width = get_banner_width(res);
+
+    return res;
+}
+
+void paint_banner(WINDOW* win, Banner b)
+{
+    for (int i = 0; i < b.dim.height; ++i) {
+        waddstr(win, b.art[i]);
+    }
+}
+
 /*!
  * Loads the path to the dialogue directory
  *
@@ -85,31 +104,15 @@ WINDOW* add_banner(const struct Menu* menu, WINDOW* menu_win)
     int x                 = getmaxx(menu_win);
     int const menu_middle = x / 2;
     WINDOW* banner_win =
-        newwin(menu->banner.dim.h, menu->banner.dim.w,
-               menu->start_y - menu->banner.dim.h,
-               menu->start_x + menu_middle - menu->banner.dim.w / 2);
-    for (int i = 0; i < menu->banner.dim.h; ++i) {
+        newwin(menu->banner.dim.height, menu->banner.dim.width,
+               menu->start_y - menu->banner.dim.height,
+               menu->start_x + menu_middle - menu->banner.dim.width / 2);
+    for (int i = 0; i < menu->banner.dim.height; ++i) {
         mvwprintw(banner_win, i, 0, "%s", menu->banner.art[i]);
     }
 
     wrefresh(banner_win);
     return banner_win;
-}
-
-//TODO: Can probably be removed (check commented refresh banner)
-void refresh_banner(WINDOW* banner_win, const struct Menu* menu,
-                    WINDOW* menu_win)
-{
-    if (!banner_win) { return; }
-
-    int x                         = 0;
-    int y __attribute__((unused)) = 0;
-    getmaxyx(menu_win, y, x);
-    for (int i = 0; i < menu->banner.dim.h; ++i) {
-        mvwprintw(banner_win, i, 0, "%s", menu->banner.art[i]);
-    }
-
-    wrefresh(banner_win);
 }
 
 //! Convenience function to remove all artifacts of a window and release its
@@ -222,7 +225,7 @@ int get_menu_width(struct Menu const* menu)
 int get_banner_width(Banner b)
 {
     int max = 0;
-    for (int i = 0; i < b.dim.h; ++i) {
+    for (int i = 0; i < b.dim.height; ++i) {
         int curr = utf8_strlen(b.art[i]);
         if (max < curr) { max = curr; }
     }
@@ -376,20 +379,20 @@ void implementation_initialise_menu(struct Menu* menu)
     assert(menu->choices_width + utf8_strlen(selection_string) + 2 <= COLS);
 
     if (menu->banner.art) {
-        menu->banner.dim.w =
+        menu->banner.dim.width =
             get_banner_width(menu->banner);
-        assert(menu->banner.dim.w <= COLS);
+        assert(menu->banner.dim.width <= COLS);
     }
     else {
-        menu->banner.dim.w  = 0;
-        menu->banner.dim.h = 0;
+        menu->banner.dim.width  = 0;
+        menu->banner.dim.height = 0;
     }
 
     if (menu->start_x < 0) {
         menu->start_x = (COLS - (menu->choices_width + 2)) / 2;
     }
     if (menu->start_y < 0) {
-        int height    = (menu->banner.art) ? menu->banner.dim.h : 0;
+        int height    = (menu->banner.art) ? menu->banner.dim.height : 0;
         menu->start_y = (LINES - (menu->choices_height + 2) + height) / 2;
     }
 }
@@ -531,15 +534,17 @@ typedef struct print_dia_win_res
  * \returns A print_dia_win_res structure indicating if an error occurred, and
  * if not an integer
  */
-Print_dia_win_res print_dia_win(struct Dia_print dia_p)
+Print_dia_win_res print_dia_win(struct Dia_print dia_p, Banner b)
 {
-    //struct dia_print dia_p = {fopen(dia.path, "r"), 0, 0, dia.width};
-
     int height = get_dia_height(&dia_p);
+
+    int const dia_y_pos = (LINES - (2 + height));
+    //int const dia_x_pos = (COLS - (2 + dia_p.width));
+
     // Create a centered window with padding for borders
     WINDOW* dia_win =
-        newwin(2 + height, 2 + dia_p.width, (LINES - (2 + height)) / 2,
-               (COLS - (2 + dia_p.width)) / 2);
+        newwin(2 + height, 2 + dia_p.width, (dia_y_pos + b.dim.height) / 2,
+               (COLS - (2 + dia_p.width) + b.dim.width) / 2);
 
     intrflush(dia_win, false);
     keypad(dia_win, true);
@@ -556,13 +561,20 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
         }
     }
 
+    WINDOW* banner_win = NULL;
+    if (b.art) {
+    banner_win = newwin(b.dim.height, b.dim.width, (dia_y_pos - b.dim.height) / 2, (COLS - b.dim.width) / 2); 
+    paint_banner(banner_win, b);
+    }
     char buf[ASCII_BUF_SZ];
     if (r_code == 2) {
         wrefresh(dia_win);
+        if (banner_win) {wrefresh(banner_win);}
         load_utf8(buf, (Input){.win = dia_win, .tag = tag_win});
     }
 
     win_cleanup(dia_win);
+    if(banner_win) { win_cleanup(banner_win); }
 
     Print_dia_win_res res = {.error = false, .res = r_code};
     return res;
@@ -584,7 +596,7 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p)
  *
  * \returns 0 on success, -1 on failure
  */
-int print_dia(const char* file_path, int width)
+int print_dia(const char* file_path, Banner b, int width)
 {
     if (width + 2 > COLS) {
         log_msgln(
@@ -603,7 +615,7 @@ int print_dia(const char* file_path, int width)
                             .width = width};
 
     while (true) {
-        Print_dia_win_res code = print_dia_win(dia);
+        Print_dia_win_res code = print_dia_win(dia, b);
         if (code.error) {
             int err = fclose(f);
             if (err) {
@@ -667,7 +679,7 @@ int print_diastr(char const* const str)
         return -3;
     }
 
-    err = print_dia(tmpl, utf8_strlen(str));
+    err = print_dia(tmpl, (Banner){.art = NULL}, utf8_strlen(str));
     if (err == -1) {
         (void)fclose(temp);
         log_msgln("print_dia failed in print_diastr");
