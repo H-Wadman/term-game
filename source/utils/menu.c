@@ -50,13 +50,27 @@ Command* new_menu_command(Menu const* menu, int highlight)
     return (Command*)res;
 }
 
-//! Construct a banner with the correct width
+/*!
+ * \brief Calculates the width of a banner
+ *
+ * \param[in] banner An array of strings
+ * \param[in] size the size of banner
+ * \returns The width of the banner in unicode points
+ */
+int get_banner_width(Banner b)
+{
+    int max = 0;
+    for (int i = 0; i < b.dim.height; ++i) {
+        int curr = utf8_strlen(b.art[i]);
+        if (max < curr) { max = curr; }
+    }
+    return max;
+}
+
 Banner make_banner(char const* const* art, int height)
 {
-    if (!art) {
-        return (Banner){.art = NULL};
-    }
-    Banner res = {.art = art, .dim.height = height};
+    if (!art) { return (Banner){.art = NULL}; }
+    Banner res    = {.art = art, .dim.height = height};
     res.dim.width = get_banner_width(res);
 
     return res;
@@ -64,9 +78,7 @@ Banner make_banner(char const* const* art, int height)
 
 void paint_banner(WINDOW* win, Banner b)
 {
-    for (int i = 0; i < b.dim.height; ++i) {
-        waddstr(win, b.art[i]);
-    }
+    for (int i = 0; i < b.dim.height; ++i) { mvwaddstr(win, i, 0, b.art[i]); }
 }
 
 /*!
@@ -216,23 +228,6 @@ int get_menu_width(struct Menu const* menu)
 }
 
 /*!
- * \brief Calculates the width of a banner
- *
- * \param[in] banner An array of strings
- * \param[in] size the size of banner
- * \returns The width of the banner in unicode points
- */
-int get_banner_width(Banner b)
-{
-    int max = 0;
-    for (int i = 0; i < b.dim.height; ++i) {
-        int curr = utf8_strlen(b.art[i]);
-        if (max < curr) { max = curr; }
-    }
-    return max;
-}
-
-/*!
  * Prints the passed in menu according to its parameters and then blocks until
  * a choice has been selected. At that point, the \ref Option::command::execute
  * associated with the choice is executed, and the returned Command is passed
@@ -379,8 +374,7 @@ void implementation_initialise_menu(struct Menu* menu)
     assert(menu->choices_width + utf8_strlen(selection_string) + 2 <= COLS);
 
     if (menu->banner.art) {
-        menu->banner.dim.width =
-            get_banner_width(menu->banner);
+        menu->banner.dim.width = get_banner_width(menu->banner);
         assert(menu->banner.dim.width <= COLS);
     }
     else {
@@ -544,7 +538,7 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p, Banner b)
     // Create a centered window with padding for borders
     WINDOW* dia_win =
         newwin(2 + height, 2 + dia_p.width, (dia_y_pos + b.dim.height) / 2,
-               (COLS - (2 + dia_p.width) + b.dim.width) / 2);
+               (COLS - (2 + dia_p.width)) / 2);
 
     intrflush(dia_win, false);
     keypad(dia_win, true);
@@ -563,18 +557,20 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p, Banner b)
 
     WINDOW* banner_win = NULL;
     if (b.art) {
-    banner_win = newwin(b.dim.height, b.dim.width, (dia_y_pos - b.dim.height) / 2, (COLS - b.dim.width) / 2); 
-    paint_banner(banner_win, b);
+        banner_win =
+            newwin(b.dim.height, b.dim.width, (dia_y_pos - b.dim.height) / 2,
+                   (COLS - b.dim.width) / 2);
+        paint_banner(banner_win, b);
     }
     char buf[ASCII_BUF_SZ];
     if (r_code == 2) {
         wrefresh(dia_win);
-        if (banner_win) {wrefresh(banner_win);}
+        if (banner_win) { wrefresh(banner_win); }
         load_utf8(buf, (Input){.win = dia_win, .tag = tag_win});
     }
 
     win_cleanup(dia_win);
-    if(banner_win) { win_cleanup(banner_win); }
+    if (banner_win) { win_cleanup(banner_win); }
 
     Print_dia_win_res res = {.error = false, .res = r_code};
     return res;

@@ -111,9 +111,6 @@ struct dia
     int width;
 };
 
-int get_menu_width(struct Menu const* menu);
-int get_banner_width(Banner b);
-
 //! Enum used to specify text justification in menus
 enum Justification
 {
@@ -232,6 +229,7 @@ typedef struct Menu_command
 
 Command* new_menu_command(Menu const* menu, int highlight);
 
+//! Construct a banner with the correct width
 Banner make_banner(char const* const* art, int height);
 
 //! Loads the path to the dialogue directory into buf

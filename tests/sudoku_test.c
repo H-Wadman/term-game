@@ -8,7 +8,7 @@ bool valid_col(int const* board, int c);
 bool valid_sq(int const* board, int y, int x);
 
 //NOLINTBEGIN
-Sudoku sc_solved __attribute__((unused)) = {
+Sudoku_command sc_solved __attribute__((unused)) = {
     .command = (Command){.execute = paint_sudoku},
     .board   = {
                          {0, 8, 5, 4, 7, 9, 1, 3, 2},
@@ -22,7 +22,7 @@ Sudoku sc_solved __attribute__((unused)) = {
                          {1, 9, 7, 2, 5, 4, 6, 8, 3},
                          }
 };
-Sudoku sc = {
+Sudoku_command sc = {
     .command = (Command){.execute = paint_sudoku},
     .board   = {
                          {6, 0, 0, 0, 7, 9, 0, 3, 2},
