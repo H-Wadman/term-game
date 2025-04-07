@@ -10,8 +10,12 @@ set(CMAKE_OSX_SYSROOT "macosx" CACHE STRING "Sysroot to use on MacOS in order to
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3)
 else ()
-  add_compile_options(-Wall -Wextra -Werror -Werror=vla -Wno-type-limits -Wno-initializer-overrides -g -fsanitize=address,undefined -fno-omit-frame-pointer)
-  add_link_options(-fsanitize=address,undefined)
+  add_compile_options(-Wall -Wextra -Werror -Werror=vla -Wno-type-limits -Wno-initializer-overrides -g -fno-omit-frame-pointer)
+endif ()
+
+if ("${CMAKE_C_COMPILER}" MATCHES "clang")
+    add_compile_options(-fsanitize=address,undefined)
+    add_link_options(-fsanitize=address,undefined)
 endif ()
 
 

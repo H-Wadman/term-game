@@ -22,6 +22,7 @@ char const* we_enum_to_str(enum Witness_enum we)
         case we_dot   : return "dot";
         case we_filled: return "filled";
         case we_empty : return "empty";
+        default       : log_and_exit("Invalid enum value passed to %s\n", __func__);
     }
 }
 
@@ -42,6 +43,7 @@ char const* dir_to_str(Dir d)
         case dir_down : return "down";
         case dir_left : return "left";
         case dir_right: return "right";
+        default       : log_and_exit("Invalid enum value passed to %s\n", __func__);
     }
 }
 

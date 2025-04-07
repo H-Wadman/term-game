@@ -15,7 +15,7 @@ void log_msgln(char const* msg);
 
 void log_msgf(char const* fmt, ...);
 
-void noreturn log_and_exit(char const* fmt, ...);
+noreturn void log_and_exit(char const* fmt, ...);
 
 struct log_def_args
 {

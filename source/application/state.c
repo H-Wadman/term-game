@@ -7,7 +7,9 @@ struct Player
     bool has_visited_well;
     bool has_key;
     bool has_forest_map;
-} static player; //NOLINT
+};
+
+static struct Player player = {0}; //NOLINT
 
 struct Settings
 {
