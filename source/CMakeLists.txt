@@ -7,6 +7,10 @@ set(configDir ${CMAKE_CURRENT_LIST_DIR}/cmake-cfg)
 # Ugly and bad but convenient
 configure_file(${configDir}/build-path.h.in ${configDir}/build-path.h)
 
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_options(--define-macro=DEBUG_FUNCTIONALITY)
+endif ()
+
 #Non local libraries
 find_library(ncursesLib NAMES ncursesw ncurses)
 

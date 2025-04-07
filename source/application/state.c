@@ -6,6 +6,7 @@ struct Player
     bool has_visited_cabin;
     bool has_visited_well;
     bool has_key;
+    bool has_forest_map;
 } static player; //NOLINT
 
 struct Settings
@@ -30,6 +31,10 @@ void player_visited_cabin_set() { player.has_visited_cabin = true; }
 bool player_visited_well_val() { return player.has_visited_well; }
 
 void player_visited_well_set() { player.has_visited_well = true; }
+
+bool player_has_forest_map_val() { return player.has_forest_map; }
+
+void player_has_forest_map_set() { player.has_forest_map = true; }
 
 bool player_has_key_val() { return player.has_key; }
 

@@ -142,6 +142,19 @@ Command const show_well = {.execute = show_well_execute, .persistent = true};
 //     }
 // }
 
+static Banner gudrun_banner()
+{
+    static bool first_call = true;
+    static Banner res      = {0};
+
+    if (first_call) {
+        first_call = false;
+        res = make_banner(gudrun_art, sizeof(gudrun_art) / sizeof(char*));
+    }
+
+    return res;
+}
+
 Sudoku_command const gertrud_sudoku = {
     .command = {.execute = paint_sudoku, .persistent = true},
     .board   = {
@@ -157,6 +170,46 @@ Sudoku_command const gertrud_sudoku = {
                 }
 };
 
+static Command* knock_freaky()
+{
+    GET_AND_PRINT_DIA("freaky.txt", COLS / 3);
+    int h = sizeof(freaky_apple_art) / sizeof(freaky_apple_art[0]);
+    int w = utf8_strlen(freaky_apple_art[0]);
+    WINDOW* freaky_apple_win = newwin(h, w, 0, 0);
+    intrflush(freaky_apple_win, false);
+    keypad(freaky_apple_win, true);
+
+    for (int i = 0; i < h; ++i) {
+        mvwaddstr(freaky_apple_win, i, 0, freaky_apple_art[i]);
+    }
+    wrefresh(freaky_apple_win);
+    get_input_char((Input){.win = freaky_apple_win, .tag = tag_win});
+    win_cleanup(freaky_apple_win);
+
+    return (Command*)&show_cabin;
+}
+
+Command* go_to_cabin_execute(void* _ __attribute__((unused)))
+{
+    if (player_has_forest_map_val()) { return (Command*)&show_gudrun; }
+    else {
+        return (Command*)&show_cabin;
+    }
+}
+
+Command const go_to_cabin = {.execute    = go_to_cabin_execute,
+                             .persistent = true};
+
+Command* gudruns_mission(void* _ __attribute__((unused)))
+{
+    GET_AND_PRINT_DIA_BANNER("gudruns_mission.txt", gudrun_banner(), COLS / 3);
+
+    print_diastr("You have received the forest map!");
+    player_has_forest_map_set();
+
+    return (Command*)&go_to_cabin;
+}
+
 static Command* knock_execute(void* _ __attribute__((unused)))
 {
     static bool has_knocked = false;
@@ -171,49 +224,22 @@ static Command* knock_execute(void* _ __attribute__((unused)))
     print_diastr("The door seems to be locked.");
 
 
-    if (player_has_key_val()) {
-        print_diastr("Use key?");
-        int res = quick_print_menu(0, 2, "Yes", "No");
-        if (res == 0) {
-            GET_AND_PRINT_DIA_BANNER(
-                "meeting_gudrun.txt",
-                make_banner(gudrun, sizeof(gudrun) / sizeof(gudrun[0])),
-                COLS / 4);
-            push_command((Command*)&show_cabin);
-            return (Command*)&gertrud_sudoku;
-        }
-        else if (res == 1) {
-            return (Command*)&show_cabin;
-        }
-        else {
-            log_and_exit("Invalid result returned by quick_print_menu\n");
-        }
-        if (res == 0) {
-            if (is_katte_mode()) {
-                GET_AND_PRINT_DIA("freaky.txt", COLS / 3);
-                int h = sizeof(freaky_apple) / sizeof(freaky_apple[0]);
-                int w = utf8_strlen(freaky_apple[0]);
-                WINDOW* freaky_apple_win = newwin(h, w, 0, 0);
-                intrflush(freaky_apple_win, false);
-                keypad(freaky_apple_win, true);
+    if (!player_has_key_val()) { return (Command*)&show_cabin; }
 
-                for (int i = 0; i < h; ++i) {
-                    mvwaddstr(freaky_apple_win, i, 0, freaky_apple[i]);
-                }
-                wrefresh(freaky_apple_win);
-                get_input_char(
-                    (Input){.win = freaky_apple_win, .tag = tag_win});
-                win_cleanup(freaky_apple_win);
-
-                return (Command*)&null_command;
-            }
-            else {
-                return (Command*)&null_command;
-            }
-        }
+    print_diastr("Use key?");
+    int res = quick_print_menu(0, 2, "Yes", "No");
+    if (res == 0) {
+        if (is_katte_mode()) { return knock_freaky(); }
+        GET_AND_PRINT_DIA_BANNER("meeting_gudrun.txt", gudrun_banner(),
+                                 COLS / 4);
+        push_command(new_command(gudruns_mission, false));
+        return (Command*)&gertrud_sudoku;
+    }
+    else if (res == 1) {
+        return (Command*)&show_cabin;
     }
 
-    return (Command*)&show_cabin;
+    log_and_exit("Invalid result returned by quick_print_menu\n");
 }
 
 Command const knock = {.execute = knock_execute, .persistent = true};

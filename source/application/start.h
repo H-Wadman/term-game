@@ -21,5 +21,7 @@ extern Command const knock;
 
 extern Command const switch_katte_mode;
 
+extern Command const go_to_cabin;
+
 
 #endif

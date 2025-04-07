@@ -264,9 +264,8 @@ Command* print_menu(const struct Menu* menu, int select)
                 if (curr->command->execute) {
                     win_cleanup(menu_win);
                     win_cleanup(title_win);
-                    Command* res = curr->command->execute((void*)curr->command);
 
-                    return res;
+                    return curr->command;
                 }
             }
             default:;

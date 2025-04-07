@@ -119,7 +119,7 @@ char const* const door_art[] = {
     "           |____________|",
 };
 
-char const* const freaky_apple[55] = {
+char const* const freaky_apple_art[55] = {
 
 "                                       *%##*-==--------=*@@                                         ",
 "                              ******++*#%###+==---------===--+%                                     ",
@@ -179,7 +179,7 @@ char const* const freaky_apple[55] = {
 };
 
 
-char const* const gudrun[16] = {
+char const* const gudrun_art[16] = {
 "         .---.",
 "        (_---_)",
 "       (_/6 6\\_)",
@@ -201,35 +201,6 @@ char const* const gudrun[16] = {
 // clang-format on
 
 /********************** COMMANDS **********************/
-
-//Auxiliary definitions
-
-
-/*!
- * \brief Make an Options that returns a Command*
- *
- * The Command* will be returned by \ref Option::command::execute
- * \param opt_name Name of the \ref Option to be created.
- * \param label_val The label of the \Option to be created.
- * \param ret_val_name Decides the name of the Return_command to be created. Has
- *    to be valid characters in an identifier. Any such name that does not clash
- *    with another call to MAKE_RETURN_COMMAND is fine, but is usually be the
- *    same as ret_val without any operators.
- * \param ret_val (Command*) The return value of Option::command::execute
- */
-#define MAKE_RETURN_COMMAND(opt_name, label_val, ret_val_name, ret_val)        \
-    struct Return_command const impl_return_##ret_val_name = {                 \
-        (Command){.execute = return_command, .persistent = true},              \
-        .return_value = (ret_val) \
-    };                                            \
-                                                                               \
-    const struct Option opt_name = {                                           \
-        .label   = (label_val),                                                \
-        .command = (Command*)&impl_return_##ret_val_name};
-
-/********************* STANDARD COMMANDS *********************/
-/********************** SHOULD BE CONST **********************/
-
 
 static Return_command const exit_game = {
     (Command){.execute = return_command, .persistent = true},
@@ -253,27 +224,23 @@ MAKE_MENU(options, NULL, 60, -1, -1); //NOLINT
 
 /********************* START MENU *********************/
 
-MAKE_RETURN_COMMAND(start_play, "Play", show_glade, (Command*)&show_glade);
-//make_menu_command(options);
+Option const start_play = {.label = "Play", .command = (Command*)&show_glade};
 
+Option const start_options = {.label   = "Options", //NOLINT
+                              .command = (Command*)&show_options};
+Option const start_exit    = {.label = "Exit", .command = (Command*)&exit_game};
 
-const struct Option start_options = {.label   = "Options", //NOLINT
-                                     .command = (Command*)&show_options};
-const struct Option start_exit    = {.label   = "Exit",
-                                     .command = (Command*)&exit_game};
-
-struct Option const* const start[] = {&start_play, &start_options, &start_exit};
+Option const* const start[] = {&start_play, &start_options, &start_exit};
 
 MAKE_MENU(start, title, 77, -1, -1); //NOLINT
 
 /************************ CABIN ************************/
 
-const struct Option cabin_knock = {.label   = "Knock",
-                                   .command = (Command*)&knock};
-const struct Option cabin_back  = {.label   = "Go back",
-                                   .command = (Command*)&show_glade};
+Option const cabin_knock = {.label = "Knock", .command = (Command*)&knock};
+Option const cabin_back  = {.label   = "Go back",
+                            .command = (Command*)&show_glade};
 
-struct Option const* const cabin[] = {&cabin_knock, &cabin_back};
+Option const* const cabin[] = {&cabin_knock, &cabin_back};
 
 MAKE_MENU(cabin, door_art, 100, -1, -1); //NOLINT
 MAKE_MENU_COMMAND(cabin);
@@ -283,25 +250,41 @@ MAKE_MENU_COMMAND(cabin);
 
 /********************** GLADE **********************/
 
-MAKE_RETURN_COMMAND(glade_cabin, "Cabin", show_cabin, (Command*)&show_cabin);
-MAKE_RETURN_COMMAND(glade_well, "Well", show_well, (Command*)&show_well);
-
-const struct Option glade_forest   = {.label   = "Forest",
-                                      .command = (Command*)&exit_game};
-struct Option const* const glade[] = {&glade_cabin, &glade_well, &glade_forest};
+Option const glade_cabin  = {.label   = "Cabin",
+                             .command = (Command*)&go_to_cabin};
+Option const glade_well   = {.label = "Well", .command = (Command*)&show_well};
+Option const glade_forest = {.label   = "Forest",
+                             .command = (Command*)&null_command};
+Option const* const glade[] = {&glade_cabin, &glade_well, &glade_forest};
 
 MAKE_MENU(glade, questionmark, 100, -1, -1); //NOLINT
 
 /************************ WELL ************************/
 
-MAKE_RETURN_COMMAND(well_raise_bucket, "Raise bucket",
-                    well_raise_bucket_command,
-                    (Command*)&well_raise_bucket_command);
+// MAKE_RETURN_OPTION(well_raise_bucket, "Raise bucket",
+// well_raise_bucket_command,
+//                    (Command*)&well_raise_bucket_command);
+
+Option const well_raise_bucket = {
+    .label = "Raise bucket", .command = (Command*)&well_raise_bucket_command};
+
 const struct Option well_back = {.label = "Back", .command = (Command*)&pop};
 
 struct Option const* const well[] = {&well_raise_bucket, &well_back};
 
 MAKE_MENU(well, well_art, 50, -1, -1); //NOLINT
+
+/************************ GUDRUN ************************/
+
+Option const gudrun_speak = {.label   = "Speak",
+                             .command = (Command*)&null_command};
+Option const gudrun_back  = {.label   = "Return",
+                             .command = (Command*)&show_glade};
+
+Option const* const gudrun[] = {&gudrun_speak, &gudrun_back};
+
+MAKE_MENU(gudrun, gudrun_art, 0, -1, -1); //NOLINT
+MAKE_MENU_COMMAND(gudrun);
 
 /*****************************************************/
 
@@ -314,4 +297,5 @@ void initialise_menus()
     implementation_initialise_menu(&implementation_glade_menu);
     implementation_initialise_menu(&implementation_well_menu);
     implementation_initialise_menu(&implementation_cabin_menu);
+    implementation_initialise_menu(&implementation_gudrun_menu);
 }

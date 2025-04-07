@@ -202,6 +202,9 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
             case KEY_RIGHT:
                 if (x < SUDOKU_SZ - 1) { ++x; }
                 break;
+#ifdef DEBUG_FUNCTIONALITY
+            case ' ': return;
+#endif
             default:
                 //If input was a digit, we fill the square in if possible
                 if ('0' <= ch && ch <= '9' && sc->board[y][x] == 0) {

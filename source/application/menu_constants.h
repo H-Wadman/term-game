@@ -26,8 +26,11 @@ EXTERN_MENU(well);
 EXTERN_MENU(cabin);
 extern Menu_command const show_cabin;
 
-extern char const* const freaky_apple[55];
-extern char const* const gudrun[16];
+EXTERN_MENU(gudrun);
+extern Menu_command const show_gudrun;
+
+extern char const* const freaky_apple_art[55];
+extern char const* const gudrun_art[16];
 
 void initialise_menus();
 
