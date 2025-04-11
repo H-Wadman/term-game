@@ -7,15 +7,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 set(CMAKE_OSX_SYSROOT "macosx" CACHE STRING "Sysroot to use on MacOS in order to satisfy clang-tidy")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-O3)
-else ()
-  add_compile_options(-Wall -Wextra -Werror -Werror=vla -Wno-type-limits -Wno-initializer-overrides -g -fno-omit-frame-pointer)
-endif ()
+set(warning_flags -Wall -Wextra -Werror -Werror=vla -Wno-type-limits -Wno-initializer-overrides)
+set(debug_flags ${warning_flags};-g;-fno-omit-frame-pointer)
 
-if ("${CMAKE_C_COMPILER}" MATCHES "clang")
-    add_compile_options(-fsanitize=address,undefined)
-    add_link_options(-fsanitize=address,undefined)
+add_compile_options(
+    "$<$<CONFIG:Debug>:${debug_flags}>"
+    "$<$<CONFIG:Release>:-O3>"
+)
+if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+    add_compile_options("$<$<CONFIG:Debug>:-fsanitize=address,undefined>")
+    add_link_options("$<$<CONFIG:Debug>:-fsanitize=address,undefined>")
 endif ()
 
 
