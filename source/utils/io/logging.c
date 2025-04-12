@@ -8,7 +8,7 @@ static FILE* errout = NULL; //NOLINT
 
 void set_log_output(FILE* f) { errout = f; }
 
-void close_log_stream() { (void)fclose(errout); }
+void close_log_stream(void) { (void)fclose(errout); }
 
 void log_msg(char const* msg)
 {

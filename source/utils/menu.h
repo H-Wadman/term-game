@@ -223,7 +223,7 @@ typedef struct Menu_command
         .command   = (Command){.execute = show_menu, .persistent = true},      \
         .menu      = menu_name##_menu,                                         \
         .highlight = 0 \
-    };
+    }
 
 #define EXTERN_MENU(name) extern const struct Menu* const name##_menu
 

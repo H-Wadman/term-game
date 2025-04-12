@@ -60,7 +60,7 @@ bool int_eq(int a, int b) { return a == b; }
 
 bool coord_eq(coord c, coord c2) { return c.x == c2.x && c.y == c2.y; }
 
-CREATE_VEC(int, int_eq);
-CREATE_VEC(coord, coord_eq);
+CREATE_VEC(int, int_eq)
+CREATE_VEC(coord, coord_eq)
 
 //NOLINTEND

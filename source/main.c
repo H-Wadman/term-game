@@ -3,7 +3,7 @@
 #include "base.h"
 #include "start.h"
 
-int main()
+int main(void)
 {
     init_game();
 

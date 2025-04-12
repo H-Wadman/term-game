@@ -2,7 +2,7 @@
 #include <assert.h>
 
 //NOLINTBEGIN
-void test_new_free()
+void test_new_free(void)
 {
     Vec_int v = new_vec_int(5);
 
@@ -18,7 +18,7 @@ void test_new_free()
     free_vec(&v);
 }
 
-void test_push()
+void test_push(void)
 {
     Vec_int v = new_vec_int(16);
     VEC_PUSH(&v, 0);
@@ -46,7 +46,7 @@ void test_push()
     for (int i = 0; i < 5; ++i) { assert(v.data[i] == i + 1); }
 }
 
-void test_pop()
+void test_pop(void)
 {
     Vec_int v = new_vec_int(16);
     VEC_PUSH(&v, 0);
@@ -60,7 +60,7 @@ void test_pop()
     assert(v.sz == 4);
 }
 
-void test()
+void test(void)
 {
     test_new_free();
     test_push();
@@ -69,4 +69,4 @@ void test()
 
 //NOLINTEND
 
-int main() { test(); }
+int main(void) { test(); }

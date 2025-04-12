@@ -66,7 +66,7 @@ Command* pop_command(void* _ __attribute__((unused)))
     return res;
 }
 
-void init_color_pairs()
+void init_color_pairs(void)
 {
     init_pair(1, COLOR_YELLOW, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);

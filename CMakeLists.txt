@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 set(CMAKE_OSX_SYSROOT "macosx" CACHE STRING "Sysroot to use on MacOS in order to satisfy clang-tidy")
 
-set(warning_flags -Wall -Wextra -Werror -Werror=vla -Wno-type-limits -Wno-initializer-overrides)
+set(warning_flags -Wall -Wextra -Wpedantic -Werror -Werror=vla -Wno-type-limits -Wno-initializer-overrides)
 set(debug_flags ${warning_flags};-g;-fno-omit-frame-pointer)
 
 add_compile_options(

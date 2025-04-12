@@ -8,7 +8,7 @@
 //!littering code with NOLINT statements
 
 void set_log_output(FILE* f);
-void close_log_stream();
+void close_log_stream(void);
 
 void log_msg(char const* msg);
 void log_msgln(char const* msg);

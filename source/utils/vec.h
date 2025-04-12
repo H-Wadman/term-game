@@ -32,7 +32,7 @@
     bool Vec_contains_##type(Vec_##type v, type e);                            \
     type Vec_back_##type(Vec_##type v);                                        \
     type vec_pop_##type(Vec_##type* v);                                        \
-    Vec_##type new_vec_##type(int cap);
+    Vec_##type new_vec_##type(int cap)
 
 enum
 {

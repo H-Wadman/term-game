@@ -73,4 +73,4 @@ Command* pop_command(void*);
 extern Command const null_command;
 extern Command const pop;
 
-void init_color_pairs();
+void init_color_pairs(void);

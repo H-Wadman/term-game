@@ -750,7 +750,7 @@ Command* play_witness(Witness* this)
     return pop_command(NULL);
 }
 
-void test_play_witness()
+void test_play_witness(void)
 {
     //NOLINTBEGIN
     assert(utf8_strlen("☘") == 1);

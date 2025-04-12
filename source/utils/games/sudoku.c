@@ -220,7 +220,7 @@ void play_sudoku(WINDOW* suk_win, Sudoku_command* sc)
     }
 }
 
-void sudoku_test()
+void sudoku_test(void)
 {
     //NOLINTBEGIN
     int test[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
@@ -260,7 +260,7 @@ Command* paint_sudoku(void* this)
 }
 
 //TODO: Remove
-void test_sudoku()
+void test_sudoku(void)
 {
     //NOLINTBEGIN
     Sudoku_command sc_solved __attribute__((unused)) = {

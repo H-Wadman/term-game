@@ -290,7 +290,7 @@ MAKE_MENU_COMMAND(gudrun);
 
 //! Initialises all the runtime information of the menus defined in \ref
 //! menu_constants.c
-void initialise_menus()
+void initialise_menus(void)
 {
     implementation_initialise_menu(&implementation_start_menu);
     implementation_initialise_menu(&implementation_options_menu);

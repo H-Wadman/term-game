@@ -27,8 +27,8 @@ static inline bool is_ascii(unsigned int c)
 //! Checks if the passed in byte c is a continuation byte in the UTF-8 format
 static inline bool is_continuation(unsigned int c)
 {
-#define BIT1 0b10000000U
-#define BIT2 0b01000000U
+#define BIT1 128U
+#define BIT2 64U
 
     return (BIT1 & c) != 0 && (BIT2 & c) == 0;
 #undef BIT1
@@ -47,7 +47,7 @@ static inline bool is_continuation(unsigned int c)
 static int get_utf8_len(unsigned int c)
 {
     if (is_ascii(c)) { return 1; }
-    unsigned const int mask = 0b11000000;
+    unsigned const int mask = 192;
     if ((c & mask) != mask) { return -1; }
 
     //! \cond
@@ -59,9 +59,9 @@ static int get_utf8_len(unsigned int c)
         }                                                                      \
     } while (0);
 
-    CHECK(0b00010000U, 4);
-    CHECK(0b00100000U, 3);
-    CHECK(0b01000000U, 2);
+    CHECK(16U, 4);
+    CHECK(32U, 3);
+    CHECK(64U, 2);
 
     return -1;
 

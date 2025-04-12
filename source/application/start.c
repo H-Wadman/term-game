@@ -35,7 +35,7 @@
 //len of str should fit in an int
 
 
-static void perform_atexit()
+static void perform_atexit(void)
 {
     endwin();
     close_log_stream();
@@ -43,7 +43,7 @@ static void perform_atexit()
 
 //! \brief Sets the locale, initialises ncurses with common defaults, and
 //! registers a function to be called on exit
-static void ncurses_set_up()
+static void ncurses_set_up(void)
 {
     const char* locale = setlocale(LC_ALL, "");
     if (locale == NULL) {
@@ -80,14 +80,14 @@ static void ncurses_set_up()
     }
 }
 
-void init_game()
+void init_game(void)
 {
     ncurses_set_up();
     initialise_menus();
     set_log_output(stderr);
 }
 
-Command* start_game() { return new_command(show_opening, false); }
+Command* start_game(void) { return new_command(show_opening, false); }
 
 Command* show_opening(void* _ __attribute__((unused)))
 {
@@ -142,7 +142,7 @@ Command const show_well = {.execute = show_well_execute, .persistent = true};
 //     }
 // }
 
-static Banner gudrun_banner()
+static Banner gudrun_banner(void)
 {
     static bool first_call = true;
     static Banner res      = {0};
@@ -170,7 +170,7 @@ Sudoku_command const gertrud_sudoku = {
                 }
 };
 
-static Command* knock_freaky()
+static Command* knock_freaky(void)
 {
     GET_AND_PRINT_DIA("freaky.txt", COLS / 3);
     int h = sizeof(freaky_apple_art) / sizeof(freaky_apple_art[0]);

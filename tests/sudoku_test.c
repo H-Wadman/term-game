@@ -37,7 +37,7 @@ Sudoku_command sc = {
                          }
 };
 
-void general_test()
+void general_test(void)
 {
     int test[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
     assert(!valid_row(test, 0));
@@ -56,7 +56,7 @@ void general_test()
     assert(valid_sq((int*)test2, 0, 2));
 }
 
-void test_valid_row()
+void test_valid_row(void)
 {
     {
         int test[9] = {0};
@@ -74,14 +74,14 @@ void test_valid_row()
     for (int i = 1; i < 9; ++i) { assert(valid_row((int*)sc_solved.board, i)); }
 }
 
-void test_valid_col()
+void test_valid_col(void)
 {
     assert(!valid_col((int*)sc_solved.board, 0));
 
     for (int i = 1; i < 9; ++i) { assert(valid_col((int*)sc_solved.board, i)); }
 }
 
-void test_valid_sq()
+void test_valid_sq(void)
 {
     assert(!valid_sq((int*)sc_solved.board, 0, 0));
 
@@ -93,7 +93,7 @@ void test_valid_sq()
     }
 }
 
-void test()
+void test(void)
 {
     general_test();
     test_valid_row();
@@ -102,4 +102,4 @@ void test()
 }
 
 //NOLINTEND
-int main() { test(); }
+int main(void) { test(); }

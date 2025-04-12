@@ -24,7 +24,7 @@ void get_walls(coord c, coord cs[2], Dir d);
 Dir get_direction(coord from, coord to);
 
 //NOLINTBEGIN
-void test_wit_coord_valid_sq()
+void test_wit_coord_valid_sq(void)
 {
     Witness wc = {NULL, .height = 3, .width = 9};
 
@@ -39,7 +39,7 @@ void test_wit_coord_valid_sq()
     assert(!wit_coord_valid_sq(&wc, (coord){3, 9}));
 }
 
-void test_wit_coord_valid_grid()
+void test_wit_coord_valid_grid(void)
 {
     Witness wc = {.width = 6, .height = 9};
     assert(wit_coord_valid_grid(&wc, (coord){.x = 0, .y = 9}));
@@ -56,7 +56,7 @@ void test_wit_coord_valid_grid()
     assert(wit_coord_valid_grid(&wc, (coord){.x = 0, .y = 9}));
 }
 
-void test_get()
+void test_get(void)
 {
     Witness wc = {.width = 6, .height = 8};
     wc.board   = malloc(wc.width * wc.height * sizeof(Sq));
@@ -77,7 +77,7 @@ void test_get()
     }
 }
 
-void test_step()
+void test_step(void)
 {
     coord c = {2, 9};
     coord s = step(c, dir_up);
@@ -97,7 +97,7 @@ void test_step()
     assert(s.y == c.y);
 }
 
-void test_get_walls()
+void test_get_walls(void)
 {
     Witness wc = {.width = 4, .height = 3};
     wc.board   = malloc(wc.width * wc.height * sizeof(Sq));
@@ -136,7 +136,7 @@ void test_get_walls()
     assert((cs[0].y == 2 && cs[0].x == 1) || (cs[1].y == 2 && cs[1].x == 1));
 }
 
-void test_get_direction()
+void test_get_direction(void)
 {
     coord o  = {0, 0};
     coord up = {-1, 0};
@@ -150,7 +150,7 @@ void test_get_direction()
 }
 
 //Needs more tests
-void test_get_area_full_board()
+void test_get_area_full_board(void)
 {
     Sq board[3][2];
     memset(&board, 0, sizeof board);
@@ -193,7 +193,7 @@ void test_get_area_full_board()
     free_vec(&v4);
 }
 
-void test_get_area_regions()
+void test_get_area_regions(void)
 {
     Sq board[2][2];
     for (int i = 0; i < 2; ++i) {
@@ -229,7 +229,7 @@ void test_get_area_regions()
     assert(v1.sz == 1);
 }
 
-void test_get_scr_pos()
+void test_get_scr_pos(void)
 {
     coord c = {0, 0};
     coord p = get_scr_pos(c);
@@ -266,7 +266,7 @@ void test_get_scr_pos()
 
 //NOLINTEND
 
-void test()
+void test(void)
 {
     test_wit_coord_valid_sq();
     test_wit_coord_valid_grid();
@@ -279,4 +279,4 @@ void test()
     test_get_direction();
 }
 
-int main() { test(); }
+int main(void) { test(); }
