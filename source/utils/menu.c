@@ -652,11 +652,8 @@ int print_diastr(char const* const str)
     }
     int b = fputs(str, temp);
 
-    assert(b == (int)strlen(str));
-    if (b != (int)strlen(str)) {
-        (void)fclose(temp);
-        log_msgln(
-            "fputs did not manage to print entire string in print_diastr");
+    if (b == EOF) {
+        log_msgln("fputs failed in print_diastr");
         return -1;
     }
 
