@@ -27,7 +27,7 @@ void log_msgln(char const* msg)
 
 void log_msgf(char const* fmt, ...)
 {
-    va_list args = NULL;
+    va_list args = {0};
     va_start(args, fmt);
     (void)vfprintf(errout, fmt, args);
 
@@ -36,7 +36,7 @@ void log_msgf(char const* fmt, ...)
 
 void log_and_exit(char const* fmt, ...)
 {
-    va_list args = NULL;
+    va_list args = {0};
     va_start(args, fmt);
 
     (void)vfprintf(errout, fmt, args);

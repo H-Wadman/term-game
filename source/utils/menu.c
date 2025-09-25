@@ -333,7 +333,7 @@ int quick_print_menu(int width, int count, ...)
 {
     assert(count > 0);
 
-    va_list va = NULL;
+    va_list va = {0};
     va_start(va, count);
 
     //Could be optimised by just allocating a Option* and filling it with
