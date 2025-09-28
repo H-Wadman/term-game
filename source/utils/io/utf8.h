@@ -55,3 +55,6 @@ int floadw_utf8(char* buf, FILE* file);
 
 //! Returns the length of a UTF-8 string in unicode code points
 int utf8_strlen(const char* str);
+
+//! Waits for (and discards) a keypress from input source
+void wait_press(Input i);

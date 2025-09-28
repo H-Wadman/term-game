@@ -561,11 +561,10 @@ Print_dia_win_res print_dia_win(struct Dia_print dia_p, Banner b)
                    (COLS - b.dim.width) / 2);
         paint_banner(banner_win, b);
     }
-    char buf[ASCII_BUF_SZ];
     if (r_code == 2) {
         wrefresh(dia_win);
         if (banner_win) { wrefresh(banner_win); }
-        load_utf8(buf, (Input){.win = dia_win, .tag = tag_win});
+        wait_press((Input){.win = dia_win, .tag = tag_win});
     }
 
     win_cleanup(dia_win);

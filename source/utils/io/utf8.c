@@ -18,6 +18,8 @@
 #include "logging.h"
 #include "utf8.h"
 
+int load_utf8_tail(char* buf, Input inp);
+
 //! Checks if the passed in byte is an ASCII character
 static inline bool is_ascii(unsigned int c)
 {
@@ -91,6 +93,52 @@ int get_input_char(Input i)
     return res;
 }
 
+void wait_press(Input i)
+{
+    int ch = get_input_char(i);
+    char buf[ASCII_BUF_SZ];
+    if (KEY_MIN <= ch && ch <= KEY_MAX) { return; }
+    else {
+        int err = load_utf8_tail(buf, i);
+        if (err) { log_and_exit("Failed to read a character\n"); }
+    }
+}
+
+/*!
+ * Given a buffer whose first byte is the first byte of a UTF-8 character, and
+ * an input source, load the full UTF-8 character into the buffer
+ *
+ * \paran[in,out] buf A character buffer of at least \link ASCII_BUF_SZ
+ * \param[in] inp An input source to read characters from
+ * \returns 0 on sucess, a negative number otherwise
+ */
+int load_utf8_tail(char* buf, Input inp)
+{
+    const int len = get_utf8_len(buf[0]);
+    if (len == -1) {
+        log_msgf("wget_utf8, first byte (= %d) did not conform to UTF-8\n",
+                 buf[0]);
+        return -1;
+    }
+    assert(1 <= len && len <= 4);
+    int c = 0;
+    for (int i = 1; i < len; ++i) {
+        c = get_input_char(inp);
+        if (!is_continuation(c)) {
+            log_msgln(
+                "load_utf8_tail: Length indicated by first byte doesn't "
+                "correspond "
+                "to length of string");
+            return -1;
+        }
+
+        buf[i] = (char)c;
+    }
+    buf[len] = '\0';
+
+    return 0;
+}
+
 /*!
  * Reads a UTF-8 character from an ncurses window into a char buffer
  *
@@ -113,27 +161,8 @@ int load_utf8(char* buf, Input inp)
             "A character with negative value has been read in wgetch\n");
     }
 
-    const int len = get_utf8_len(c);
-    if (len == -1) {
-        log_msgf("wget_utf8, first byte (= %d) did not conform to UTF-8\n", c);
-        return -1;
-    }
-    assert(1 <= len && len <= 4);
     buf[0] = (char)c;
-    for (int i = 1; i < len; ++i) {
-        c = get_input_char(inp);
-        if (!is_continuation(c)) {
-            log_msgln(
-                "load_utf8: Length indicated by first byte doesn't correspond "
-                "to length of string");
-            return -1;
-        }
-
-        buf[i] = (char)c;
-    }
-    buf[len] = '\0';
-
-    return 0;
+    return load_utf8_tail(buf, inp);
 }
 
 /*!
